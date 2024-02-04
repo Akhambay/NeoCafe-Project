@@ -17,6 +17,9 @@ class Schedule(models.Model):
     start_time = models.TimeField(max_length=15)
     end_time = models.TimeField(max_length=15)
 
+    def __str__(self):
+        return f"{self.working_days}: {self.start_time} - {self.end_time}"
+
 
 class Branch(models.Model):
     branch_name = models.CharField(max_length=250)
@@ -25,9 +28,9 @@ class Branch(models.Model):
     image = models.ImageField(null=True, blank=True,
                               upload_to='branch_images/')
     description = models.TextField(blank=True)
-    link_2gis = models.CharField(max_length=15)
-    schedule = models.ForeignKey(
-        Schedule, on_delete=models.CASCADE, related_name='branch_schedule')
+    link_2gis = models.CharField(max_length=100)
+    schedule = models.ManyToManyField(
+        Schedule, related_name='branch_schedule')
 
     def __str__(self):
         return self.branch_name
@@ -54,7 +57,7 @@ class CustomUser(AbstractUser):
     confirmation_code = models.CharField(
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='branch')
+        Branch, on_delete=models.CASCADE, related_name='branch', blank=True, null=True)
     login = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=10)
 
