@@ -71,6 +71,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'neocafe_config.wsgi.application'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.custom_auth.CustomAuthentication',
+    ],
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -101,13 +106,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = "users.CustomUser"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Almaty'
 
 USE_I18N = True
 
