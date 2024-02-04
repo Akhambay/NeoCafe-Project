@@ -58,7 +58,7 @@ class CustomUser(AbstractUser):
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='branch', blank=True, null=True)
-    login = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=10)
 
     def __str__(self):
