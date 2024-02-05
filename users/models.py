@@ -1,5 +1,6 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils.crypto import get_random_string
 
 
 class Schedule(models.Model):
@@ -37,6 +38,34 @@ class Branch(models.Model):
         return self.branch_name
 
 
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        if not extra_fields.get('username'):
+            extra_fields['username'] = self.generate_unique_username(email)
+        return self.create_user(email, password, **extra_fields)
+
+    def generate_unique_username(self, email):
+        username_prefix = email.split('@')[0]
+
+    # Generate a random string to ensure uniqueness
+        random_suffix = get_random_string(length=4)
+
+        unique_username = f"{username_prefix}_{random_suffix}"
+
+        return unique_username
+
+
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
@@ -59,8 +88,16 @@ class CustomUser(AbstractUser):
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='branch', blank=True, null=True)
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=10)
+    # username = models.CharField(max_length=100, unique=True)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.user_type})"
+
+
+class Customer(CustomUser):
+    pass
