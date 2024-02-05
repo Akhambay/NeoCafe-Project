@@ -29,7 +29,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["tokyo-backender.org.kg", "https://neo-quiz.vercel.app",
+                 "localhost", "127.0.0.1", "161.35.220.150"]
 
 
 # Application definition
@@ -52,7 +53,19 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'drf_spectacular',
+    'corsheaders',
 ]
+
+CORS_ALLOWED_ORIGINS = (
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'https://tokyo-backender.org.kg',
+    'http://localhost:5173',
+    'https://neo-quiz.vercel.app',
+)
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:5173',
+                        'http://localhost:8000', 'https://tokyo-backender.org.kg', 'https://neo-quiz.vercel.app',]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -160,8 +173,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
