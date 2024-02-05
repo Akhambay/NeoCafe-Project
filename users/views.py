@@ -2,6 +2,7 @@
 from rest_framework import status
 # from dj_rest_auth.views.registration import RegisterView
 from rest_framework_simplejwt.views import TokenObtainPairView
+from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response

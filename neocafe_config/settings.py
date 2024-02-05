@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'dj_rest_auth',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,14 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Junior Project - NeoCafe",
+    "DESCRIPTION": "A Junior project for NeoCafe customers and employees",
+    "VERSION": "1.0.0",
+    # OTHER SETTINGS
 }
 
 # Database
@@ -128,7 +137,7 @@ EMAIL_USE_SSL = True
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'assyl.akhambay@gmail.com'
 EMAIL_HOST_PASSWORD = "dncz oonk widu uitb"
-# EMAIL_SSL_KEYFILE = None
+EMAIL_SSL_KEYFILE = None
 
 SITE_ID = 1
 
