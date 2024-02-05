@@ -7,6 +7,8 @@ paths:
   /api/branch/{id}/:
     get:
       operationId: branch_retrieve
+      description: Get details, update, or delete a branch.
+      summary: Retrieve/Update/Delete Branch
       parameters:
       - in: path
         name: id
@@ -25,8 +27,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Branch'
           description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
     put:
       operationId: branch_update
+      description: Update a branch.
+      summary: Update Branch
       parameters:
       - in: path
         name: id
@@ -56,6 +68,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Branch'
+          description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
           description: ''
     patch:
       operationId: branch_partial_update
@@ -90,6 +110,8 @@ paths:
           description: ''
     delete:
       operationId: branch_destroy
+      description: Delete a branch.
+      summary: Delete Branch
       parameters:
       - in: path
         name: id
@@ -103,10 +125,18 @@ paths:
       - {}
       responses:
         '204':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/branch/add/:
     post:
       operationId: branch_add_create
+      description: Create a new branch.
+      summary: Create Branch
       tags:
       - branch
       requestBody:
@@ -134,6 +164,8 @@ paths:
   /api/branch/all/:
     get:
       operationId: branch_all_list
+      description: Get a list of all branches
+      summary: List Branches
       tags:
       - branch
       security:
@@ -147,6 +179,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Branch'
+          description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: {}
+                  description: Unspecified response body
           description: ''
     post:
       operationId: branch_all_create
@@ -418,9 +460,8 @@ paths:
   /api/customer/login/:
     post:
       operationId: customer_login_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: Customer login with email and verification code.
+      summary: Customer Login
       tags:
       - customer
       requestBody:
@@ -440,7 +481,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: '#/components/schemas/Token'
           description: ''
   /api/customer/register/:
     post:
@@ -472,6 +513,8 @@ paths:
   /api/employee/{id}/:
     get:
       operationId: employee_retrieve
+      description: Get details, update, or delete an employee.
+      summary: Retrieve/Update/Delete Employee
       parameters:
       - in: path
         name: id
@@ -490,8 +533,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Employee'
           description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
     put:
       operationId: employee_update
+      description: Update an employee.
+      summary: Update Employee
       parameters:
       - in: path
         name: id
@@ -521,6 +574,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Employee'
+          description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
           description: ''
     patch:
       operationId: employee_partial_update
@@ -555,6 +616,8 @@ paths:
           description: ''
     delete:
       operationId: employee_destroy
+      description: Delete an employee.
+      summary: Delete Employee
       parameters:
       - in: path
         name: id
@@ -568,10 +631,18 @@ paths:
       - {}
       responses:
         '204':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/employee/add/:
     post:
       operationId: employee_add_create
+      description: Create a new employee.
+      summary: Create Employee
       tags:
       - employee
       requestBody:
@@ -596,9 +667,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Employee'
           description: ''
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/employee/all/:
     get:
       operationId: employee_all_list
+      description: Get a list of all employees
+      summary: List Employees
       tags:
       - employee
       security:
@@ -667,6 +748,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
 components:
   schemas:

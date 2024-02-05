@@ -1,6 +1,6 @@
 # from .utils import generate_unique_username
 from rest_framework import status
-# from dj_rest_auth.views.registration import RegisterView
+from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
 from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
 from rest_framework.permissions import AllowAny
@@ -47,6 +47,18 @@ obtain_jwt_token = AdministratorLogin.as_view()
 class UserLoginView(TokenObtainPairView):
     serializer_class = CustomUserSerializer
 
+    @extend_schema(
+        responses={200: JWTSerializer},
+        description="Get JWT token for user login.",
+        summary="User Login"
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 # EMPLOYEE
 
 
@@ -55,6 +67,11 @@ class EmployeeCreateView(generics.CreateAPIView):
     serializer_class = EmployeeSerializer
     # permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        description="Create a new employee.",
+        summary="Create Employee",
+        responses={201: EmployeeSerializer, 204: "No Content", }
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -70,10 +87,45 @@ class EmployeeList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
 
+    @extend_schema(
+        description="Get a list of all employees",
+        summary="List Employees",
+        responses={200: EmployeeSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
 
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
+
+    @extend_schema(
+        description="Get details, update, or delete an employee.",
+        summary="Retrieve/Update/Delete Employee",
+        responses={
+            200: EmployeeSerializer,
+            204: "No Content",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Update an employee.",
+        summary="Update Employee",
+        responses={200: EmployeeSerializer, 204: "No Content", }
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Delete an employee.",
+        summary="Delete Employee",
+        responses={204: "No Content", }
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         existing_avatar = serializer.instance.avatar
@@ -90,6 +142,11 @@ class BranchCreateView(generics.CreateAPIView):
     serializer_class = BranchSerializer
     # permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        description="Create a new branch.",
+        summary="Create Branch",
+        responses={201: BranchSerializer}
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -105,10 +162,45 @@ class BranchList(generics.ListCreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
 
+    @extend_schema(
+        description="Get a list of all branches",
+        summary="List Branches",
+        responses={200: BranchSerializer(many=True), 204: "No Content"}
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
 
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+
+    @extend_schema(
+        description="Get details, update, or delete a branch.",
+        summary="Retrieve/Update/Delete Branch",
+        responses={
+            200: BranchSerializer,
+            204: "No Content",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Update a branch.",
+        summary="Update Branch",
+        responses={200: BranchSerializer, 204: "No Content", }
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Delete a branch.",
+        summary="Delete Branch",
+        responses={204: "No Content", }
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         existing_image = serializer.instance.image
@@ -124,6 +216,11 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
 class CustomerEmailCheckView(RegisterView):
     serializer_class = CustomerSerializer
 
+    @extend_schema(
+        description="Check customer email during registration and send a verification code.",
+        summary="Customer Email Check",
+        responses={201: "Verification code sent successfully."}
+    )
     def create(self, request, *args, **kwargs):
         # Generate and send a 4-digit code
         confirmation_code = get_random_string(
@@ -172,6 +269,11 @@ User = get_user_model()
 class CustomerLoginView(TokenObtainPairView):
     serializer_class = CustomerSerializer
 
+    @extend_schema(
+        description="Customer login with email and verification code.",
+        summary="Customer Login",
+        responses={200: TokenSerializer}
+    )
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         confirmation_code = request.data.get('confirmation_code')
