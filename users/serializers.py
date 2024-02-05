@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Branch
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -18,3 +18,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
         read_only_fields = ['last_name', 'email',
                             'avatar', 'bonus_points', 'confirmation_code', ]
         model = CustomUser
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['id', 'image', 'branch_name',
+                  'address', 'phone_number', 'link_2gis', 'table_quantity', 'schedule', ]
+        read_only_fields = ['description',]
+        model = Branch

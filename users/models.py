@@ -31,6 +31,7 @@ class Branch(models.Model):
     link_2gis = models.CharField(max_length=100)
     schedule = models.ManyToManyField(
         Schedule, related_name='branch_schedule')
+    table_quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.branch_name
