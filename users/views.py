@@ -1,5 +1,3 @@
-# from .utils import generate_unique_username
-from rest_framework import status
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
 from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
@@ -7,11 +5,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
 from .models import CustomUser, Branch, Customer
-from .serializers import CustomUserSerializer, EmployeeSerializer, BranchSerializer
+from .serializers import CustomUserSerializer, EmployeeAddSerializer, BranchSerializer, EmployeeSerializer, CustomerLoginSerializer, CustomerEmailSerializer
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomerSerializer
 from dj_rest_auth.registration.views import RegisterView
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
@@ -22,6 +19,46 @@ from django.contrib.auth.models import update_last_login
 from dj_rest_auth.models import TokenModel
 from rest_framework_simplejwt.tokens import Token
 from dj_rest_auth.utils import jwt_encode
+from .serializers import AdminLoginSerializer
+from .serializers import CustomTokenObtainPairSerializer
+from rest_framework.views import APIView
+from .serializers import AdminLoginSerializer
+
+
+class AdminLoginView(APIView):
+    serializer_class = AdminLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+
+        # Authenticate the user
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # Login the user
+            login(request, user)
+
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
+            token_data = {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+
+            return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+obtain_jwt_token = CustomTokenObtainPairView.as_view()
 
 
 def generate_unique_username(email):
@@ -35,52 +72,56 @@ def generate_unique_username(email):
     return unique_username
 
 
-class AdministratorLogin(TokenObtainPairView):
-    permission_classes = [AllowAny]
+class AdminLoginTokenView(TokenObtainPairView):
+    serializer_class = AdminLoginSerializer
 
-
-obtain_jwt_token = AdministratorLogin.as_view()
-
-###############
-
-
-class UserLoginView(TokenObtainPairView):
-    serializer_class = CustomUserSerializer
-
-    @extend_schema(
-        responses={200: JWTSerializer},
-        description="Get JWT token for user login.",
-        summary="User Login"
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 # EMPLOYEE
-
-
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = EmployeeSerializer
+    serializer_class = EmployeeAddSerializer
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Create a new employee.",
         summary="Create Employee",
-        responses={201: EmployeeSerializer, 204: "No Content", }
+        responses={201: EmployeeAddSerializer, 204: "No Content", }
     )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         self.perform_create(serializer)
+
+        refresh = RefreshToken.for_user(serializer.instance)
+        token_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
-        serializer.save()
+        # Create the employee
+
+        employee = serializer.save()
+
+        # Generate a refresh token for the employee
+        refresh = RefreshToken.for_user(employee)
+        refresh_token = str(refresh)
+
+        # Attach the refresh token to the employee instance
+        employee.refresh_token = refresh_token
+        employee.set_password(serializer.validated_data['password'])
+        employee.save()
+
+        # Set the user_id in the session
+        self.request.session['pending_confirmation_user'] = employee.id
+        # Save the session to persist the changes
+        self.request.session.save()
+
+####
 
 
 class EmployeeList(generics.ListCreateAPIView):
@@ -126,14 +167,6 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
-    def perform_update(self, serializer):
-        existing_avatar = serializer.instance.avatar
-        serializer.save()
-
-        if 'avatar' not in self.request.data or not self.request.data['avatar']:
-            serializer.instance.avatar = existing_avatar
-            serializer.instance.save()
 
 
 # BRANCH
@@ -214,7 +247,7 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CustomerEmailCheckView(RegisterView):
-    serializer_class = CustomerSerializer
+    serializer_class = CustomerEmailSerializer
 
     @extend_schema(
         description="Check customer email during registration and send a verification code.",
@@ -233,8 +266,16 @@ class CustomerEmailCheckView(RegisterView):
 
         # Save user without password
         user = serializer.save(username=unique_username)
-        user.set_password(confirmation_code)
-        user.save()
+
+        # Set a flag in the user's session to indicate the need for confirmation
+        request.session['pending_confirmation_user'] = user.id
+        print(f"User ID from Session: {
+              request.session.get('pending_confirmation_user')}")
+        user_id = request.session.get('pending_confirmation_user')
+        try:
+            user = get_user_model().objects.get(id=user_id)
+        except get_user_model().DoesNotExist:
+            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Send confirmation email
         subject = 'Welcome to Junior Project'
@@ -245,45 +286,41 @@ class CustomerEmailCheckView(RegisterView):
 
         send_mail(subject, message, from_email, recipient_list)
 
-        # Authenticate the user
-        authenticated_user = authenticate(
-            request, username=user.username, password=confirmation_code)
-
-        if authenticated_user is not None:
-            # Login the user
-            login(request, authenticated_user)
-            update_last_login(None, authenticated_user)
-
-            # Generate JWT token
-            refresh = TokenModel.objects.create(user=authenticated_user)
-            token = jwt_encode(refresh)
-
-            return Response({'token': str(token)}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': 'Authentication failed.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Verification code sent successfully.'}, status=status.HTTP_201_CREATED)
 
 
-User = get_user_model()
+class CustomerLoginView(APIView):
+    serializer_class = CustomerLoginSerializer
 
-
-class CustomerLoginView(TokenObtainPairView):
-    serializer_class = CustomerSerializer
-
-    @extend_schema(
-        description="Customer login with email and verification code.",
-        summary="Customer Login",
-        responses={200: TokenSerializer}
-    )
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         confirmation_code = request.data.get('confirmation_code')
+        print(f"Email: {email}, Confirmation Code: {confirmation_code}")
 
-        # Authenticate the user
-        user = authenticate(request, email=email, password=confirmation_code)
+        # Retrieve user from the session
+        user_id = request.session.get('pending_confirmation_user')
+        print(f"User ID from Session: {user_id}")
 
-        if user is not None:
+        if not user_id:
+            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = get_user_model().objects.get(id=user_id)
+        except get_user_model().DoesNotExist:
+            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+        print(f"User ID from Session: {user_id}, User: {user}")
+
+        # Set the user's password explicitly
+        user.set_password(confirmation_code)
+        user.save()
+
+        # Check if the provided confirmation code now matches the user's password
+        if user.check_password(confirmation_code):
+            print("Password check successful.")
             # Login the user
             login(request, user)
+            update_last_login(None, user)
 
             # Check if the user already has a token
             refresh = RefreshToken.for_user(user)
@@ -292,4 +329,43 @@ class CustomerLoginView(TokenObtainPairView):
             access_token = refresh.access_token
             return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
         else:
+            print("Password check failed.")
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class AdminLoginView5(APIView):
+    serializer_class = AdminLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        # Retrieve user from the session
+        user_id = request.session.get('pending_confirmation_user')
+
+        if not user_id:
+            return Response({'error': 'Admin not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = get_user_model().objects.get(id=user_id)
+        except get_user_model().DoesNotExist:
+            return Response({'error': 'Admin not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the user's password explicitly
+        user = authenticate(request, username=username, password=password)
+
+        # Check if the provided confirmation code now matches the user's password
+        if user is not None:
+            # Login the user
+            login(request, user)
+            update_last_login(None, user)
+
+            # Check if the user already has a token
+            refresh = RefreshToken.for_user(user)
+
+            # Access the token using the `access_token` attribute
+            access_token = refresh.access_token
+            return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
+        else:
+            print("Authentication failed.")
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
