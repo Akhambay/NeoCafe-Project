@@ -1,17 +1,18 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.crypto import get_random_string
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
-        ('monday', 'Monday'),
-        ('tuesday', 'Tuesday'),
-        ('wednesday', 'Wednesday'),
-        ('thursday', 'Thursday'),
-        ('friday', 'Friday'),
-        ('saturday', 'Saturday'),
-        ('sunday', 'Sunday'),
+        ('mon', 'Monday'),
+        ('tue', 'Tuesday'),
+        ('wed', 'Wednesday'),
+        ('thr', 'Thursday'),
+        ('fri', 'Friday'),
+        ('sat', 'Saturday'),
+        ('sun', 'Sunday'),
     ]
 
     working_days = models.CharField(max_length=15, choices=DAYS_CHOICES)
@@ -46,6 +47,11 @@ class CustomUserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
+        refresh = RefreshToken.for_user(user)
+        extra_fields['refresh_token'] = str(refresh)
+        extra_fields['access_token'] = str(refresh.access_token)
+
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
@@ -77,23 +83,23 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(null=True, blank=True, max_length=50)
     last_name = models.CharField(null=True, blank=True, max_length=50)
     user_type = models.CharField(max_length=50, choices=USER_TYPE_CHOICES)
-    DOB = models.DateField(null=True, blank=True, verbose_name='Date of Birth')
-    phone_number = models.CharField(null=True, blank=True, unique=True,
-                                    help_text='Contact phone number', max_length=15)
-    email = models.EmailField(max_length=30, unique=True)
-    avatar = models.ImageField(
-        null=True, blank=True, default='/profile_pics/default.png', upload_to='profile_pics/')
+
+    email = models.EmailField(
+        max_length=30, unique=True, null=True)
+    # username = models.CharField(max_length=20, unique=True)
+    # password = models.CharField(max_length=20, blank=True, null=True)
     bonus_points = models.PositiveIntegerField(default=0)
     confirmation_code = models.CharField(
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='branch', blank=True, null=True)
-    # username = models.CharField(max_length=100, unique=True)
+    schedule = models.ForeignKey(
+        Schedule, on_delete=models.CASCADE, related_name='schedule', blank=True, null=True)
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    # USERNAME_FIELD = 'email'
+    # REQUIRED_FIELDS = []
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.user_type})"

@@ -123,7 +123,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -144,17 +143,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_PORT = '587'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_PORT = 587
 EMAIL_HOST_USER = 'assyl.akhambay@gmail.com'
-EMAIL_HOST_PASSWORD = "dncz oonk widu uitb"
+EMAIL_HOST_PASSWORD = 'dncz oonk widu uitb'
 EMAIL_SSL_KEYFILE = None
 
 SITE_ID = 1
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
