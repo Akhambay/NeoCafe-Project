@@ -92,9 +92,10 @@ class CustomUser(AbstractUser):
     confirmation_code = models.CharField(
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='branch', blank=True, null=True)
+        Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
     schedule = models.ForeignKey(
-        Schedule, on_delete=models.CASCADE, related_name='schedule', blank=True, null=True)
+        Schedule, on_delete=models.CASCADE, related_name='employees_schedule', blank=True, null=True
+    )
 
     objects = CustomUserManager()
 
