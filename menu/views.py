@@ -37,6 +37,13 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def perform_update(self, serializer):
+        existing_category_image = serializer.instance.category_image
+        serializer.save()
+
+        if 'category_image' not in self.request.data or not self.request.data['category_image']:
+            serializer.instance.category_image = existing_category_image
+            serializer.instance.save()
 
 # MENU_ITEM
 
@@ -70,3 +77,11 @@ class MenuItemList(generics.ListCreateAPIView):
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
+
+    def perform_update(self, serializer):
+        existing_item_image = serializer.instance.item_image
+        serializer.save()
+
+        if 'item_image' not in self.request.data or not self.request.data['item_image']:
+            serializer.instance.item_image = existing_item_image
+            serializer.instance.save()
