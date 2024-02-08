@@ -25,35 +25,6 @@ from rest_framework.views import APIView
 from .serializers import AdminLoginSerializer
 
 
-class AdminLoginView(APIView):
-    serializer_class = AdminLoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-
-        # Authenticate the user
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            # Login the user
-            login(request, user)
-
-            # Generate tokens
-            refresh = RefreshToken.for_user(user)
-            token_data = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-
-            return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -264,25 +235,18 @@ class CustomerEmailCheckView(RegisterView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Save user without password
-        user = serializer.save(username=unique_username)
-
         # Set a flag in the user's session to indicate the need for confirmation
-        request.session['pending_confirmation_user'] = user.id
-        print(f"User ID from Session: {
-              request.session.get('pending_confirmation_user')}")
-        user_id = request.session.get('pending_confirmation_user')
-        try:
-            user = get_user_model().objects.get(id=user_id)
-        except get_user_model().DoesNotExist:
-            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+        request.session['pending_confirmation_user'] = {
+            'data': serializer.validated_data,
+            'confirmation_code': confirmation_code
+        }
 
         # Send confirmation email
         subject = 'Welcome to Junior Project'
         message = f'This project is realized by the best team! Burte, Vlad, Nursultan, Aidana, Assyl\nYour verification code is: {
             confirmation_code}'
         from_email = 'assyl.akhambay@gmail.com'
-        recipient_list = [user.email]
+        recipient_list = [email]
 
         send_mail(subject, message, from_email, recipient_list)
 
@@ -295,45 +259,40 @@ class CustomerLoginView(APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         confirmation_code = request.data.get('confirmation_code')
-        print(f"Email: {email}, Confirmation Code: {confirmation_code}")
 
-        # Retrieve user from the session
-        user_id = request.session.get('pending_confirmation_user')
-        print(f"User ID from Session: {user_id}")
+        # Retrieve user data from the session
+        pending_user_data = request.session.get('pending_confirmation_user')
 
-        if not user_id:
+        if not pending_user_data:
             return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            user = get_user_model().objects.get(id=user_id)
-        except get_user_model().DoesNotExist:
-            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
+        # Use the stored data to create the user
+        serializer = self.serializer_class(
+            data=pending_user_data['data'])
+        serializer.is_valid(raise_exception=True)
 
-        print(f"User ID from Session: {user_id}, User: {user}")
+        # Save user with the provided confirmation code as the password
+        user = serializer.save(
+            username=generate_unique_username(email),
+            password=confirmation_code
+        )
 
-        # Set the user's password explicitly
-        user.set_password(confirmation_code)
-        user.save()
+        # Remove the session data after user creation
+        request.session.pop('pending_confirmation_user', None)
 
-        # Check if the provided confirmation code now matches the user's password
-        if user.check_password(confirmation_code):
-            print("Password check successful.")
-            # Login the user
-            login(request, user)
-            update_last_login(None, user)
+        # Login the user
+        login(request, user)
+        update_last_login(None, user)
 
-            # Check if the user already has a token
-            refresh = RefreshToken.for_user(user)
+        # Check if the user already has a token
+        refresh = RefreshToken.for_user(user)
 
-            # Access the token using the `access_token` attribute
-            access_token = refresh.access_token
-            return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
-        else:
-            print("Password check failed.")
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Access the token using the `access_token` attribute
+        access_token = refresh.access_token
+        return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
 
 
-class AdminLoginView5(APIView):
+class AdminLoginView(APIView):
     serializer_class = AdminLoginSerializer
 
     def post(self, request, *args, **kwargs):
