@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 
 class AdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    email = serializers.EmailField()
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -45,15 +46,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'username', 'password',]
         read_only_fields = ['last_name', 'email', 'bonus_points',
-                            'confirmation_code', 'first_name', 'user_type', 'branch',]
+                            'confirmation_code', 'first_name', 'user_type', 'branch', 'schedule']
         model = CustomUser
-        # Schedule
 
 
 class EmployeeAddSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'username', 'password', 'first_name',
-                  'user_type', 'branch',]
+                  'user_type', 'is_staff', 'branch',]
         # read_only_fields = ['last_name', 'email', 'confirmation_code', ]
         model = CustomUser
 
@@ -67,7 +67,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'first_name', 'last_name', 'email', 'username', 'password',
                   'user_type', 'branch', ]
-        read_only_fields = ['confirmation_code', ]
+        read_only_fields = ['confirmation_code', 'staff_status',]
         model = CustomUser
 
 

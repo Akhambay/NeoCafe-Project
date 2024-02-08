@@ -82,12 +82,11 @@ class CustomUser(AbstractUser):
 
     first_name = models.CharField(null=True, blank=True, max_length=50)
     last_name = models.CharField(null=True, blank=True, max_length=50)
-    user_type = models.CharField(max_length=50, choices=USER_TYPE_CHOICES)
+    user_type = models.CharField(
+        max_length=50, choices=USER_TYPE_CHOICES, default='admin')
 
     email = models.EmailField(
         max_length=30, unique=True, null=True)
-    # username = models.CharField(max_length=20, unique=True)
-    # password = models.CharField(max_length=20, blank=True, null=True)
     bonus_points = models.PositiveIntegerField(default=0)
     confirmation_code = models.CharField(
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
@@ -96,6 +95,7 @@ class CustomUser(AbstractUser):
     schedule = models.ForeignKey(
         Schedule, on_delete=models.CASCADE, related_name='employees_schedule', blank=True, null=True
     )
+    is_staff = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
