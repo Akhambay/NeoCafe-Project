@@ -232,31 +232,12 @@ class AdminLoginView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
 
-        # Retrieve user data from the session
-        user_data = request.session.get('pending_confirmation_user')
-
-        if not user_data or 'data' not in user_data:
-            return Response({'error': 'Admin not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user_data = user_data['data']
-        user_id = user_data.get('id')
-
-        if user_id is None:
-            return Response({'error': 'Admin not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = get_user_model().objects.get(id=user_id)
-        except get_user_model().DoesNotExist:
-            return Response({'error': 'Admin not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Set the user's password explicitly
+        # Authenticate the admin user
         user = authenticate(request, username=username, password=password)
 
-        # Check if the provided confirmation code now matches the user's password
-        if user is not None:
-            # Login the user
+        if user is not None and user.is_staff:
+            # Login the admin user
             login(request, user)
-            update_last_login(None, user)
 
             # Check if the user already has a token
             refresh = RefreshToken.for_user(user)
@@ -267,7 +248,6 @@ class AdminLoginView(APIView):
         else:
             print("Authentication failed.")
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 # CustomerRegistration
 
