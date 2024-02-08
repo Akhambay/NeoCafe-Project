@@ -103,7 +103,7 @@ class CustomUser(AbstractUser):
     # REQUIRED_FIELDS = []
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.user_type})"
+        return f"{self.email} {self.first_name} ({self.user_type})"
 
 
 class Customer(CustomUser):
