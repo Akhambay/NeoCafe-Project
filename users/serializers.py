@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 class AdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
-    email = serializers.EmailField()
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
