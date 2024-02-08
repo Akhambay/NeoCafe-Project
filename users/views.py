@@ -1,3 +1,4 @@
+from rest_framework.views import Response
 from users.serializers import CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -7,7 +8,6 @@ from .serializers import (
     CustomerLoginSerializer, CustomerSerializer, CustomerAuthenticationCheckSerializer,
     EmployeeAddSerializer, BranchSerializer, EmployeeSerializer,
 )
-
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
 from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
@@ -352,32 +352,34 @@ class CustomerRegistrationView(APIView):
 
 
 class CustomerAuthenticationCheckView(APIView):
-    serializer_class = CustomerLoginSerializer
+    serializer_class = CustomerAuthenticationCheckSerializer
 
     @extend_schema(
-        description="Check if customer's email is in the database and send a verification code.",
+        description="Check if customer's email is in the database and send a new verification code.",
         summary="Customer Authentication Check",
-        responses={200: "Email is taken, new verification code sent successfully.",
+        responses={200: "New verification code sent successfully.",
                    404: "User with this email is not registered."}
     )
     def post(self, request, *args, **kwargs):
-        serializer = CustomerEmailSerializer(data=request.data)
+        serializer = CustomerAuthenticationCheckSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
 
-        # Check if the email is in the database
-        user_exists = get_user_model().objects.filter(email=email).exists()
+        # Generate and send a new 4-digit code
+        confirmation_code = get_random_string(
+            length=4, allowed_chars='1234567890')
 
-        if user_exists:
-            # Generate and send a new 4-digit code
-            confirmation_code = get_random_string(
-                length=4, allowed_chars='1234567890')
+        # Set a flag in the user's session to indicate the need for confirmation
+        request.session['pending_confirmation_user'] = {
+            'data': serializer.validated_data,
+            'confirmation_code': confirmation_code
+        }
 
-            # Set a flag in the user's session to indicate the need for confirmation
-            request.session['pending_confirmation_user'] = {
-                'data': serializer.validated_data,
-                'confirmation_code': confirmation_code
-            }
+        user = get_user_model().objects.filter(email=email).first()
+
+        if user:
+            user.confirmation_code = confirmation_code
+            user.save()
 
             # Send confirmation email
             subject = 'Welcome to Junior Project'
@@ -388,9 +390,12 @@ class CustomerAuthenticationCheckView(APIView):
 
             send_mail(subject, message, from_email, recipient_list)
 
-            return Response({'message': 'Email is taken, new verification code sent successfully.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'New verification code sent successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'User with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+User = get_user_model()
 
 
 class CustomerAuthenticationView(APIView):
@@ -409,21 +414,8 @@ class CustomerAuthenticationView(APIView):
         # Retrieve user data from the session
         pending_user_data = request.session.get('pending_confirmation_user')
 
-        if not pending_user_data:
-            return Response({'error': 'User not found or not registered'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Check if the provided confirmation code matches the stored code
-        if confirmation_code != pending_user_data['confirmation_code']:
-            return Response({'error': 'Invalid confirmation code.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Use the stored data to create the user
-        serializer = CustomerLoginSerializer(
-            data=pending_user_data['data'])
-        serializer.is_valid(raise_exception=True)
-
-        # Authenticate the user
-        user = authenticate(request, username=email,
-                            password=confirmation_code)
+        user = User.objects.filter(
+            email=email, confirmation_code=confirmation_code).first()
 
         if user is not None:
             # Login the user
