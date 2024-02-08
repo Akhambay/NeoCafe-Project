@@ -51,11 +51,17 @@ def generate_unique_username(email):
     return unique_username
 
 
+def generate_email(username):
+    return f"{username}@neocafe.kg"
+
+
 class AdminLoginTokenView(TokenObtainPairView):
     serializer_class = AdminLoginSerializer
 
 
 # EMPLOYEE
+
+
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeAddSerializer
@@ -82,8 +88,13 @@ class EmployeeCreateView(generics.CreateAPIView):
         return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
-        # Create the employee
+        # Set default user_type to 'waitress'
+        serializer.validated_data.setdefault('user_type', 'waiter')
 
+        # Set default staff_status to False
+        serializer.validated_data.setdefault('is_staff', False)
+
+        # Create the employee
         employee = serializer.save()
 
         # Generate a refresh token for the employee
@@ -92,6 +103,13 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Attach the refresh token to the employee instance
         employee.refresh_token = refresh_token
+
+        employee.email = generate_email(employee.username)
+
+        # If user_type is 'admin', set staff_status to True
+        if serializer.validated_data.get('user_type') == 'admin':
+            employee.is_staff = True
+
         employee.set_password(serializer.validated_data['password'])
         employee.save()
 
@@ -99,6 +117,7 @@ class EmployeeCreateView(generics.CreateAPIView):
         self.request.session['pending_confirmation_user'] = employee.id
         # Save the session to persist the changes
         self.request.session.save()
+
 
 ####
 
