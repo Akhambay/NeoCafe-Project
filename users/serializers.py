@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser, Branch, Customer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -87,10 +88,41 @@ class CustomerSerializer(serializers.ModelSerializer):
 class CustomerEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['id', 'email', 'confirmation_code']
+        fields = ['id', 'email', ]
 
 
 class CustomerLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['id', 'email', 'confirmation_code']
+
+
+class CustomerRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id', 'email', 'confirmation_code']
+        read_only_fields = ['user_type',]
+
+
+class CustomerLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id', 'email', 'confirmation_code']
+
+
+class CustomerAuthenticationCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['email']
+
+    def validate(self, data):
+        email = data.get('email', None)
+
+        # Check if the email is in the database
+        user_exists = get_user_model().objects.filter(email=email).exists()
+
+        if not user_exists:
+            raise serializers.ValidationError(
+                'User with this email is not registered.')
+
+        return data
