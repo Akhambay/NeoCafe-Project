@@ -73,8 +73,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['id', 'image', 'branch_name',
-                  'address', 'phone_number', 'link_2gis', 'table_quantity', 'schedule', ]
-        read_only_fields = ['description',]
+                  'address', 'phone_number', 'link_2gis', 'table_quantity', ]
+        read_only_fields = ['description', 'schedule',]
         model = Branch
 
 
