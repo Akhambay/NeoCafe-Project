@@ -51,10 +51,6 @@ def generate_unique_username(email):
     return unique_username
 
 
-def generate_email(username):
-    return f"{username}@neocafe.kg"
-
-
 class AdminLoginTokenView(TokenObtainPairView):
     serializer_class = AdminLoginSerializer
 
@@ -103,12 +99,6 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Attach the refresh token to the employee instance
         employee.refresh_token = refresh_token
-
-        employee.email = generate_email(employee.username)
-
-        # If user_type is 'admin', set staff_status to True
-        if serializer.validated_data.get('user_type') == 'admin':
-            employee.is_staff = True
 
         employee.set_password(serializer.validated_data['password'])
         employee.save()
