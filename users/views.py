@@ -336,11 +336,19 @@ class CustomerRegistrationView(APIView):
         user = serializer.save(
             username=email, password=confirmation_code, user_type='customer')
 
+        # Authenticate the user and generate tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = jwt_encode(user)
+
         # Remove the session data after user creation
         request.session.pop('pending_confirmation_user', None)
 
-        # Return response indicating successful registration
-        return Response({'message': 'Customer registered successfully.'}, status=status.HTTP_201_CREATED)
+        # Return response indicating successful registration along with tokens
+        return Response({
+            'message': 'Customer registered successfully.',
+            'access_token': str(access_token),
+            'refresh_token': str(refresh),
+        }, status=status.HTTP_201_CREATED)
 
 
 class CustomerAuthenticationCheckView(APIView):
