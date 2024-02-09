@@ -51,9 +51,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 class EmployeeAddSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['id', 'username', 'password', 'first_name',
-                  'user_type', 'is_staff', 'branch',]
-        # read_only_fields = ['last_name', 'email', 'confirmation_code', ]
+        fields = ['id', 'username', 'password', 'first_name', 'email',
+                  'user_type', 'is_staff', 'branch', 'schedule']
+        # read_only_fields = ['last_name',  'confirmation_code', ]
         model = CustomUser
 
     def create(self, validated_data):

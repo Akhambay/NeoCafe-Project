@@ -6,13 +6,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
-        ('mon', 'Monday'),
-        ('tue', 'Tuesday'),
-        ('wed', 'Wednesday'),
-        ('thr', 'Thursday'),
-        ('fri', 'Friday'),
-        ('sat', 'Saturday'),
-        ('sun', 'Sunday'),
+        ('ПН', 'Понедельник'),
+        ('ВТ', 'Вторник'),
+        ('СР', 'Среда'),
+        ('ЧТ', 'Четверг'),
+        ('ПТ', 'Пятница'),
+        ('СБ', 'Суббота'),
+        ('ВС', 'Воскресенье'),
     ]
 
     working_days = models.CharField(max_length=15, choices=DAYS_CHOICES)
@@ -74,10 +74,8 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
-        ('admin', 'Admin'),
         ('waiter', 'Waiter'),
         ('bartender', 'Bartender'),
-        ('customer', 'Customer'),
     ]
 
     first_name = models.CharField(null=True, blank=True, max_length=50)
