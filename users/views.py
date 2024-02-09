@@ -253,7 +253,10 @@ class AdminLoginView(APIView):
 
             # Access the token using the `access_token` attribute
             access_token = refresh.access_token
-            return Response({'token': str(access_token)}, status=status.HTTP_200_OK)
+            refresh_token = str(refresh)
+
+            return Response({'access_token': str(access_token), 'refresh_token': refresh_token}, status=status.HTTP_200_OK)
+
         else:
             print("Authentication failed.")
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

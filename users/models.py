@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.crypto import get_random_string
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model
 
 
 class Schedule(models.Model):
@@ -15,6 +16,8 @@ class Schedule(models.Model):
         ('ВС', 'Воскресенье'),
     ]
 
+    # employee = models.ForeignKey(
+    #   'CustomUser', on_delete=models.CASCADE, related_name='employee_schedules')
     working_days = models.CharField(max_length=15, choices=DAYS_CHOICES)
     start_time = models.TimeField(max_length=15)
     end_time = models.TimeField(max_length=15)
@@ -32,11 +35,17 @@ class Branch(models.Model):
     description = models.TextField(blank=True)
     link_2gis = models.CharField(max_length=100)
     schedule = models.ManyToManyField(
-        Schedule, related_name='branch_schedule')
+        Schedule, related_name='branches_schedule', related_query_name='branch_schedule', blank=True,
+    )
     table_quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.branch_name
+
+
+class BranchSchedule(models.Model):
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
 
 
 class CustomUserManager(BaseUserManager):
@@ -90,8 +99,8 @@ class CustomUser(AbstractUser):
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
-    schedule = models.ForeignKey(
-        Schedule, on_delete=models.CASCADE, related_name='employees_schedule', blank=True, null=True
+    schedule = models.ManyToManyField(
+        Schedule, related_name='employees_schedule', related_query_name='employee_schedule', blank=True,
     )
     is_staff = models.BooleanField(default=False)
 
