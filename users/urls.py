@@ -2,13 +2,13 @@ from django.urls import path, include
 from .views import (EmployeeCreateView, EmployeeList, EmployeeDetail, AdminLoginView,
                     BranchCreateView, BranchList, BranchDetail,
                     CustomerEmailCheckView, CustomerRegistrationView,
-                    CustomerAuthenticationCheckView, CustomerAuthenticationView)
+                    CustomerAuthenticationCheckView, CustomerAuthenticationView,
+                    obtain_jwt_token, token_refresh, CustomTokenObtainPairView)
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 urlpatterns = [
     path('cafe/admin/login/', AdminLoginView.as_view(),
          name='cafe_admin_login'),
-    # TokenObtainPairView
 
     path('employee/add/', EmployeeCreateView.as_view(), name='employee'),
     path('employee/all/', EmployeeList.as_view(), name='employee_list'),
@@ -29,4 +29,7 @@ urlpatterns = [
          CustomerAuthenticationCheckView.as_view(), name='customer_email_login'),
     path('customer/login/', CustomerAuthenticationView.as_view(),
          name='customer_login'),
+
+    path('token/obtain/', obtain_jwt_token, name='token_obtain_pair'),
+    path('token/refresh/', token_refresh, name='token_refresh'),
 ]

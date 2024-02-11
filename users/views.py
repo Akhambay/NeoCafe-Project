@@ -18,6 +18,7 @@ from .models import CustomUser, Branch, Customer
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
 from dj_rest_auth.registration.views import RegisterView
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
@@ -38,6 +39,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 obtain_jwt_token = CustomTokenObtainPairView.as_view()
+token_refresh = TokenRefreshView.as_view()
 
 
 def generate_unique_username(email):
