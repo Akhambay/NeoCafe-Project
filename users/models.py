@@ -3,27 +3,27 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
+import json
+# SCHEDULE
+# models.py
 
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
-        ('ПН', 'Понедельник'),
-        ('ВТ', 'Вторник'),
-        ('СР', 'Среда'),
-        ('ЧТ', 'Четверг'),
-        ('ПТ', 'Пятница'),
-        ('СБ', 'Суббота'),
-        ('ВС', 'Воскресенье'),
+        ('friday', _('Friday')),
+        ('saturday', _('Saturday')),
+        ('sunday', _('Sunday')),
     ]
 
-    # employee = models.ForeignKey(
-    #   'CustomUser', on_delete=models.CASCADE, related_name='employee_schedules')
-    working_days = models.CharField(max_length=15, choices=DAYS_CHOICES)
-    start_time = models.TimeField(max_length=15)
-    end_time = models.TimeField(max_length=15)
+    branch = models.ForeignKey(
+        'Branch', on_delete=models.CASCADE, related_name='schedules')
+    day = models.CharField(max_length=10, choices=DAYS_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
     def __str__(self):
-        return f"{self.working_days}: {self.start_time} - {self.end_time}"
+        return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
 
 
 class Branch(models.Model):
@@ -34,9 +34,6 @@ class Branch(models.Model):
                               upload_to='branch_images/')
     description = models.TextField(blank=True)
     link_2gis = models.CharField(max_length=100)
-    schedule = models.ManyToManyField(
-        Schedule, related_name='branches_schedule', related_query_name='branch_schedule', blank=True,
-    )
     table_quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):

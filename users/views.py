@@ -5,10 +5,9 @@ from users.serializers import (CustomerEmailSerializer, CustomerRegistrationSeri
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .serializers import (
-    CustomerEmailSerializer,
-    CustomerRegistrationSerializer,
-    CustomerLoginSerializer, CustomerSerializer, CustomerAuthenticationCheckSerializer,
-    EmployeeAddSerializer, BranchSerializer, EmployeeSerializer,
+    CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
+    CustomerAuthenticationCheckSerializer, EmployeeAddSerializer,
+    BranchSerializer, EmployeeSerializer, ScheduleSerializer,
 )
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -16,7 +15,7 @@ from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
-from .models import CustomUser, Branch, Customer
+from .models import CustomUser, Branch, Schedule
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -162,10 +161,32 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 # BRANCH
+"""
 class BranchCreateView(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Create a new branch.",
+        summary="Create Branch",
+        responses={201: BranchSerializer}
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+"""
+
+
+class BranchCreateView(generics.CreateAPIView):
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
 
     @extend_schema(
         description="Create a new branch.",
@@ -229,10 +250,13 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         existing_image = serializer.instance.image
+        existing_schedules = serializer.instance.schedules
         serializer.save()
 
         if 'image' not in self.request.data or not self.request.data['image']:
             serializer.instance.image = existing_image
+        if 'schedules' not in self.request.data or not self.request.data['schedules']:
+            serializer.instance.schedules = existing_schedules
             serializer.instance.save()
 
 # ADMIN LOGIN
