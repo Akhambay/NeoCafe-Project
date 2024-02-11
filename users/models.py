@@ -11,6 +11,10 @@ import json
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
+        ('monday', _('Monday')),
+        ('tuesday', _('Tuesday')),
+        ('wednesday', _('Wednesday')),
+        ('thursday', _('Thursday')),
         ('friday', _('Friday')),
         ('saturday', _('Saturday')),
         ('sunday', _('Sunday')),
@@ -38,11 +42,6 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.branch_name
-
-
-class BranchSchedule(models.Model):
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
 
 
 class CustomUserManager(BaseUserManager):
