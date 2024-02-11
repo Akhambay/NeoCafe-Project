@@ -3,7 +3,8 @@ from .views import (EmployeeCreateView, EmployeeList, EmployeeDetail, AdminLogin
                     BranchCreateView, BranchList, BranchDetail,
                     CustomerEmailCheckView, CustomerRegistrationView,
                     CustomerAuthenticationCheckView, CustomerAuthenticationView,
-                    obtain_jwt_token, token_refresh, CustomTokenObtainPairView)
+                    obtain_jwt_token, token_refresh, CustomTokenObtainPairView,
+                    BartenderAuthenticationCheckView, BartenderAuthenticationView)
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 urlpatterns = [
@@ -29,6 +30,11 @@ urlpatterns = [
          CustomerAuthenticationCheckView.as_view(), name='customer_email_login'),
     path('customer/login/', CustomerAuthenticationView.as_view(),
          name='customer_login'),
+
+    path('bartender/check-email-login/',
+         BartenderAuthenticationCheckView.as_view(), name='bartender_email_login'),
+    path('bartender/login/', BartenderAuthenticationView.as_view(),
+         name='bartender_login'),
 
     path('token/obtain/', obtain_jwt_token, name='token_obtain_pair'),
     path('token/refresh/', token_refresh, name='token_refresh'),

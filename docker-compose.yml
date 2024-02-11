@@ -22,3 +22,9 @@ services:
       - .env
     depends_on:
       - db
+
+  myservice:
+    image: myimage
+    environment:
+      - VARIABLE_NAME=${VARIABLE_NAME:-default_value_for_v2mfco472}
+      - ANOTHER_VARIABLE=${ANOTHER_VARIABLE:-default_value_for_yt}
