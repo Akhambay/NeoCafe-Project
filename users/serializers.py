@@ -191,3 +191,48 @@ class BartenderLoginSerializer(serializers.ModelSerializer):
                 "User not found with the provided email and confirmation code")
 
         return user
+
+# WAITER
+
+
+class WaiterAuthenticationCheckSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        email = data.get('email', None)
+
+        # Check if the email is in the database
+        user_exists = get_user_model().objects.filter(email=email).exists()
+
+        if not user_exists:
+            # You can add additional validation if needed
+            # For example, check if the email format is valid
+
+            return data
+        else:
+            # If the email exists, proceed with sending a new confirmation code
+            return data
+
+
+class WaiterLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'confirmation_code']
+
+    def create(self, validated_data):
+        """
+        Retrieve an existing user based on email and confirmation code.
+        """
+        email = validated_data['email']
+        confirmation_code = validated_data['confirmation_code']
+
+        # Check if the user already exists
+        user = User.objects.filter(
+            email=email, confirmation_code=confirmation_code).first()
+
+        if user is None:
+            # If no user is found, you may raise an exception or handle it as needed
+            raise serializers.ValidationError(
+                "User not found with the provided email and confirmation code")
+
+        return user

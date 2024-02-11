@@ -1,6 +1,7 @@
 from rest_framework.views import Response
 from users.serializers import (CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
-                               BartenderAuthenticationCheckSerializer, BartenderLoginSerializer)
+                               BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
+                               WaiterAuthenticationCheckSerializer, WaiterLoginSerializer)
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .serializers import (
@@ -504,6 +505,92 @@ class BartenderAuthenticationView(APIView):
     @extend_schema(
         description="Authenticate bartender after providing email and confirmation code.",
         summary="Bartender Authentication",
+        responses={200: "Authentication successful.",
+                   401: "Invalid credentials."}
+    )
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        confirmation_code = request.data.get('confirmation_code')
+
+        # Retrieve user data from the session
+        pending_user_data = request.session.get('pending_confirmation_user')
+
+        user = User.objects.filter(
+            email=email, confirmation_code=confirmation_code).first()
+
+        if user is not None:
+            # Login the user
+            login(request, user)
+            update_last_login(None, user)
+
+            # Check if the user already has a token
+            refresh = RefreshToken.for_user(user)
+
+            # Access the token using the `access_token` attribute
+            access_token = refresh.access_token
+            return Response({
+                'message': 'Authentication successful.',
+                'access_token': str(access_token),
+                'refresh_token': str(refresh),
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# views.py
+
+
+class WaiterAuthenticationCheckView(APIView):
+    serializer_class = WaiterAuthenticationCheckSerializer
+
+    @extend_schema(
+        description="Check if Waiter's email is in the database and send a confirmation code.",
+        summary="Waiter Authentication Check",
+        responses={200: "Confirmation code sent successfully.",
+                   404: "Waiter with this email is not registered."}
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = WaiterAuthenticationCheckSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        # Generate and send a new 4-digit code
+        confirmation_code = get_random_string(
+            length=4, allowed_chars='1234567890')
+
+        # Hardcoding confirmation code for testing
+        confirmation_code = '4444'
+
+        # Set a flag in the user's session to indicate the need for confirmation
+        request.session['pending_confirmation_user'] = {
+            'data': serializer.validated_data,
+            'confirmation_code': confirmation_code
+        }
+
+        user = get_user_model().objects.filter(email=email).first()
+
+        if user:
+            user.confirmation_code = confirmation_code
+            user.save()
+
+            # Send confirmation email
+            subject = 'Login to Waiter\'s admin panel'
+            message = f'Your confirmation code is: {confirmation_code}'
+            from_email = 'assyl.akhambay@gmail.com'
+            recipient_list = [email]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+            return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Waiter with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class WaiterAuthenticationView(APIView):
+    serializer_class = WaiterLoginSerializer
+
+    @extend_schema(
+        description="Authenticate waiter after providing email and confirmation code.",
+        summary="Waiter Authentication",
         responses={200: "Authentication successful.",
                    401: "Invalid credentials."}
     )
