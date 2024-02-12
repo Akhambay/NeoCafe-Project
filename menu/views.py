@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import Category, Menu_Item
 from .serializers import CategorySerializer, MenuItemSerializer
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 # CATEGORY
 
 
@@ -15,7 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -58,7 +59,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemCreateView(generics.CreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -69,14 +70,31 @@ class MenuItemCreateView(generics.CreateAPIView):
 class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Get details, update, or delete a menu item.",
+        summary="Retrieve/Update/Delete Menu Item",
+        responses={200: MenuItemSerializer, 204: "No Content", }
+    )
+    def get_queryset(self):
+        queryset = Menu_Item.objects.all()
+
+        # Get the search parameters from the query parameters
+        name = self.request.query_params.get('name', None)
+        category = self.request.query_params.get('category', None)
+        price_per_unit = self.request.query_params.get('price_per_unit', None)
+
+        if name:
+            queryset = queryset = queryset.filter(name__icontains=name)
+        if category:
+            queryset = queryset.filter(category__name__icontains=category)
+        if price_per_unit:
+            queryset = queryset.filter(price_per_unit=price_per_unit)
+
+        return queryset
 
 
-@extend_schema(
-    description="Get details, update, or delete a menu item.",
-    summary="Retrieve/Update/Delete Menu Item",
-    responses={200: MenuItemSerializer, 204: "No Content", }
-)
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer

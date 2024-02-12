@@ -506,9 +506,6 @@ class BartenderAuthenticationCheckView(APIView):
             return Response({'error': 'Bartender with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-User = get_user_model()
-
-
 class BartenderAuthenticationView(APIView):
     serializer_class = BartenderLoginSerializer
 
