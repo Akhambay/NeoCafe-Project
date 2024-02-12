@@ -34,6 +34,7 @@ from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomToke
 from rest_framework.views import APIView
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -110,7 +111,6 @@ class EmployeeCreateView(generics.CreateAPIView):
 
 
 class EmployeeList(generics.ListCreateAPIView):
-    queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated]
 
@@ -119,8 +119,23 @@ class EmployeeList(generics.ListCreateAPIView):
         summary="List Employees",
         responses={200: EmployeeSerializer(many=True)}
     )
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get_queryset(self):
+        queryset = CustomUser.objects.all()
+
+        # Get the search parameters from the query parameters
+        name = self.request.query_params.get('name', None)
+        email = self.request.query_params.get('email', None)
+        user_type = self.request.query_params.get('user_type', None)
+
+        if name:
+            queryset = queryset.filter(
+                Q(first_name__icontains=name) | Q(last_name__icontains=name))
+        if email:
+            queryset = queryset.filter(email__icontains=email)
+        if user_type:
+            queryset = queryset.filter(user_type=user_type)
+
+        return queryset
 
 
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
