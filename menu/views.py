@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Category, Menu_Item
 from .serializers import CategorySerializer, MenuItemSerializer
-
+from rest_framework.permissions import IsAuthenticated
 # CATEGORY
 
 
@@ -15,7 +15,7 @@ from .serializers import CategorySerializer, MenuItemSerializer
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -26,6 +26,7 @@ class CategoryCreateView(generics.CreateAPIView):
 class CategoryList(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -36,6 +37,7 @@ class CategoryList(generics.ListCreateAPIView):
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
         existing_category_image = serializer.instance.category_image
@@ -56,7 +58,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemCreateView(generics.CreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -67,6 +69,7 @@ class MenuItemCreateView(generics.CreateAPIView):
 class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -77,6 +80,7 @@ class MenuItemList(generics.ListCreateAPIView):
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
         existing_item_image = serializer.instance.item_image

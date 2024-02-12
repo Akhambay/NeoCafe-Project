@@ -33,6 +33,7 @@ from dj_rest_auth.utils import jwt_encode
 from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 from django.db import transaction
+from rest_framework.permissions import IsAuthenticated
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -59,59 +60,10 @@ class AdminLoginTokenView(TokenObtainPairView):
 
 
 # EMPLOYEE
-
-""""
-class EmployeeCreateView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = EmployeeAddSerializer
-
-    @extend_schema(
-        description="Create a new employee.",
-        summary="Create Employee",
-        responses={201: EmployeeAddSerializer, 204: "No Content", }
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
-
-        refresh = RefreshToken.for_user(serializer.instance)
-        token_data = {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-
-        headers = self.get_success_headers(serializer.data)
-        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        # Set default values if needed
-        serializer.validated_data.setdefault('user_type', 'waiter')
-        serializer.validated_data.setdefault('is_staff', False)
-
-        employee = serializer.save()
-
-        # Generate a refresh token for the employee
-        refresh = RefreshToken.for_user(employee)
-        refresh_token = str(refresh)
-
-        # Attach the refresh token to the employee instance
-        employee.refresh_token = refresh_token
-
-        employee.set_password(serializer.validated_data['password'])
-        employee.save()
-
-        # Set the user_id in the session
-        self.request.session['pending_confirmation_user'] = employee.id
-        # Save the session to persist the changes
-        self.request.session.save()
-"""
-
-
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Create a new employee.",
@@ -160,6 +112,7 @@ class EmployeeCreateView(generics.CreateAPIView):
 class EmployeeList(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get a list of all employees",
@@ -173,6 +126,7 @@ class EmployeeList(generics.ListCreateAPIView):
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete an employee.",
@@ -206,6 +160,7 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
 class BranchCreateView(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Create a new branch.",
@@ -226,6 +181,7 @@ class BranchCreateView(generics.CreateAPIView):
 class BranchList(generics.ListCreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get a list of all branches",
@@ -239,6 +195,7 @@ class BranchList(generics.ListCreateAPIView):
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete a branch.",
@@ -578,8 +535,6 @@ class BartenderAuthenticationView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-# views.py
 
 
 class WaiterAuthenticationCheckView(APIView):
