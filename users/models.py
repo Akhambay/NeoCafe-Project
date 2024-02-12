@@ -4,9 +4,6 @@ from django.utils.crypto import get_random_string
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-import json
-# SCHEDULE
-# models.py
 
 
 class Schedule(models.Model):
@@ -30,7 +27,6 @@ class Schedule(models.Model):
         return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
 
 
-# models.py
 class EmployeeSchedule(models.Model):
     DAYS_CHOICES = [
         ('monday', _('Monday')),
@@ -117,9 +113,9 @@ class CustomUser(AbstractUser):
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
-    schedule = models.ManyToManyField(
-        EmployeeSchedule, related_name='employee_schedule', related_query_name='employee_schedule', blank=True,
-    )
+    # schedule = models.ManyToManyField(
+    #   EmployeeSchedule, related_name='employee_schedule', related_query_name='employee_schedule', blank=True,
+    # )
     is_staff = models.BooleanField(default=True)
 
     objects = CustomUserManager()
