@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from .serializers import (
     CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
     CustomerAuthenticationCheckSerializer, EmployeeAddSerializer,
-    BranchSerializer, EmployeeSerializer, ScheduleSerializer,
+    BranchSerializer, EmployeeSerializer, ScheduleSerializer, EmployeeScheduleSerializer
 )
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -15,7 +15,7 @@ from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
-from .models import CustomUser, Branch, Schedule
+from .models import CustomUser, Branch, Schedule, EmployeeSchedule
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -30,8 +30,7 @@ from django.contrib.auth.models import update_last_login
 from dj_rest_auth.models import TokenModel
 from rest_framework_simplejwt.tokens import Token
 from dj_rest_auth.utils import jwt_encode
-from .serializers import AdminLoginSerializer
-from .serializers import CustomTokenObtainPairSerializer
+from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 
 
@@ -60,7 +59,7 @@ class AdminLoginTokenView(TokenObtainPairView):
 
 # EMPLOYEE
 
-
+"""
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeAddSerializer
@@ -110,9 +109,57 @@ class EmployeeCreateView(generics.CreateAPIView):
         self.request.session['pending_confirmation_user'] = employee.id
         # Save the session to persist the changes
         self.request.session.save()
+"""
 
 
-####
+class EmployeeCreateView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = EmployeeAddSerializer
+
+    @extend_schema(
+        description="Create a new employee.",
+        summary="Create Employee",
+        responses={201: EmployeeAddSerializer, 204: "No Content", }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+
+        refresh = RefreshToken.for_user(serializer.instance)
+        token_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+        headers = self.get_success_headers(serializer.data)
+        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        # Set default user_type to 'waitress'
+        serializer.validated_data.setdefault('user_type', 'waiter')
+
+        # Set default staff_status to False
+        serializer.validated_data.setdefault('is_staff', False)
+
+        # Create the employee
+        employee = serializer.save()
+
+        # Generate a refresh token for the employee
+        refresh = RefreshToken.for_user(employee)
+        refresh_token = str(refresh)
+
+        # Attach the refresh token to the employee instance
+        employee.refresh_token = refresh_token
+
+        employee.set_password(serializer.validated_data['password'])
+        employee.save()
+
+        # Set the user_id in the session
+        self.request.session['pending_confirmation_user'] = employee.id
+        # Save the session to persist the changes
+        self.request.session.save()
 
 
 class EmployeeList(generics.ListCreateAPIView):
@@ -161,29 +208,6 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 # BRANCH
-"""
-class BranchCreateView(generics.CreateAPIView):
-    queryset = Branch.objects.all()
-    serializer_class = BranchSerializer
-    # permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        description="Create a new branch.",
-        summary="Create Branch",
-        responses={201: BranchSerializer}
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        serializer.save()
-"""
-
-
 class BranchCreateView(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer

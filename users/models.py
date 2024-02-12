@@ -30,6 +30,28 @@ class Schedule(models.Model):
         return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
 
 
+# models.py
+class EmployeeSchedule(models.Model):
+    DAYS_CHOICES = [
+        ('monday', _('Monday')),
+        ('tuesday', _('Tuesday')),
+        ('wednesday', _('Wednesday')),
+        ('thursday', _('Thursday')),
+        ('friday', _('Friday')),
+        ('saturday', _('Saturday')),
+        ('sunday', _('Sunday')),
+    ]
+
+    employee = models.ForeignKey(
+        'CustomUser', on_delete=models.CASCADE, related_name='employee_schedules')
+    day = models.CharField(max_length=10, choices=DAYS_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
+
+
 class Branch(models.Model):
     branch_name = models.CharField(max_length=250)
     address = models.CharField(max_length=500)
@@ -96,14 +118,11 @@ class CustomUser(AbstractUser):
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
     schedule = models.ManyToManyField(
-        Schedule, related_name='employees_schedule', related_query_name='employee_schedule', blank=True,
+        EmployeeSchedule, related_name='employee_schedule', related_query_name='employee_schedule', blank=True,
     )
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True)
 
     objects = CustomUserManager()
-
-    # USERNAME_FIELD = 'email'
-    # REQUIRED_FIELDS = []
 
     def __str__(self):
         return f"{self.email} {self.first_name} ({self.user_type})"
