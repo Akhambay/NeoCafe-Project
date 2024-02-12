@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 
     'users',
     'menu',
+    'orders',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
