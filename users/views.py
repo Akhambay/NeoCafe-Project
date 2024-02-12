@@ -32,7 +32,6 @@ from rest_framework_simplejwt.tokens import Token
 from dj_rest_auth.utils import jwt_encode
 from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
-from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
@@ -43,17 +42,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 obtain_jwt_token = CustomTokenObtainPairView.as_view()
 token_refresh = TokenRefreshView.as_view()
-
-
-def generate_unique_username(email):
-    username_prefix = email.split('@')[0]
-
-    # Generate a random string to ensure uniqueness
-    random_suffix = get_random_string(length=4)
-
-    unique_username = f"{username_prefix}_{random_suffix}"
-
-    return unique_username
 
 
 class AdminLoginTokenView(TokenObtainPairView):
@@ -194,7 +182,6 @@ class BranchCreateView(generics.CreateAPIView):
 
 
 class BranchList(generics.ListCreateAPIView):
-    queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     permission_classes = [IsAuthenticated]
 
@@ -203,8 +190,16 @@ class BranchList(generics.ListCreateAPIView):
         summary="List Branches",
         responses={200: BranchSerializer(many=True), 204: "No Content"}
     )
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    def get_queryset(self):
+        queryset = Branch.objects.all()
+
+        # Get the search parameters from the query parameters
+        branch_name = self.request.query_params.get('branch_name', None)
+
+        if branch_name:
+            queryset = queryset.filter(branch_name__icontains=branch_name)
+
+        return queryset
 
 
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
