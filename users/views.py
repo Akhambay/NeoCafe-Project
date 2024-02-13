@@ -69,6 +69,16 @@ token_refresh = CustomTokenRefreshView.as_view()
 class AdminLoginTokenView(TokenObtainPairView):
     serializer_class = AdminLoginSerializer
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        # If login is successful, modify the response to exclude access token
+        if response.status_code == 200:
+            # Remove the 'access' key from the response data
+            response.data.pop('access', None)
+
+        return response
+
 
 # EMPLOYEE
 class EmployeeCreateView(generics.CreateAPIView):
