@@ -87,7 +87,7 @@ class MenuItemList(generics.ListCreateAPIView):
             queryset = queryset.filter(
                 Q(name__icontains=search_term) |
                 Q(category__name__icontains=search_term) |
-                Q(price_per_unit=search_term)
+                Q(price_per_unit__exact=search_term)
             )
 
         return queryset
