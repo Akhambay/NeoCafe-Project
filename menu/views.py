@@ -59,7 +59,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemCreateView(generics.CreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -70,7 +70,7 @@ class MenuItemCreateView(generics.CreateAPIView):
 class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete a menu item.",
@@ -81,18 +81,21 @@ class MenuItemList(generics.ListCreateAPIView):
         queryset = Menu_Item.objects.all()
 
         # Get the search parameters from the query parameters
-        name = self.request.query_params.get('name', None)
-        category = self.request.query_params.get('category', None)
-        price_per_unit = self.request.query_params.get('price_per_unit', None)
+        search_term = self.request.query_params.get('search', None)
 
-        if name:
-            queryset = queryset = queryset.filter(name__icontains=name)
-        if category:
-            queryset = queryset.filter(category__name__icontains=category)
-        if price_per_unit:
-            queryset = queryset.filter(price_per_unit=price_per_unit)
+        if search_term:
+            queryset = queryset.filter(
+                Q(name__icontains=search_term) |
+                Q(category__name__icontains=search_term) |
+                Q(price_per_unit=search_term)
+            )
 
         return queryset
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):

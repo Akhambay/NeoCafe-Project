@@ -111,19 +111,22 @@ class EmployeeList(generics.ListCreateAPIView):
         queryset = CustomUser.objects.all()
 
         # Get the search parameters from the query parameters
-        name = self.request.query_params.get('name', None)
-        email = self.request.query_params.get('email', None)
-        user_type = self.request.query_params.get('user_type', None)
+        search_term = self.request.query_params.get('search', None)
 
-        if name:
+        if search_term:
             queryset = queryset.filter(
-                Q(first_name__icontains=name) | Q(last_name__icontains=name))
-        if email:
-            queryset = queryset.filter(email__icontains=email)
-        if user_type:
-            queryset = queryset.filter(user_type=user_type)
+                Q(first_name__icontains=search_term) |
+                Q(last_name__icontains=search_term) |
+                Q(email__icontains=search_term) |
+                Q(user_type__icontains=search_term)
+            )
 
         return queryset
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -194,12 +197,19 @@ class BranchList(generics.ListCreateAPIView):
         queryset = Branch.objects.all()
 
         # Get the search parameters from the query parameters
-        branch_name = self.request.query_params.get('branch_name', None)
+        search_term = self.request.query_params.get('search', None)
 
-        if branch_name:
-            queryset = queryset.filter(branch_name__icontains=branch_name)
+        if search_term:
+            queryset = queryset.filter(
+                Q(branch_name__icontains=search_term)
+            )
 
         return queryset
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):

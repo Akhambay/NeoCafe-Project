@@ -44,7 +44,9 @@ class Order(models.Model):
 
     # Fields for Takeaway
     cart_id = models.IntegerField(null=True, blank=True)
-    customer_email = models.EmailField(null=True, blank=True)
+    customer_email = models.OneToOneField(
+        CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='order_customer'
+    )
 
     # Fields for In Venue
     table = models.ForeignKey(
