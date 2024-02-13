@@ -42,13 +42,11 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    # Fields for Takeaway
     cart_id = models.IntegerField(null=True, blank=True)
     customer_email = models.OneToOneField(
         CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='order_customer'
     )
 
-    # Fields for In Venue
     table = models.ForeignKey(
         Table, on_delete=models.CASCADE, null=True, blank=True)
     employee = models.ForeignKey(
