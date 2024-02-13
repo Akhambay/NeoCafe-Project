@@ -80,19 +80,7 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        if not extra_fields.get('username'):
-            extra_fields['username'] = self.generate_unique_username(email)
         return self.create_user(email, password, **extra_fields)
-
-    def generate_unique_username(self, email):
-        username_prefix = email.split('@')[0]
-
-    # Generate a random string to ensure uniqueness
-        random_suffix = get_random_string(length=4)
-
-        unique_username = f"{username_prefix}_{random_suffix}"
-
-        return unique_username
 
 
 class CustomUser(AbstractUser):
@@ -113,9 +101,6 @@ class CustomUser(AbstractUser):
         max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
-    # schedule = models.ManyToManyField(
-    #   EmployeeSchedule, related_name='employee_schedule', related_query_name='employee_schedule', blank=True,
-    # )
     is_staff = models.BooleanField(default=True)
 
     objects = CustomUserManager()

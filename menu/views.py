@@ -40,13 +40,32 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_update(self, serializer):
-        existing_category_image = serializer.instance.category_image
-        serializer.save()
+    @extend_schema(
+        description="Get details, update, or delete a category.",
+        summary="Retrieve/Update/Delete category",
+        responses={
+            200: CategorySerializer,
+            204: "No Content",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-        if 'category_image' not in self.request.data or not self.request.data['category_image']:
-            serializer.instance.category_image = existing_category_image
-            serializer.instance.save()
+    @extend_schema(
+        description="Update a category.",
+        summary="Update category",
+        responses={200: CategorySerializer, 204: "No Content", }
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Delete a category.",
+        summary="Delete category",
+        responses={204: "No Content", }
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 # MENU_ITEM
 
