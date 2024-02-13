@@ -3,42 +3,12 @@ from .models import CustomUser, Branch, Customer, Schedule, EmployeeSchedule
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class AdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-
-    def get_credentials(self, data):
-        username = data.get(self.username_field)
-        password = data.get('password')
-
-        if username and password:
-            return {
-                self.username_field: username,
-                'password': password
-            }
-        return None
-
-    def validate(self, attrs):
-        credentials = self.get_credentials(attrs)
-
-        if credentials is not None:
-            user = authenticate(**credentials)
-
-            if user and user.is_active:  # Check if the user is active
-                refresh = self.get_token(user)
-
-                return {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
-
-        raise serializers.ValidationError(
-            'Unable to log in with provided credentials.')
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -47,6 +17,25 @@ class CustomUserSerializer(serializers.ModelSerializer):
         read_only_fields = ['last_name', 'email', 'bonus_points',
                             'confirmation_code', 'first_name', 'user_type', 'branch', 'schedule']
         model = CustomUser
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        refresh = RefreshToken.for_user(self.user)
+
+        # Serialize the user object
+        user_serializer = CustomUserSerializer(self.user)
+        serialized_user = user_serializer.data
+
+        # Add the serialized user to the validated data
+        data['user'] = serialized_user
+
+        # Add the refresh token to the validated data
+        data['refresh'] = str(refresh)
+
+        return data
 
 
 class ScheduleSerializer(serializers.Serializer):

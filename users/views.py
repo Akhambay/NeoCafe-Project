@@ -40,8 +40,30 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh = request.data.get('refresh', None)
+
+        if not refresh:
+            return Response({'detail': 'Refresh token not found'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            return Response({'detail': 'Invalid refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        access_token = serializer.validated_data.get('access', None)
+
+        if not access_token:
+            return Response({'detail': 'Access token not found'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response({'refresh': str(refresh), 'access': str(access_token)})
+
+
 obtain_jwt_token = CustomTokenObtainPairView.as_view()
-token_refresh = TokenRefreshView.as_view()
+token_refresh = CustomTokenRefreshView.as_view()
 
 
 class AdminLoginTokenView(TokenObtainPairView):

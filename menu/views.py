@@ -84,11 +84,22 @@ class MenuItemList(generics.ListCreateAPIView):
         search_term = self.request.query_params.get('search', None)
 
         if search_term:
-            queryset = queryset.filter(
-                Q(name__icontains=search_term) |
-                Q(category__name__icontains=search_term) |
-                Q(price_per_unit__exact=search_term)
-            )
+            try:
+                # Try to convert the search term to a numeric value
+                search_term_numeric = float(search_term)
+
+                # Use Q objects to filter by name, category, and price
+                queryset = queryset.filter(
+                    Q(name__icontains=search_term) |
+                    Q(category__name__icontains=search_term) |
+                    Q(price_per_unit=search_term_numeric)
+                )
+            except ValueError:
+                # Handle the case where the search term is not a valid numeric value
+                queryset = queryset.filter(
+                    Q(name__icontains=search_term) |
+                    Q(category__name__icontains=search_term)
+                )
 
         return queryset
 
