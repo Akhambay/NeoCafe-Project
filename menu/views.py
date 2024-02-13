@@ -16,7 +16,7 @@ from django.db.models import Q
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -59,7 +59,7 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemCreateView(generics.CreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
@@ -70,7 +70,7 @@ class MenuItemCreateView(generics.CreateAPIView):
 class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete a menu item.",
