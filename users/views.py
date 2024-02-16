@@ -35,9 +35,17 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
+# ===========================================================================
+# TOKEN OBTAIN
+# ===========================================================================
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+# ===========================================================================
+# TOKEN REFRESH
+# ===========================================================================
 
 
 class CustomTokenRefreshView(TokenRefreshView):
@@ -65,6 +73,10 @@ class CustomTokenRefreshView(TokenRefreshView):
 obtain_jwt_token = CustomTokenObtainPairView.as_view()
 token_refresh = CustomTokenRefreshView.as_view()
 
+# ===========================================================================
+# ADMIN LOGIN TOKEN
+# ===========================================================================
+
 
 class AdminLoginTokenView(TokenObtainPairView):
     serializer_class = AdminLoginSerializer
@@ -80,7 +92,9 @@ class AdminLoginTokenView(TokenObtainPairView):
         return response
 
 
+# ===========================================================================
 # EMPLOYEE
+# ===========================================================================
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
@@ -194,11 +208,13 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
         return self.destroy(request, *args, **kwargs)
 
 
+# ===========================================================================
 # BRANCH
+# ===========================================================================
 class BranchCreateView(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Create a new branch.",
@@ -218,7 +234,7 @@ class BranchCreateView(generics.CreateAPIView):
 
 class BranchList(generics.ListCreateAPIView):
     serializer_class = BranchSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get a list of all branches",
@@ -247,7 +263,7 @@ class BranchList(generics.ListCreateAPIView):
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete a branch.",
@@ -287,7 +303,9 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
             serializer.instance.schedules = existing_schedules
             serializer.instance.save()
 
+# ===========================================================================
 # ADMIN LOGIN
+# ===========================================================================
 
 
 class AdminLoginView(APIView):
@@ -317,7 +335,9 @@ class AdminLoginView(APIView):
             print("Authentication failed.")
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-# CustomerRegistration
+# ===========================================================================
+# CUSTOMER EMAIL CHECK
+# ===========================================================================
 
 
 class CustomerEmailCheckView(APIView):
@@ -362,6 +382,10 @@ class CustomerEmailCheckView(APIView):
         send_mail(subject, message, from_email, recipient_list)
 
         return Response({'message': 'Verification code sent successfully.'}, status=status.HTTP_201_CREATED)
+
+# ===========================================================================
+# CUSTOMER REGISTRATION
+# ===========================================================================
 
 
 class CustomerRegistrationView(APIView):
@@ -409,6 +433,10 @@ class CustomerRegistrationView(APIView):
             'access_token': str(access_token),
             'refresh_token': str(refresh),
         }, status=status.HTTP_201_CREATED)
+
+# ===========================================================================
+# CUSTOMER AUTHENTICATION CHECK
+# ===========================================================================
 
 
 class CustomerAuthenticationCheckView(APIView):
@@ -461,6 +489,10 @@ class CustomerAuthenticationCheckView(APIView):
 
 User = get_user_model()
 
+# ===========================================================================
+# CUSTOMER AUTHENTICATION
+# ===========================================================================
+
 
 class CustomerAuthenticationView(APIView):
     serializer_class = CustomerLoginSerializer
@@ -498,6 +530,10 @@ class CustomerAuthenticationView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# ===========================================================================
+# BARTENDER AUTHENTICATION CHECK
+# ===========================================================================
 
 
 class BartenderAuthenticationCheckView(APIView):
@@ -547,6 +583,10 @@ class BartenderAuthenticationCheckView(APIView):
         else:
             return Response({'error': 'Bartender with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
 
+# ===========================================================================
+# BARTENDER AUTHENTICATION
+# ===========================================================================
+
 
 class BartenderAuthenticationView(APIView):
     serializer_class = BartenderLoginSerializer
@@ -584,6 +624,10 @@ class BartenderAuthenticationView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# ===========================================================================
+# WAITER AUTHENTICATION CHECK
+# ===========================================================================
 
 
 class WaiterAuthenticationCheckView(APIView):
@@ -630,6 +674,10 @@ class WaiterAuthenticationCheckView(APIView):
             return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Waiter with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
+
+# ===========================================================================
+# WAITER AUTHENTICATION
+# ===========================================================================
 
 
 class WaiterAuthenticationView(APIView):

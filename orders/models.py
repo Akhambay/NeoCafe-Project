@@ -1,6 +1,11 @@
 from django.db import models
 from users.models import Branch, CustomUser
+from menu.models import Menu_Item
 from django.utils.translation import gettext_lazy as _
+
+# ===========================================================================
+# TABLE
+# ===========================================================================
 
 
 class Table(models.Model):
@@ -17,11 +22,16 @@ class Table(models.Model):
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='orders', blank=True, null=True)
 
+# ===========================================================================
+# ORDER
+# ===========================================================================
+
 
 class Order(models.Model):
     class OrderStatus(models.TextChoices):
         NEW = 'new', _('New')
         IN_PROGRESS = 'in_progress', _('In Progress')
+        CANCELLED = 'cancelled', _('Cancelled'),
         DONE = 'done', _('Done')
 
     class OrderType(models.TextChoices):
@@ -54,3 +64,20 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.pk} - {self.order_type} - {self.status}"
+
+# ===========================================================================
+# CART
+# ===========================================================================
+
+
+class Cart(models.Model):
+
+    customer = models.PositiveIntegerField()
+    item = models.ForeignKey(
+        Menu_Item, on_delete=models.CASCADE, related_name='cart')
+    quantity = models.PositiveIntegerField(default=1)
+    subtotal_price = models.PositiveIntegerField(default=1)
+    total_price = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, related_name='cart')

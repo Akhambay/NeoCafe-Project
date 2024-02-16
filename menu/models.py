@@ -4,6 +4,10 @@ from users.models import Branch
 from django.core.validators import MinLengthValidator
 from django.core.validators import MinValueValidator
 
+# ===========================================================================
+# CATEGORY
+# ===========================================================================
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, default="Выпечка", validators=[
@@ -13,6 +17,9 @@ class Category(models.Model):
         return f"{self.name}"
 
 
+# ===========================================================================
+# MENU ITEM
+# ===========================================================================
 class Menu_Item(models.Model):
     name = models.CharField(max_length=255, default="Выпечка")
     description = models.TextField(max_length=250, null=True, blank=True)
@@ -32,54 +39,36 @@ class Menu_Item(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
-class Ingredient(models.Model):
-    MEASUREMENT_UNIT_CHOICES = [
-        ('гр', 'Грамм'),
-        ('кг', 'Килограмм'),
-        ('мл', 'мл'),
-        ('литр', 'Литр'),
-        ('шт', 'Штук')
-    ]
-
-    TYPE_CHOICES = [
-        ('готовое', 'Готовое изделие'),
-        ('сырье', 'Сырье'),
-    ]
-
-    name = models.CharField(max_length=255, default="Выпечка")
-    description = models.TextField(max_length=250, null=True, blank=True)
-    current_quantity = models.PositiveIntegerField(default=100)
-    measurement_unit = models.CharField(
-        max_length=15, choices=MEASUREMENT_UNIT_CHOICES)
-    type = models.CharField(max_length=15, choices=TYPE_CHOICES)
-    minimum_limit = models.PositiveIntegerField(default=10)
-    restock_date = models.DateTimeField(auto_now_add=True)
-    branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='ingredients', blank=True, null=True
-    )
-
-    def __str__(self):
-        return f"{self.name}"
+# ===========================================================================
+# STOCK ITEMS
+# ===========================================================================
 
 
 class Stock(models.Model):
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-    menu_item = models.ForeignKey(
-        Menu_Item, on_delete=models.CASCADE, null=True, blank=True)
-    ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, null=True, blank=True)
+    MEASUREMENT_UNIT_CHOICES = [
+        ('гр.', 'гр.'),
+        ('кг.', 'кг.'),
+        ('мл.', 'мл.'),
+        ('л.', 'л.'),
+        ('шт.', 'шт.')
+    ]
+
+    TYPE_CHOICES = [
+        ('Готовое', 'Готовое изделие'),
+        ('Из сырья', 'Из сырья'),
+    ]
+
+    stock_item = models.CharField(max_length=225)
     current_quantity = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(0)])
-    minimum_quantity = models.PositiveIntegerField(
+    measurement_unit = models.CharField(
+        max_length=15, choices=MEASUREMENT_UNIT_CHOICES)
+    type = models.CharField(max_length=15, choices=TYPE_CHOICES)
+    minimum_limit = models.PositiveIntegerField(
         default=10, validators=[MinValueValidator(0)])
     restock_date = models.DateTimeField(auto_now_add=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     is_enough = models.BooleanField(default=True)
 
     def __str__(self):
-        if self.menu_item:
-            return f"Stock - {self.menu_item.name} - {self.branch.name}"
-        elif self.ingredient:
-            return f"Stock - {self.ingredient.name} - {self.branch.name}"
-        else:
-            return "Invalid Stock Entry"
+        return f"Stock - {self.stock_item} - {self.branch.name}"

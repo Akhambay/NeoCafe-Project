@@ -5,6 +5,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
+# ===========================================================================
+# BRANCH SCHEDULE
+# ===========================================================================
+
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
@@ -25,6 +29,10 @@ class Schedule(models.Model):
 
     def __str__(self):
         return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
+
+# ===========================================================================
+# EMPLOYEE SCHEDULE
+# ===========================================================================
 
 
 class EmployeeSchedule(models.Model):
@@ -47,6 +55,10 @@ class EmployeeSchedule(models.Model):
     def __str__(self):
         return f"{self.get_day_display()}: {self.start_time} - {self.end_time}"
 
+# ===========================================================================
+# BRANCH
+# ===========================================================================
+
 
 class Branch(models.Model):
     branch_name = models.CharField(max_length=250)
@@ -60,6 +72,10 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.branch_name
+
+# ===========================================================================
+# CUSTOM USER MANAGER
+# ===========================================================================
 
 
 class CustomUserManager(BaseUserManager):
@@ -81,6 +97,10 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
+
+# ===========================================================================
+# CUSTOM USER
+# ===========================================================================
 
 
 class CustomUser(AbstractUser):
