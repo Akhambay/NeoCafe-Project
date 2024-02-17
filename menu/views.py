@@ -363,3 +363,53 @@ class StockItemsRawEnoughList(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+# ===========================================================================
+# BRANCH MENU
+# ===========================================================================
+
+
+class BranchMenuCreateView(generics.ListAPIView):
+    serializer_class = MenuItemSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        print(f"Received branch ID: {branch_id}")
+
+        try:
+            branch = Branch.objects.get(id=branch_id)
+        except Branch.DoesNotExist:
+            print("Branch not found.")
+            return Menu_Item.objects.none()
+
+        menu_items = Menu_Item.objects.all()
+        available_menu_items = []
+
+        for menu_item in menu_items:
+            if self.menu_item_has_enough_ingredients(menu_item, branch):
+                available_menu_items.append(menu_item)
+
+        return available_menu_items
+
+    def menu_item_has_enough_ingredients(self, menu_item, branch):
+        for ingredient in menu_item.ingredients.all():
+            try:
+                stock = Stock.objects.get(
+                    branch=branch, stock_item=ingredient.name)
+            except Stock.DoesNotExist:
+                return False
+
+            if stock.current_quantity < ingredient.quantity:
+                return False
+
+        return True
+
+
+class BranchMenuView(generics.ListAPIView):
+    serializer_class = MenuItemSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        queryset = Menu_Item.objects.filter(
+            ingredients__menu_item__branch_id=branch_id).distinct()
+        return queryset

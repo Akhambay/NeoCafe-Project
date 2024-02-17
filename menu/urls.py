@@ -2,7 +2,8 @@ from django.urls import path, include
 from .views import (MenuItemCreateView, MenuItemList, MenuItemDetail,
                     CategoryCreateView, CategoryList, CategoryDetail,
                     StockItemCreateView, StockItemsList, StockItemDetail,
-                    StockItemsNotEnoughList, StockItemsEnoughList, StockItemsRawEnoughList
+                    StockItemsNotEnoughList, StockItemsEnoughList, StockItemsRawEnoughList,
+                    BranchMenuCreateView, BranchMenuView,
                     )
 
 urlpatterns = [
@@ -26,4 +27,6 @@ urlpatterns = [
          StockItemsEnoughList.as_view(), name='available_item'),
     path('stock/items/raw_enough/',
          StockItemsRawEnoughList.as_view(), name='available_item'),
+    path('branch-menu/<int:branch_id>/',
+         BranchMenuView.as_view(), name='branch-menu'),
 ]

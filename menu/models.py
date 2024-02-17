@@ -65,6 +65,8 @@ class Menu_Item(models.Model):
     item_image = models.ImageField(null=True, blank=True,
                                    upload_to='branch_images/')
     price_per_unit = models.PositiveIntegerField(default=100)
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, related_name='menu_items')
 
     def __str__(self):
         return f"{self.name}"
