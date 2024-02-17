@@ -32,20 +32,36 @@ class MenuItemSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients', [])
-        instance = super().update(instance, validated_data)
+
+        # Update Menu_Item fields
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get(
+            'description', instance.description)
+        instance.item_image = validated_data.get(
+            'item_image', instance.item_image)
+        instance.price_per_unit = validated_data.get(
+            'price_per_unit', instance.price_per_unit)
+        instance.category = validated_data.get('category', instance.category)
+        instance.save()
 
         # Update or create Ingredient instances based on the provided data
-        existing_ingredients = instance.ingredients.all()
         for ingredient_data in ingredients_data:
             name = ingredient_data['name']
             quantity = ingredient_data['quantity']
             measurement_unit = ingredient_data['measurement_unit']
 
-            ingredient_instance, _ = existing_ingredients.get_or_create(
+            ingredient_instance, created = Ingredient.objects.get_or_create(
+                menu_item=instance,
                 name=name,
                 defaults={'quantity': quantity,
                           'measurement_unit': measurement_unit}
             )
+
+            if not created:
+                # Update existing Ingredient
+                ingredient_instance.quantity = quantity
+                ingredient_instance.measurement_unit = measurement_unit
+                ingredient_instance.save()
 
         return instance
 

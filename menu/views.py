@@ -86,17 +86,27 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
 class MenuItemCreateView(generics.CreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
-    # permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        ingredients_data = self.request.data.get('ingredients', [])
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        menu_item = serializer.save()
+        # Extract ingredients data
+        ingredients_data = serializer.validated_data.pop('ingredients', [])
 
+        # Create the menu item
+        menu_item = Menu_Item.objects.create(**serializer.validated_data)
+
+        # Create ingredients for the menu item
         for ingredient_data in ingredients_data:
-            menu_item.ingredients.create(**ingredient_data)
+            Ingredient.objects.create(menu_item=menu_item, **ingredient_data)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Refresh the menu item instance to include ingredients
+        menu_item.refresh_from_db()
+
+        headers = self.get_success_headers(serializer.data)
+        response_serializer = MenuItemSerializer(menu_item)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 @extend_schema(
