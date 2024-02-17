@@ -105,14 +105,14 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
-        ('waiter', 'Waiter'),
-        ('bartender', 'Bartender'),
+        ('Waiter', 'Waiter'),
+        ('Bartender', 'Bartender'),
     ]
 
     first_name = models.CharField(null=True, blank=True, max_length=50)
     last_name = models.CharField(null=True, blank=True, max_length=50)
     user_type = models.CharField(
-        max_length=50, choices=USER_TYPE_CHOICES, default='admin')
+        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
 
     email = models.EmailField(
         max_length=30, unique=True, null=True)

@@ -98,7 +98,7 @@ class AdminLoginTokenView(TokenObtainPairView):
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Create a new employee.",
@@ -122,8 +122,8 @@ class EmployeeCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         # Set default values if needed
-        serializer.validated_data.setdefault('user_type', 'waiter')
-        serializer.validated_data.setdefault('is_staff', False)
+        serializer.validated_data.setdefault('user_type', 'Waiter')
+        serializer.validated_data.setdefault('is_staff', True)
 
         employee = serializer.save()
 
@@ -139,14 +139,11 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Set the user_id in the session
         serializer.save()
-        # self.request.session['pending_confirmation_user'] = employee.id
-        # Save the session to persist the changes
-        # self.request.session.save()
 
 
 class EmployeeList(generics.ListCreateAPIView):
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get a list of all employees",
@@ -178,7 +175,7 @@ class EmployeeList(generics.ListCreateAPIView):
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Get details, update, or delete an employee.",

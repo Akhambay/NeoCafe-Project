@@ -61,7 +61,7 @@ class EmployeeAddSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ['id', 'username', 'password', 'first_name', 'email',
-                  'user_type', 'is_staff', 'branch', 'schedule']
+                  'user_type', 'branch', 'schedule']
         model = CustomUser
 
     def create(self, validated_data):
@@ -143,7 +143,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'password', 'first_name', 'email',
-                  'user_type', 'is_staff', 'branch', 'employee_schedules']
+                  'user_type', 'branch', 'employee_schedules']
 
     def create(self, validated_data):
         schedules_data = validated_data.pop('employee_schedules', [])

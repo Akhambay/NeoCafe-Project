@@ -1,8 +1,8 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import Category, Menu_Item, Stock
-from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer
+from .models import Category, Menu_Item, Stock, Branch, Ingredient
+from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer, IngredientSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, fields
@@ -88,6 +88,16 @@ class MenuItemCreateView(generics.CreateAPIView):
     serializer_class = MenuItemSerializer
     # permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        ingredients_data = self.request.data.get('ingredients', [])
+
+        menu_item = serializer.save()
+
+        for ingredient_data in ingredients_data:
+            menu_item.ingredients.create(**ingredient_data)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 @extend_schema(
     description="Get a list of all menu items.",
@@ -128,12 +138,11 @@ class MenuItemList(generics.ListCreateAPIView):
                     Q(category__name__icontains=search_term)
                 )
 
-        return queryset
+        branch_id = self.request.query_params.get('branch_id')
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
 
-    def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return queryset
 
 
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -149,10 +158,15 @@ class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
             serializer.instance.item_image = existing_item_image
             serializer.instance.save()
 
+    queryset = Branch.objects.all()
+    serializer_class = StockSerializer
+    # permission_classes = [IsAuthenticated]
 
 # ===========================================================================
 # STOCK ITEMS
 # ===========================================================================
+
+
 @extend_schema(
     description="Create a new stock item.",
     summary="Create Stock Item",

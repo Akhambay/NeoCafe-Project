@@ -52,7 +52,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    cart_id = models.IntegerField(null=True, blank=True)
+    # cart_id = models.IntegerField(null=True, blank=True)
     customer_email = models.OneToOneField(
         CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='order_customer'
     )
@@ -75,8 +75,8 @@ class Cart(models.Model):
     customer = models.PositiveIntegerField()
     item = models.ForeignKey(
         Menu_Item, on_delete=models.CASCADE, related_name='cart')
-    quantity = models.PositiveIntegerField(default=1)
-    subtotal_price = models.PositiveIntegerField(default=1)
+    # quantity = models.PositiveIntegerField(default=1)
+    # subtotal_price = models.PositiveIntegerField(default=1)
     total_price = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     branch = models.ForeignKey(
