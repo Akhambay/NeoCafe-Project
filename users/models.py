@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from orders.models import Order
 from django.utils.crypto import get_random_string
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
@@ -124,7 +123,7 @@ class CustomUser(AbstractUser):
         Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
     is_staff = models.BooleanField(default=True)
     orders = models.ManyToManyField(
-        Order, related_name='customers', blank=True)
+        'orders.Order', related_name='orders', blank=True)
 
     objects = CustomUserManager()
 

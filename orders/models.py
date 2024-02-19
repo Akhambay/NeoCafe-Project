@@ -1,5 +1,4 @@
 from django.db import models
-from users.models import Branch, CustomUser
 from menu.models import Menu_Item
 from django.utils.translation import gettext_lazy as _
 
@@ -20,7 +19,7 @@ class Table(models.Model):
         default=TableStatus.AVAILABLE
     )
     branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='orders', blank=True, null=True)
+        'users.Branch', on_delete=models.CASCADE, related_name='orders', blank=True, null=True)
 
 
 # ===========================================================================
@@ -62,16 +61,16 @@ class Order(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     customer = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='orders'
+        'users.CustomUser', on_delete=models.CASCADE, related_name='customer_orders'
     )
 
     table = models.ForeignKey(
         Table, on_delete=models.CASCADE, null=True, blank=True)
     employee = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    items = models.ManyToManyField(Menu_Item, through='OrderedItem')
+        'users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)
+    items = models.ManyToManyField('menu.Menu_Item', through='OrderedItem')
     branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='cart')
+        'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
     def __str__(self):
         return f"Order #{self.pk} - {self.order_type} - {self.status}"
@@ -85,3 +84,6 @@ class OrderedItem(models.Model):
 
     def total_price(self):
         return self.quantity * self.price
+
+    def __str__(self):
+        return f"{self.quantity} x {self.item.name} - {self.total_price()} {self.item.measurement_unit}"
