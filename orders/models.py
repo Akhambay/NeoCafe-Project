@@ -22,15 +22,24 @@ class Table(models.Model):
     branch = models.ForeignKey(
         Branch, on_delete=models.CASCADE, related_name='orders', blank=True, null=True)
 
+
 # ===========================================================================
 # ORDER
 # ===========================================================================
+'''
+На вынос - новый, в процессе, завершен, отменен.
+В заведении - новый, в процессе, готов, завершен, отменен.
+Когда бармен приготовил заказ в заведении - 
+официанту пришло уведомление о статусе «Готово» = можно забирать заказ с бара и относить клиентам.
+официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
+'''
 
 
 class Order(models.Model):
     class OrderStatus(models.TextChoices):
         NEW = 'new', _('New')
         IN_PROGRESS = 'in_progress', _('In Progress')
+        READY = 'ready', _('Ready')
         CANCELLED = 'cancelled', _('Cancelled'),
         DONE = 'done', _('Done')
 
@@ -52,32 +61,27 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    # cart_id = models.IntegerField(null=True, blank=True)
-    customer_email = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='order_customer'
+    customer = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='orders'
     )
 
     table = models.ForeignKey(
         Table, on_delete=models.CASCADE, null=True, blank=True)
     employee = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    items = models.ManyToManyField(Menu_Item, through='OrderedItem')
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, related_name='cart')
 
     def __str__(self):
         return f"Order #{self.pk} - {self.order_type} - {self.status}"
 
-# ===========================================================================
-# CART
-# ===========================================================================
 
+class OrderedItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    item = models.ForeignKey(Menu_Item, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.PositiveIntegerField()  # Add a price field here
 
-class Cart(models.Model):
-
-    customer = models.PositiveIntegerField()
-    item = models.ForeignKey(
-        Menu_Item, on_delete=models.CASCADE, related_name='cart')
-    # quantity = models.PositiveIntegerField(default=1)
-    # subtotal_price = models.PositiveIntegerField(default=1)
-    total_price = models.PositiveIntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
-    branch = models.ForeignKey(
-        Branch, on_delete=models.CASCADE, related_name='cart')
+    def total_price(self):
+        return self.quantity * self.price
