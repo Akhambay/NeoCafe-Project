@@ -3,7 +3,7 @@ from .views import (MenuItemCreateView, MenuItemList, MenuItemDetail,
                     CategoryCreateView, CategoryList, CategoryDetail,
                     StockItemCreateView, StockItemsList, StockItemDetail,
                     StockItemsNotEnoughList, StockItemsEnoughList, StockItemsRawEnoughList,
-                    BranchMenuCreateView, BranchMenuView,
+                    BranchMenuView,
                     )
 
 urlpatterns = [

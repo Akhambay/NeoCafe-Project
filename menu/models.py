@@ -32,7 +32,7 @@ class Stock(models.Model):
 
     TYPE_CHOICES = [
         ('Готовое', 'Готовое изделие'),
-        ('Cырье', 'Cырье'),
+        ('Сырье', 'Сырье'),
     ]
 
     stock_item = models.CharField(max_length=225)

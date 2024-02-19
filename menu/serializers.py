@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['id', 'quantity', 'measurement_unit',]
+        fields = ['id', 'name', 'quantity', 'measurement_unit']
         model = Ingredient
 
 

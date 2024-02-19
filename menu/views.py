@@ -369,47 +369,45 @@ class StockItemsRawEnoughList(generics.ListAPIView):
 # ===========================================================================
 
 
-class BranchMenuCreateView(generics.ListAPIView):
+class BranchMenuView(generics.ListAPIView):
     serializer_class = MenuItemSerializer
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         branch_id = self.kwargs.get('branch_id')
-        print(f"Received branch ID: {branch_id}")
 
         try:
             branch = Branch.objects.get(id=branch_id)
         except Branch.DoesNotExist:
-            print("Branch not found.")
+            print(f"Branch with ID {branch_id} does not exist.")
             return Menu_Item.objects.none()
 
         menu_items = Menu_Item.objects.all()
-        available_menu_items = []
+        print(f"Menu Items: {menu_items}")
 
-        for menu_item in menu_items:
-            if self.menu_item_has_enough_ingredients(menu_item, branch):
-                available_menu_items.append(menu_item)
+        available_menu_items = [
+            menu_item for menu_item in menu_items if self.menu_item_has_enough_ingredients(menu_item, branch)
+        ]
+        print(f"Available Menu Items: {available_menu_items}")
 
         return available_menu_items
 
     def menu_item_has_enough_ingredients(self, menu_item, branch):
         for ingredient in menu_item.ingredients.all():
+            print(f"Ingredient Name: {ingredient.name}")
             try:
                 stock = Stock.objects.get(
                     branch=branch, stock_item=ingredient.name)
             except Stock.DoesNotExist:
+                print(f"Stock for {
+                      ingredient.name} does not exist in branch {branch.id}.")
                 return False
 
             if stock.current_quantity < ingredient.quantity:
+                print(f"Not enough stock for {
+                      ingredient.name} in branch {branch.id}.")
+                print(f"Ingredient Quantity: {ingredient.quantity}")
+                print(f"Stock Quantity: {stock.current_quantity}")
                 return False
 
         return True
-
-
-class BranchMenuView(generics.ListAPIView):
-    serializer_class = MenuItemSerializer
-
-    def get_queryset(self):
-        branch_id = self.kwargs.get('branch_id')
-        queryset = Menu_Item.objects.filter(
-            ingredients__menu_item__branch_id=branch_id).distinct()
-        return queryset
