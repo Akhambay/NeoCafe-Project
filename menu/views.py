@@ -168,10 +168,6 @@ class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
             serializer.instance.item_image = existing_item_image
             serializer.instance.save()
 
-    queryset = Branch.objects.all()
-    serializer_class = StockSerializer
-    # permission_classes = [IsAuthenticated]
-
 # ===========================================================================
 # STOCK ITEMS
 # ===========================================================================
