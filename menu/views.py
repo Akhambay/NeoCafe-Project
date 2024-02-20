@@ -68,9 +68,16 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     @extend_schema(
         description="Delete a category.",
         summary="Delete category",
-        responses={204: "No Content", }
+        responses={204: "No Content",
+                   400: "Bad Request - Cannot delete category with associated menu items"}
     )
     def delete(self, request, *args, **kwargs):
+        category = self.get_object()
+
+        # Check if the category has associated menu items
+        if category.menu_items.exists():
+            return Response({"detail": "Cannot delete category with associated menu items."}, status=status.HTTP_400_BAD_REQUEST)
+
         return self.destroy(request, *args, **kwargs)
 
 # ===========================================================================
