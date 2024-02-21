@@ -43,8 +43,8 @@ class Order(models.Model):
         DONE = 'done', _('Done')
 
     class OrderType(models.TextChoices):
-        IN_VENUE = 'in_venue', _('In Venue')
-        TAKEAWAY = 'takeaway', _('Takeaway')
+        IN_VENUE = 'in_venue', _('In Venue')  # For Invenue orders
+        TAKEAWAY = 'takeaway', _('Takeaway')  # For Takeaway orders
 
     status = models.CharField(
         max_length=20,
@@ -62,12 +62,12 @@ class Order(models.Model):
 
     customer = models.ForeignKey(
         'users.CustomUser', on_delete=models.CASCADE, related_name='customer_orders'
-    )
+    )  # For Takeaway orders
 
     table = models.ForeignKey(
-        Table, on_delete=models.CASCADE, null=True, blank=True)
+        Table, on_delete=models.CASCADE, null=True, blank=True)  # For Invenue orders
     employee = models.ForeignKey(
-        'users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)
+        'users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # For Invenue orders
     items = models.ManyToManyField('menu.Menu_Item', through='OrderedItem')
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')

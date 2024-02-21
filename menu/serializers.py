@@ -14,6 +14,24 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'quantity', 'measurement_unit']
         model = Ingredient
 
+    def to_internal_value(self, data):
+        # Convert user input to internal representation before validation
+        data['quantity'], data['measurement_unit'] = self.convert_quantity(
+            data.get('quantity'), data.get('measurement_unit'))
+
+        return super().to_internal_value(data)
+
+    def convert_quantity(self, quantity, measurement_unit):
+        # Convert quantity to grams for kg and liters to milliliters
+        if measurement_unit == 'кг':
+            quantity *= 1000  # 1 kg = 1000 g
+            measurement_unit = 'гр'
+        elif measurement_unit == 'л':
+            quantity *= 1000  # 1 liter = 1000 ml
+            measurement_unit = 'мл'
+
+        return quantity, measurement_unit
+
 
 class MenuItemSerializer(serializers.ModelSerializer):
     ingredients = IngredientSerializer(many=True, required=False)
