@@ -1,6 +1,3 @@
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order
@@ -52,39 +49,3 @@ class CustomerOrderHistoryView(generics.ListAPIView):
     def get_queryset(self):
         customer = self.request.user
         return Order.objects.filter(customer=customer)
-
-# ================================================================
-
-
-class InVenueOrderView(APIView):
-    def get(self, request, *args, **kwargs):
-        # Retrieve in-venue orders
-        invenue_orders = Order.objects.filter(
-            order_type=Order.OrderType.IN_VENUE)
-        serializer = OrderSerializer(invenue_orders, many=True)
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        # Create a new in-venue order
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(order_type=Order.OrderType.IN_VENUE)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class TakeawayOrderView(APIView):
-    def get(self, request, *args, **kwargs):
-        # Retrieve takeaway orders
-        takeaway_orders = Order.objects.filter(
-            order_type=Order.OrderType.TAKEAWAY)
-        serializer = OrderSerializer(takeaway_orders, many=True)
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        # Create a new takeaway order
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(order_type=Order.OrderType.TAKEAWAY)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

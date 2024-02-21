@@ -1,14 +1,9 @@
-version: "3"
+version: "3.12"
 
 services:
 
   db:
     image: postgres:latest
-    environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-
     restart: always
     env_file:
       - .env
@@ -22,12 +17,7 @@ services:
       - ./static:/app/static
     ports:
       - "8000:8000"
-    command:
-    - bash 
-    - -c
-    - python manage.py collectstatic --no-input
-    - python manage.py migrate
-    - gunicorn neocafe_config.wsgi:application -w 4 -b 0.0.0.0:8000
+    command: bash -c "python manage.py collectstatic --no-input && python manage.py migrate && gunicorn neocafe_config.wsgi:application -w 4 -b 0.0.0.0:8000"
     env_file:
       - .env
     depends_on:
