@@ -22,3 +22,10 @@ services:
       - .env
     depends_on:
       - db
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
