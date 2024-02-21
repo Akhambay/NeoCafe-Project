@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ["tokyo-backender.org.kg", "https://neo-cafe.vercel.app",
-                 "localhost", "127.0.0.1", "161.35.220.150"]
+                 "localhost", "127.0.0.1", "138.197.183.251"]
 
 
 # Application definition
