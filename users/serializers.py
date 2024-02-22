@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import CustomUser, Branch, Customer, Schedule, EmployeeSchedule
+from .models import (CustomUser, Branch, Schedule,
+                     EmployeeSchedule, EmployeeProfile, CustomerProfile)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -221,13 +222,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
+        model = CustomUser
         fields = ['id', 'email', 'confirmation_code',]
 
 
 class CustomerEmailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
+        model = CustomUser
         fields = ['id', 'email', ]
 
 
@@ -260,15 +261,16 @@ class CustomerLoginSerializer(serializers.ModelSerializer):
 
 class CustomerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
+        model = CustomUser
         fields = ['id', 'email', 'confirmation_code']
-        read_only_fields = ['user_type',]
+        read_only_fields = ['user_type', 'bonus_points', 'first_name',]
 
 
 class CustomerLoginSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
-        fields = ['id', 'email', 'confirmation_code']
+        model = CustomUser
+        fields = ['id', 'email', 'confirmation_code', 'first_name']
+        read_only_fields = ['first_name',]
 
 
 class CustomerAuthenticationCheckSerializer(serializers.Serializer):
@@ -378,3 +380,16 @@ class WaiterLoginSerializer(serializers.ModelSerializer):
                 "User not found with the provided email and confirmation code")
 
         return user
+
+
+class EmployeeProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeProfile
+        fields = '__all__'
+
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerProfile
+        fields = ['first_name', 'bonus', 'email', 'orders',]
+        read_only_fields = ['email', 'bonus', 'orders']

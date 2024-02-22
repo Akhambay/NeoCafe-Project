@@ -2,10 +2,11 @@ from django.contrib import admin
 from .models import CustomUser, Branch, Schedule
 
 
-# class BranchAdmin(admin.ModelAdmin):
-#   filter_horizontal = ('schedule',)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'email',
+                    'user_type', 'is_staff', 'is_active')
 
 
+admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Branch)
 admin.site.register(Schedule)
-admin.site.register(CustomUser)

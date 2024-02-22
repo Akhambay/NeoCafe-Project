@@ -1,13 +1,13 @@
 from rest_framework.views import Response
-from users.serializers import (CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
-                               BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
-                               WaiterAuthenticationCheckSerializer, WaiterLoginSerializer)
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .serializers import (
     CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
     CustomerAuthenticationCheckSerializer, EmployeeAddSerializer,
-    BranchSerializer, EmployeeSerializer, ScheduleSerializer, EmployeeScheduleSerializer
+    BranchSerializer, EmployeeSerializer, ScheduleSerializer, EmployeeScheduleSerializer,
+    BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
+    WaiterAuthenticationCheckSerializer, WaiterLoginSerializer,
+    CustomerProfileSerializer, EmployeeProfileSerializer,
 )
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -30,7 +30,7 @@ from django.contrib.auth.models import update_last_login
 from dj_rest_auth.models import TokenModel
 from rest_framework_simplejwt.tokens import Token
 from dj_rest_auth.utils import jwt_encode
-from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer
+from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer, CustomerProfile, EmployeeProfile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
@@ -417,6 +417,9 @@ class CustomerRegistrationView(APIView):
         user = serializer.save(
             username=email, password=confirmation_code, user_type='customer')
 
+        user.bonus_points = 100
+        user.save()
+
         # Authenticate the user and generate tokens
         refresh = RefreshToken.for_user(user)
         access_token = jwt_encode(user)
@@ -520,13 +523,24 @@ class CustomerAuthenticationView(APIView):
 
             # Access the token using the `access_token` attribute
             access_token = refresh.access_token
+
+            # Check if a CustomerProfile exists for the authenticated user
+            try:
+                customer_profile = CustomerProfile.objects.get(customer=user)
+            except CustomerProfile.DoesNotExist:
+                # If not, create a CustomerProfile for the user
+                customer_profile = CustomerProfile.objects.create(
+                    customer=user, email=user.email, first_name=user.first_name)
+
             return Response({
                 'message': 'Authentication successful.',
                 'access_token': str(access_token),
                 'refresh_token': str(refresh),
+                'customer_profile': CustomerProfileSerializer(customer_profile).data,
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 # ===========================================================================
 # BARTENDER AUTHENTICATION CHECK
@@ -713,3 +727,71 @@ class WaiterAuthenticationView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# ===========================================================================
+# PROFILES
+# ===========================================================================
+
+
+class CustomerProfileView(generics.RetrieveAPIView):
+    queryset = CustomerProfile.objects.all()
+    serializer_class = CustomerProfileSerializer
+    lookup_field = 'customer_id'
+
+    @extend_schema(
+        description="Retrieve details of a profile.",
+        summary="Retrieve profile",
+        responses={
+            200: CustomerProfileSerializer,
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CustomerProfile.objects.all()
+    serializer_class = CustomerProfileSerializer
+    lookup_field = 'customer_id'
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Get details, update, or delete a profile.",
+        summary="Retrieve/Update/Delete profile",
+        responses={
+            200: CustomerProfileSerializer,
+            204: "No Content",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Update a profile.",
+        summary="Update profile",
+        responses={200: BranchSerializer, 204: "No Content", }
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Delete operation is not allowed for profiles.",
+        summary="Delete profile (Not Allowed)",
+        responses={405: "Method Not Allowed", }
+    )
+    def delete(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        if 'email' in request.data:
+            return Response({'error': 'Email field cannot be modified'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

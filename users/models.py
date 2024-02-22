@@ -91,6 +91,9 @@ class CustomUserManager(BaseUserManager):
         extra_fields['refresh_token'] = str(refresh)
         extra_fields['access_token'] = str(refresh.access_token)
 
+        # Save again after setting bonus_points and access_token
+        user.save(using=self._db)
+
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
@@ -107,6 +110,7 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('Waiter', 'Waiter'),
         ('Bartender', 'Bartender'),
+
     ]
 
     first_name = models.CharField(null=True, blank=True, max_length=50)
@@ -128,8 +132,32 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f"{self.email} {self.first_name} ({self.user_type})"
+        return self.email
 
 
-class Customer(CustomUser):
-    pass
+# ===========================================================================
+# PROFILES
+# ===========================================================================
+
+
+class CustomerProfile(models.Model):
+    customer = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=50)
+    orders = models.ForeignKey(
+        'orders.Order', on_delete=models.SET_NULL,  blank=True, null=True)
+    bonus = models.PositiveIntegerField(default=100)
+
+    def __str__(self):
+        return self.email
+
+
+class EmployeeProfile(models.Model):
+    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField()
+    schedule = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
