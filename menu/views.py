@@ -190,6 +190,32 @@ class StockItemCreateView(generics.CreateAPIView):
     serializer_class = StockSerializer
     # permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Check if the stock item already exists for the given branch
+        existing_stock = Stock.objects.filter(
+            branch=serializer.validated_data['branch'],
+            stock_item=serializer.validated_data['stock_item']
+        ).first()
+
+        if existing_stock:
+            # Update the quantity and other fields
+            existing_stock.current_quantity += serializer.validated_data['current_quantity']
+            existing_stock.minimum_limit = serializer.validated_data.get(
+                'minimum_limit', existing_stock.minimum_limit)
+            existing_stock.is_enough = existing_stock.current_quantity >= existing_stock.minimum_limit
+            existing_stock.save()
+
+            headers = self.get_success_headers(serializer.data)
+            response_serializer = StockSerializer(existing_stock)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            # Create a new stock item
+            response = super().create(request, *args, **kwargs)
+            return response
+
 
 @extend_schema(
     description="Get a list of all stock items.",
