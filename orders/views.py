@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema
 from .models import Order
 from .serializers import OrderSerializer
 from .serializers import CustomerOrderSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
 @extend_schema(
