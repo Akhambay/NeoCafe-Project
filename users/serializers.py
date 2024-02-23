@@ -418,8 +418,21 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
+    # Include the EmployeeSerializer to represent the related employee
+    bartender = EmployeeSerializer()
+    schedule = EmployeeScheduleSerializer(many=True)
+
     class Meta:
         model = BartenderProfile
         fields = '__all__'
         read_only_fields = ['bartender', 'first_name',
-                            'last_name', 'email', 'employee_schedules']
+                            'last_name', 'email', 'schedule']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Remove unwanted fields
+        for field in ['schedule', 'first_name', 'last_name', 'email']:
+            data.pop(field, None)
+
+        return data

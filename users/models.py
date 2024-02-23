@@ -181,7 +181,7 @@ class BartenderProfile(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
-    employee_schedules = models.ForeignKey(
+    schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):

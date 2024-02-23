@@ -212,6 +212,26 @@ class EmployeeCreateView(generics.CreateAPIView):
                     # Create Schedule instance
                     schedule_instance = EmployeeSchedule.objects.create(
                         day=day, start_time=start_time, end_time=end_time, employee=employee)
+        elif user_type == 'Bartender':
+            # Create or retrieve Waiter profile
+            bartender_profile, created = BartenderProfile.objects.get_or_create(
+                bartender=employee)
+
+            # Check if the profile was created or already existed
+            if created:
+                # Extract the schedules data from the validated data
+                schedules_data = serializer.validated_data.get(
+                    'employee_schedules', [])
+
+                # Create Schedule instances and associate them with the WaiterProfile
+                for schedule_data in schedules_data:
+                    day = schedule_data['day']
+                    start_time = schedule_data['start_time']
+                    end_time = schedule_data['end_time']
+
+                    # Create Schedule instance
+                    schedule_instance = EmployeeSchedule.objects.create(
+                        day=day, start_time=start_time, end_time=end_time, employee=employee)
         # Set the user_id in the session
         serializer.save()
 
@@ -811,6 +831,7 @@ class WaiterAuthenticationView(APIView):
 class CustomerProfileView(generics.RetrieveAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
+    # permission_classes = [IsAuthenticated]
     lookup_field = 'customer_id'
 
     @extend_schema(
@@ -827,6 +848,7 @@ class CustomerProfileView(generics.RetrieveAPIView):
 class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
+    # permission_classes = [IsAuthenticated]
     lookup_field = 'customer_id'
     # permission_classes = [IsAuthenticated]
 
@@ -875,6 +897,7 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
 class WaiterProfileView(generics.RetrieveAPIView):
     queryset = WaiterProfile.objects.all()
     serializer_class = WaiterProfileSerializer
+    # permission_classes = [IsAuthenticated]
     lookup_field = 'waiter_id'
 
     @extend_schema(
