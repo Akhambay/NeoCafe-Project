@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, fields
 from django.db.models.fields import IntegerField
 from django.db.models import Case, When, Value, BooleanField
-
+from rest_framework.pagination import PageNumberPagination
 # ===========================================================================
 # CATEGORY
 # ===========================================================================
@@ -217,6 +217,12 @@ class StockItemCreateView(generics.CreateAPIView):
             return response
 
 
+class StockItemsListPagination(PageNumberPagination):
+    page_size = 6
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 @extend_schema(
     description="Get a list of all stock items.",
     summary="List Stock Items",
@@ -225,6 +231,7 @@ class StockItemCreateView(generics.CreateAPIView):
 class StockItemsList(generics.ListCreateAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
+    pagination_class = StockItemsListPagination
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -257,6 +264,12 @@ class StockItemsList(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -274,6 +287,8 @@ class StockItemDetail(generics.RetrieveUpdateDestroyAPIView):
 )
 class StockItemsNotEnoughList(generics.ListAPIView):
     serializer_class = StockSerializer
+    pagination_class = StockItemsListPagination
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Stock.objects.annotate(
@@ -308,6 +323,12 @@ class StockItemsNotEnoughList(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -319,6 +340,8 @@ class StockItemsNotEnoughList(generics.ListAPIView):
 )
 class StockItemsEnoughList(generics.ListAPIView):
     serializer_class = StockSerializer
+    pagination_class = StockItemsListPagination
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Stock.objects.filter(
@@ -349,6 +372,12 @@ class StockItemsEnoughList(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -360,6 +389,8 @@ class StockItemsEnoughList(generics.ListAPIView):
 )
 class StockItemsRawEnoughList(generics.ListAPIView):
     serializer_class = StockSerializer
+    pagination_class = StockItemsListPagination
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Stock.objects.filter(
@@ -390,6 +421,12 @@ class StockItemsRawEnoughList(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
