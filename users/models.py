@@ -12,13 +12,13 @@ from django.utils.translation import gettext_lazy as _
 
 class Schedule(models.Model):
     DAYS_CHOICES = [
-        ('monday', _('Monday')),
-        ('tuesday', _('Tuesday')),
-        ('wednesday', _('Wednesday')),
-        ('thursday', _('Thursday')),
-        ('friday', _('Friday')),
-        ('saturday', _('Saturday')),
-        ('sunday', _('Sunday')),
+        ('Пн', _('Пн')),
+        ('Вт', _('Вт')),
+        ('Ср', _('Ср')),
+        ('Чт', _('Чт')),
+        ('Пт', _('Пт')),
+        ('Сб', _('Сб')),
+        ('Вс', _('Вс')),
     ]
 
     branch = models.ForeignKey(
@@ -37,13 +37,13 @@ class Schedule(models.Model):
 
 class EmployeeSchedule(models.Model):
     DAYS_CHOICES = [
-        ('monday', _('Monday')),
-        ('tuesday', _('Tuesday')),
-        ('wednesday', _('Wednesday')),
-        ('thursday', _('Thursday')),
-        ('friday', _('Friday')),
-        ('saturday', _('Saturday')),
-        ('sunday', _('Sunday')),
+        ('Пн', _('Пн')),
+        ('Вт', _('Вт')),
+        ('Ср', _('Ср')),
+        ('Чт', _('Чт')),
+        ('Пт', _('Пт')),
+        ('Сб', _('Сб')),
+        ('Вс', _('Вс')),
     ]
 
     employee = models.ForeignKey(

@@ -35,10 +35,12 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class MenuItemSerializer(serializers.ModelSerializer):
     ingredients = IngredientSerializer(many=True, required=False)
+    category = CategorySerializer()
 
     class Meta:
         model = Menu_Item
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'item_image',
+                  'price_per_unit', 'branch', 'category', 'ingredients']
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients', [])
