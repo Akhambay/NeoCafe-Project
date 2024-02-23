@@ -22,7 +22,7 @@ class Schedule(models.Model):
     ]
 
     branch = models.ForeignKey(
-        'Branch', on_delete=models.CASCADE, related_name='schedules')
+        'Branch', on_delete=models.CASCADE, related_name='schedules', null=True)
     day = models.CharField(max_length=10, choices=DAYS_CHOICES)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -47,7 +47,7 @@ class EmployeeSchedule(models.Model):
     ]
 
     employee = models.ForeignKey(
-        'CustomUser', on_delete=models.CASCADE, related_name='employee_schedules')
+        'CustomUser', on_delete=models.CASCADE, related_name='employee_schedules', null=True)
     day = models.CharField(max_length=10, choices=DAYS_CHOICES)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -145,7 +145,7 @@ class CustomerProfile(models.Model):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(max_length=50)
     orders = models.ForeignKey(
-        'orders.Order', on_delete=models.SET_NULL,  blank=True, null=True)
+        'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
     bonus = models.PositiveIntegerField(default=100)
 
     def __str__(self):
@@ -155,9 +155,34 @@ class CustomerProfile(models.Model):
 class EmployeeProfile(models.Model):
     employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
-    schedule = models.CharField(max_length=100)
+    schedule = models.ForeignKey(
+        Schedule, on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+class WaiterProfile(models.Model):
+    waiter = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField()
+    schedule = models.ForeignKey(
+        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+class BartenderProfile(models.Model):
+    bartender = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField()
+    employee_schedules = models.ForeignKey(
+        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

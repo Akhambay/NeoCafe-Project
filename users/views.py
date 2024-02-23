@@ -8,6 +8,8 @@ from .serializers import (
     BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
     WaiterAuthenticationCheckSerializer, WaiterLoginSerializer,
     CustomerProfileSerializer, EmployeeProfileSerializer,
+    AdminLoginSerializer, CustomTokenObtainPairSerializer, CustomerProfile, EmployeeProfile,
+    WaiterProfileSerializer, BartenderProfileSerializer,
 )
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -15,7 +17,7 @@ from dj_rest_auth.serializers import JWTSerializer, TokenSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
-from .models import CustomUser, Branch, Schedule, EmployeeSchedule
+from .models import CustomUser, Branch, Schedule, EmployeeSchedule, WaiterProfile, BartenderProfile
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -30,10 +32,10 @@ from django.contrib.auth.models import update_last_login
 from dj_rest_auth.models import TokenModel
 from rest_framework_simplejwt.tokens import Token
 from dj_rest_auth.utils import jwt_encode
-from .serializers import AdminLoginSerializer, EmployeeAddSerializer, CustomTokenObtainPairSerializer, CustomerProfile, EmployeeProfile
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from django.utils.translation import gettext as _
 
 # ===========================================================================
 # TOKEN OBTAIN
@@ -95,6 +97,7 @@ class AdminLoginTokenView(TokenObtainPairView):
 # ===========================================================================
 # EMPLOYEE
 # ===========================================================================
+"""
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
@@ -137,6 +140,78 @@ class EmployeeCreateView(generics.CreateAPIView):
         employee.set_password(serializer.validated_data['password'])
         employee.save()
 
+        # Set the user_id in the session
+        serializer.save()
+"""
+
+
+class EmployeeCreateView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = EmployeeSerializer
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Create a new employee.",
+        summary="Create Employee",
+        responses={201: EmployeeAddSerializer, 204: "No Content", }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+
+        refresh = RefreshToken.for_user(serializer.instance)
+        token_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+        headers = self.get_success_headers(serializer.data)
+        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        # Set default values if needed
+        serializer.validated_data.setdefault('is_staff', True)
+
+        # Create the employee (Waiter)
+        employee = serializer.save()
+
+        # Generate a refresh token for the employee
+        refresh = RefreshToken.for_user(employee)
+        refresh_token = str(refresh)
+
+        # Attach the refresh token to the employee instance
+        employee.refresh_token = refresh_token
+
+        employee.set_password(serializer.validated_data['password'])
+        employee.save()
+
+        # Set the user_id in the session
+        serializer.save()
+
+        # Check user_type and create a profile if it's a Waiter
+        user_type = serializer.validated_data.get('user_type')
+        if user_type == 'Waiter':
+            # Create or retrieve Waiter profile
+            waiter_profile, created = WaiterProfile.objects.get_or_create(
+                waiter=employee)
+
+            # Check if the profile was created or already existed
+            if created:
+                # Extract the schedules data from the validated data
+                schedules_data = serializer.validated_data.get(
+                    'employee_schedules', [])
+
+                # Create Schedule instances and associate them with the WaiterProfile
+                for schedule_data in schedules_data:
+                    day = schedule_data['day']
+                    start_time = schedule_data['start_time']
+                    end_time = schedule_data['end_time']
+
+                    # Create Schedule instance
+                    schedule_instance = EmployeeSchedule.objects.create(
+                        day=day, start_time=start_time, end_time=end_time, employee=employee)
         # Set the user_id in the session
         serializer.save()
 
@@ -795,3 +870,36 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
         self.perform_update(serializer)
 
         return Response(serializer.data)
+
+
+class WaiterProfileView(generics.RetrieveAPIView):
+    queryset = WaiterProfile.objects.all()
+    serializer_class = WaiterProfileSerializer
+    lookup_field = 'waiter_id'
+
+    @extend_schema(
+        description="Retrieve details of a profile.",
+        summary="Retrieve profile",
+        responses={
+            200: WaiterProfileSerializer,
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class BartenderProfileView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BartenderProfile.objects.all()
+    serializer_class = BartenderProfileSerializer
+    lookup_field = 'bartender_id'
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Retrieve details of a profile.",
+        summary="Retrieve profile",
+        responses={
+            200: BartenderProfileSerializer,
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)

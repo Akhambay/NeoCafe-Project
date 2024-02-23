@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (CustomUser, Branch, Schedule,
-                     EmployeeSchedule, EmployeeProfile, CustomerProfile)
+                     EmployeeSchedule, EmployeeProfile, CustomerProfile,
+                     WaiterProfile, BartenderProfile)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -143,8 +144,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'password', 'first_name', 'email',
-                  'user_type', 'branch', 'employee_schedules']
+        fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email',
+                  'user_type', 'branch', 'employee_schedules',]
 
     def create(self, validated_data):
         schedules_data = validated_data.pop('employee_schedules', [])
@@ -385,7 +386,7 @@ class WaiterLoginSerializer(serializers.ModelSerializer):
 class EmployeeProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeProfile
-        fields = '__all__'
+        read_only_fields = '__all__'
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
@@ -393,3 +394,19 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model = CustomerProfile
         fields = ['id', 'first_name', 'bonus', 'email', 'orders',]
         read_only_fields = ['email', 'bonus', 'orders']
+
+
+class WaiterProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WaiterProfile
+        fields = '__all__'
+        read_only_fields = ['waiter', 'first_name',
+                            'last_name', 'email', 'employee_schedules']
+
+
+class BartenderProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BartenderProfile
+        fields = '__all__'
+        read_only_fields = ['bartender', 'first_name',
+                            'last_name', 'email', 'employee_schedules']
