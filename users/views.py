@@ -1,3 +1,4 @@
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -188,8 +189,15 @@ class EmployeeCreateView(generics.CreateAPIView):
         serializer.save()
 
 
+class EmployeeListPagination(PageNumberPagination):
+    page_size = 7
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class EmployeeList(generics.ListCreateAPIView):
     serializer_class = EmployeeSerializer
+    pagination_class = EmployeeListPagination
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -215,6 +223,12 @@ class EmployeeList(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
