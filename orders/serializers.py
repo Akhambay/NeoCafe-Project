@@ -13,7 +13,7 @@ class ItemToOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'quantity', 'order',]
+        fields = ['id', 'item', 'quantity', ]
         # order
 
 
@@ -21,7 +21,7 @@ class OrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
-    ItemToOrder = ItemToOrderSerializer(many=True)
+    ItemToOrder = ItemToOrderSerializer(many=True, source='ITO')
 
     class Meta:
         model = Order
@@ -52,8 +52,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_total_sum(self, obj):
         total_sum = 0
-        for mto in obj.MTO.all():
-            total_sum += mto.meal.price * mto.quantity
+        for ito in obj.ITO.all():
+            total_sum += ito.item.price_per_unit * ito.quantity
         obj.total_price = total_sum
         obj.save()
         return total_sum
@@ -70,7 +70,7 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ['id', 'table_number', 'status', 'branch']
+        fields = ['id', 'table_number', 'status']
 
 
 class TableDetailSerializer(serializers.ModelSerializer):
