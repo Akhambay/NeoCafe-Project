@@ -32,9 +32,6 @@ class OrderView(APIView):
                 order = Order.objects.get(id=order_id)
                 order.employee = request.user.waiterprofile
                 order.save()
-            # total_sum = serializer.data.get('total_sum')
-            # # get_pay(order_id)
-            # # count_bonuses(user, total_sum)
             return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors)
 

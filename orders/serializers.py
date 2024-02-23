@@ -21,15 +21,15 @@ class OrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
-    ItemToOrder = ItemToOrderSerializer(many=True, source='ITO')
+    ITO = ItemToOrderSerializer(many=True)
 
     class Meta:
         model = Order
         fields = ['id', 'total_price', 'table', 'status',
-                  'created_at', 'customer', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ItemToOrder']
+                  'created_at', 'customer', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def create(self, validated_data):
-        ito_data = validated_data.pop('ItemToOrder')
+        ito_data = validated_data.pop('ITO')
         order = Order.objects.create(**validated_data)
 
         for ito in ito_data:

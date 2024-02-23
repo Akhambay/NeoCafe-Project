@@ -97,54 +97,6 @@ class AdminLoginTokenView(TokenObtainPairView):
 # ===========================================================================
 # EMPLOYEE
 # ===========================================================================
-"""
-class EmployeeCreateView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = EmployeeSerializer
-    # permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        description="Create a new employee.",
-        summary="Create Employee",
-        responses={201: EmployeeAddSerializer, 204: "No Content", }
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
-
-        refresh = RefreshToken.for_user(serializer.instance)
-        token_data = {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-
-        headers = self.get_success_headers(serializer.data)
-        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        # Set default values if needed
-        serializer.validated_data.setdefault('user_type', 'Waiter')
-        serializer.validated_data.setdefault('is_staff', True)
-
-        employee = serializer.save()
-
-        # Generate a refresh token for the employee
-        refresh = RefreshToken.for_user(employee)
-        refresh_token = str(refresh)
-
-        # Attach the refresh token to the employee instance
-        employee.refresh_token = refresh_token
-
-        employee.set_password(serializer.validated_data['password'])
-        employee.save()
-
-        # Set the user_id in the session
-        serializer.save()
-"""
-
-
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
@@ -503,6 +455,9 @@ class CustomerRegistrationView(APIView):
         if confirmation_code != pending_user_data['confirmation_code']:
             return Response({'error': 'Invalid confirmation code.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        first_name = email.split('@')[0]
+        pending_user_data['data']['first_name'] = first_name
+
         # Use the stored data to create the user
         serializer = CustomerRegistrationSerializer(
             data=pending_user_data['data'])
@@ -513,6 +468,7 @@ class CustomerRegistrationView(APIView):
             username=email, password=confirmation_code, user_type='customer')
 
         user.bonus_points = 100
+        user.first_name = email.split('@')[0]
         user.save()
 
         # Authenticate the user and generate tokens
