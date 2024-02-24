@@ -162,9 +162,14 @@ class EmployeeCreateView(generics.CreateAPIView):
                     start_time = schedule_data['start_time']
                     end_time = schedule_data['end_time']
 
-                    # Create Schedule instance
-                    schedule_instance = EmployeeSchedule.objects.create(
-                        day=day, start_time=start_time, end_time=end_time, employee=employee)
+                    # Check if a similar schedule already exists
+                    existing_schedule = EmployeeSchedule.objects.filter(
+                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
+
+                    if not existing_schedule:
+                        # Create Schedule instance
+                        schedule_instance = EmployeeSchedule.objects.create(
+                            day=day, start_time=start_time, end_time=end_time, employee=employee)
         elif user_type == 'Bartender':
             # Create or retrieve Waiter profile
             bartender_profile, created = BartenderProfile.objects.get_or_create(
@@ -182,9 +187,14 @@ class EmployeeCreateView(generics.CreateAPIView):
                     start_time = schedule_data['start_time']
                     end_time = schedule_data['end_time']
 
-                    # Create Schedule instance
-                    schedule_instance = EmployeeSchedule.objects.create(
-                        day=day, start_time=start_time, end_time=end_time, employee=employee)
+                    # Check if a similar schedule already exists
+                    existing_schedule = EmployeeSchedule.objects.filter(
+                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
+
+                    if not existing_schedule:
+                        # Create Schedule instance
+                        schedule_instance = EmployeeSchedule.objects.create(
+                            day=day, start_time=start_time, end_time=end_time, employee=employee)
         # Set the user_id in the session
         serializer.save()
 

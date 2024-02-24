@@ -1,6 +1,7 @@
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema
-from .models import Order
+from .models import Order, Table
+from users.models import WaiterProfile, CustomerProfile
 from .serializers import OrderSerializer
 from .serializers import CustomerOrderSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -101,3 +102,29 @@ class ModifyOrderView(APIView):
             order.delete()
             return Response({'data': 'order is canceled'})
         return Response({'data': f'time is up or order is {order.status}'})
+
+
+class OrderCreateView(generics.CreateAPIView):
+    def get(self, request, *args, **kwargs):
+        orders = Order.objects.all()
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            order_id = serializer.data.get('id')
+            try:
+                profile = WaiterProfile.objects.get(user=request.user)
+            except WaiterProfile.DoesNotExist:
+                profile = CustomerProfile.objects.get(user=request.user)
+
+            if isinstance(profile, WaiterProfile):
+                order = Order.objects.get(id=order_id)
+                order.employee = request.user.employeeprofile
+                order.save()
+
+            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
