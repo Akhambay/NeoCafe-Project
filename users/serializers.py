@@ -145,7 +145,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email',
-                  'user_type', 'branch', 'employee_schedules',]
+                  'user_type', 'branch', 'employee_schedules']
 
     def create(self, validated_data):
         schedules_data = validated_data.pop('employee_schedules', [])
@@ -162,63 +162,30 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
         # Update or create Schedule instances based on the provided data
         existing_schedules = instance.employee_schedules.all()
-        for schedule_data in schedules_data:
-            day = schedule_data['day']
-            schedule_instance = existing_schedules.filter(day=day).first()
+        existing_schedule_ids = [
+            schedule.id for schedule in existing_schedules]
 
-            if schedule_instance:
+        for schedule_data in schedules_data:
+            schedule_id = schedule_data.get('id')
+
+            if schedule_id and schedule_id in existing_schedule_ids:
                 # Update existing schedule
+                schedule_instance = existing_schedules.get(id=schedule_id)
+                schedule_instance.day = schedule_data['day']
                 schedule_instance.start_time = schedule_data['start_time']
                 schedule_instance.end_time = schedule_data['end_time']
                 schedule_instance.save()
             else:
-                # Create new schedule
+                # Create new schedule if it doesn't exist
                 EmployeeSchedule.objects.create(
                     employee=instance, **schedule_data)
 
-        return instance
-
-
-"""
-class EmployeeSerializer(serializers.ModelSerializer):
-    schedule = EmployeeScheduleSerializer(many=True)
-
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'username', 'password', 'first_name', 'email',
-                  'user_type', 'is_staff', 'branch', 'schedule']
-
-    def create(self, validated_data):
-        schedules_data = validated_data.pop('schedule', [])
-        employee = CustomUser.objects.create(**validated_data)
-
-        for schedule_data in schedules_data:
-            EmployeeSchedule.objects.create(employee=employee, **schedule_data)
-
-        return employee
-
-    def update(self, instance, validated_data):
-        schedules_data = validated_data.pop('schedule', [])
-        instance = super().update(instance, validated_data)
-
-        # Update or create Schedule instances based on the provided data
-        existing_schedules = instance.schedule.all()
-        for schedule_data in schedules_data:
-            day = schedule_data['day']
-            schedule_instance = existing_schedules.filter(day=day).first()
-
-            if schedule_instance:
-                # Update existing schedule
-                schedule_instance.start_time = schedule_data['start_time']
-                schedule_instance.end_time = schedule_data['end_time']
-                schedule_instance.save()
-            else:
-                # Create new schedule
-                EmployeeSchedule.objects.create(
-                    employee=instance, **schedule_data)
+        # Delete any schedules that were not included in the update data
+        schedule_ids_to_delete = [schedule.id for schedule in existing_schedules if schedule.id not in [
+            s.get('id') for s in schedules_data]]
+        EmployeeSchedule.objects.filter(id__in=schedule_ids_to_delete).delete()
 
         return instance
-"""
 
 
 class CustomerSerializer(serializers.ModelSerializer):
