@@ -365,13 +365,13 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 class WaiterProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
-    waiter = EmployeeSerializer()
+    employee = EmployeeSerializer()
     schedule = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         model = WaiterProfile
         fields = '__all__'
-        read_only_fields = ['waiter', 'first_name',
+        read_only_fields = ['employee', 'first_name',
                             'last_name', 'email', 'schedule']
 
     def to_representation(self, instance):
@@ -386,13 +386,13 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
-    bartender = EmployeeSerializer()
+    employee = EmployeeSerializer()
     schedule = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         model = BartenderProfile
         fields = '__all__'
-        read_only_fields = ['bartender', 'first_name',
+        read_only_fields = ['employee', 'first_name',
                             'last_name', 'email', 'schedule']
 
     def to_representation(self, instance):

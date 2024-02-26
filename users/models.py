@@ -165,7 +165,7 @@ class EmployeeProfile(models.Model):
 
 
 class WaiterProfile(models.Model):
-    waiter = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
@@ -177,7 +177,7 @@ class WaiterProfile(models.Model):
 
 
 class BartenderProfile(models.Model):
-    bartender = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()

@@ -26,9 +26,9 @@ class OrderView(APIView):
             serializer.save()
             order_id = serializer.data.get('id')
             try:
-                profile = WaiterProfile.objects.get(user=request.user)
+                profile = WaiterProfile.objects.get(employee=request.user)
             except WaiterProfile.DoesNotExist:
-                profile = CustomerProfile.objects.get(user=request.user)
+                profile = CustomerProfile.objects.get(employee=request.user)
             if isinstance(profile, WaiterProfile):
                 order = Order.objects.get(id=order_id)
                 order.employee = request.user.waiterprofile
