@@ -116,6 +116,12 @@ class MenuItemCreateView(generics.CreateAPIView):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
+class MenuItemPagination(PageNumberPagination):
+    page_size = 7
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 @extend_schema(
     description="Get a list of all menu items.",
     summary="List Menu Items",
@@ -125,6 +131,7 @@ class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
     serializer_class = MenuItemSerializer
     # permission_classes = [IsAuthenticated]
+    pagination_class = MenuItemPagination
 
     @extend_schema(
         description="Get details, update, or delete a menu item.",
@@ -160,6 +167,11 @@ class MenuItemList(generics.ListCreateAPIView):
             queryset = queryset.filter(branch_id=branch_id)
 
         return queryset
+
+    def get(self, request, *args, **kwargs):
+        response = super(MenuItemList, self).get(request, *args, **kwargs)
+        pagination_data = self.get_paginated_response(response.data)
+        return Response(pagination_data.data)
 
 
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
