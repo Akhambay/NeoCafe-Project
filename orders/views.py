@@ -25,9 +25,14 @@ class OrderView(APIView):
         if serializer.is_valid():
             serializer.save()
             order_id = serializer.data.get('id')
-            order = Order.objects.get(id=order_id)
-            order.employee = request.user.waiterprofile
-            order.save()
+            try:
+                profile = WaiterProfile.objects.get(employee=request.user)
+            except WaiterProfile.DoesNotExist:
+                profile = CustomerProfile.objects.get(employee=request.user)
+            if isinstance(profile, WaiterProfile):
+                order = Order.objects.get(id=order_id)
+                order.employee = request.user.waiterprofile
+                order.save()
             return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors)
 
