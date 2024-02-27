@@ -52,8 +52,8 @@ urlpatterns = [
     path('profile/customer/<int:customer_id>/',
          CustomerProfileView.as_view(), name='customer_profile'),
 
-    path('profile/waiter/<int:waiter_id>/',
-         WaiterProfileView.as_view(), name='waiter_profile'),
-    path('profile/bartender/<int:bartender_id>/',
-         BartenderProfileView.as_view(), name='bartender_profile'),
+    path('profile/waiter/<int:employee>/',
+         WaiterProfileView.as_view(), name='waiter-profile'),
+    path('profile/bartender/<int:employee>/',
+         BartenderProfileView.as_view(), name='bartender-profile'),
 ]

@@ -147,8 +147,8 @@ class EmployeeCreateView(generics.CreateAPIView):
         user_type = serializer.validated_data.get('user_type')
         if user_type == 'Waiter':
             # Create or retrieve Waiter profile
-            waiter_profile, created = WaiterProfile.objects.get_or_create(
-                waiter=employee)
+            employee_profile, created = WaiterProfile.objects.get_or_create(
+                employee=employee)
 
             # Check if the profile was created or already existed
             if created:
@@ -172,8 +172,8 @@ class EmployeeCreateView(generics.CreateAPIView):
                             day=day, start_time=start_time, end_time=end_time, employee=employee)
         elif user_type == 'Bartender':
             # Create or retrieve Waiter profile
-            bartender_profile, created = BartenderProfile.objects.get_or_create(
-                bartender=employee)
+            employee_profile, created = BartenderProfile.objects.get_or_create(
+                employee=employee)
 
             # Check if the profile was created or already existed
             if created:
@@ -878,7 +878,7 @@ class WaiterProfileView(generics.RetrieveAPIView):
     queryset = WaiterProfile.objects.all()
     serializer_class = WaiterProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'waiter_id'
+    lookup_field = 'employee'
 
     @extend_schema(
         description="Retrieve details of a profile.",
@@ -894,7 +894,7 @@ class WaiterProfileView(generics.RetrieveAPIView):
 class BartenderProfileView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BartenderProfile.objects.all()
     serializer_class = BartenderProfileSerializer
-    lookup_field = 'bartender_id'
+    lookup_field = 'employee'
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(
