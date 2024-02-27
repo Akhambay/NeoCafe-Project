@@ -5,7 +5,7 @@ from .models import Menu_Item, Category, Stock, Ingredient
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['name',]
+        fields = ['id', 'name']
         model = Category
 
 
@@ -31,6 +31,16 @@ class IngredientSerializer(serializers.ModelSerializer):
             measurement_unit = 'мл'
 
         return quantity, measurement_unit
+
+
+class MenuItemListSerializer(serializers.ModelSerializer):
+    ingredients = IngredientSerializer(many=True, required=False)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Menu_Item
+        fields = ['id', 'name', 'description', 'item_image',
+                  'price_per_unit', 'branch', 'category', 'ingredients']
 
 
 class MenuItemSerializer(serializers.ModelSerializer):

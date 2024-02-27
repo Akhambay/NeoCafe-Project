@@ -2,7 +2,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Category, Menu_Item, Stock, Branch, Ingredient
-from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer, IngredientSerializer
+from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer, IngredientSerializer, MenuItemListSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, fields
@@ -125,18 +125,18 @@ class MenuItemPagination(PageNumberPagination):
 @extend_schema(
     description="Get a list of all menu items.",
     summary="List Menu Items",
-    responses={200: MenuItemSerializer(many=True)}
+    responses={200: MenuItemListSerializer(many=True)}
 )
 class MenuItemList(generics.ListCreateAPIView):
     queryset = Menu_Item.objects.all()
-    serializer_class = MenuItemSerializer
+    serializer_class = MenuItemListSerializer
     # permission_classes = [IsAuthenticated]
     pagination_class = MenuItemPagination
 
     @extend_schema(
         description="Get details, update, or delete a menu item.",
         summary="Retrieve/Update/Delete Menu Item",
-        responses={200: MenuItemSerializer, 204: "No Content", }
+        responses={200: MenuItemListSerializer, 204: "No Content", }
     )
     def get_queryset(self):
         queryset = Menu_Item.objects.all()
