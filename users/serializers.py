@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (CustomUser, Branch, Schedule,
-                     EmployeeSchedule, EmployeeProfile, CustomerProfile,
+                     EmployeeSchedule, CustomerProfile, Profile,
                      WaiterProfile, BartenderProfile)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
@@ -352,7 +352,7 @@ class WaiterLoginSerializer(serializers.ModelSerializer):
 
 class EmployeeProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmployeeProfile
+        model = Profile
         read_only_fields = '__all__'
 
 
@@ -365,13 +365,13 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 class WaiterProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
-    employee = EmployeeSerializer()
+    user = EmployeeSerializer()
     schedule = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         model = WaiterProfile
         fields = '__all__'
-        read_only_fields = ['employee', 'first_name',
+        read_only_fields = ['user', 'first_name',
                             'last_name', 'email', 'schedule']
 
     def to_representation(self, instance):
@@ -386,13 +386,13 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
-    employee = EmployeeSerializer()
+    user = EmployeeSerializer()
     schedule = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         model = BartenderProfile
         fields = '__all__'
-        read_only_fields = ['employee', 'first_name',
+        read_only_fields = ['user', 'first_name',
                             'last_name', 'email', 'schedule']
 
     def to_representation(self, instance):

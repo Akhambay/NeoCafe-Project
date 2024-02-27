@@ -9,7 +9,7 @@ from .serializers import (
     BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
     WaiterAuthenticationCheckSerializer, WaiterLoginSerializer,
     CustomerProfileSerializer, EmployeeProfileSerializer,
-    AdminLoginSerializer, CustomTokenObtainPairSerializer, CustomerProfile, EmployeeProfile,
+    AdminLoginSerializer, CustomTokenObtainPairSerializer, CustomerProfile, Profile,
     WaiterProfileSerializer, BartenderProfileSerializer,
 )
 from drf_spectacular.utils import extend_schema
@@ -98,6 +98,29 @@ class AdminLoginTokenView(TokenObtainPairView):
 # ===========================================================================
 # EMPLOYEE
 # ===========================================================================
+def create_employee_profile(employee, user_type, schedules_data, profile_model, schedule_model):
+    # Create or retrieve profile
+    employee_profile, created = profile_model.objects.get_or_create(
+        employee=employee)
+
+    # Check if the profile was created or already existed
+    if created:
+        # Create Schedule instances and associate them with the profile
+        for schedule_data in schedules_data:
+            day = schedule_data['day']
+            start_time = schedule_data['start_time']
+            end_time = schedule_data['end_time']
+
+            # Check if a similar schedule already exists
+            existing_schedule = schedule_model.objects.filter(
+                day=day, start_time=start_time, end_time=end_time, employee=employee).first()
+
+            if not existing_schedule:
+                # Create Schedule instance
+                schedule_instance = schedule_model.objects.create(
+                    day=day, start_time=start_time, end_time=end_time, employee=employee)
+
+
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
@@ -145,10 +168,9 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Check user_type and create a profile if it's a Waiter
         user_type = serializer.validated_data.get('user_type')
-        if user_type == 'Waiter':
-            # Create or retrieve Waiter profile
-            employee_profile, created = WaiterProfile.objects.get_or_create(
-                employee=employee)
+        if user_type in ['Waiter', 'Bartender']:
+            # Create or retrieve the profile
+            profile, created = Profile.objects.get_or_create(user=employee)
 
             # Check if the profile was created or already existed
             if created:
@@ -156,7 +178,7 @@ class EmployeeCreateView(generics.CreateAPIView):
                 schedules_data = serializer.validated_data.get(
                     'employee_schedules', [])
 
-                # Create Schedule instances and associate them with the WaiterProfile
+                # Create Schedule instances and associate them with the Profile
                 for schedule_data in schedules_data:
                     day = schedule_data['day']
                     start_time = schedule_data['start_time']
@@ -170,33 +192,16 @@ class EmployeeCreateView(generics.CreateAPIView):
                         # Create Schedule instance
                         schedule_instance = EmployeeSchedule.objects.create(
                             day=day, start_time=start_time, end_time=end_time, employee=employee)
-        elif user_type == 'Bartender':
-            # Create or retrieve Waiter profile
-            employee_profile, created = BartenderProfile.objects.get_or_create(
-                employee=employee)
 
-            # Check if the profile was created or already existed
-            if created:
-                # Extract the schedules data from the validated data
-                schedules_data = serializer.validated_data.get(
-                    'employee_schedules', [])
-
-                # Create Schedule instances and associate them with the WaiterProfile
-                for schedule_data in schedules_data:
-                    day = schedule_data['day']
-                    start_time = schedule_data['start_time']
-                    end_time = schedule_data['end_time']
-
-                    # Check if a similar schedule already exists
-                    existing_schedule = EmployeeSchedule.objects.filter(
-                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
-
-                    if not existing_schedule:
-                        # Create Schedule instance
-                        schedule_instance = EmployeeSchedule.objects.create(
-                            day=day, start_time=start_time, end_time=end_time, employee=employee)
         # Set the user_id in the session
-        serializer.save()
+        user_type = serializer.validated_data.get('user_type')
+        schedules_data = serializer.validated_data.get(
+            'employee_schedules', [])
+
+        if user_type in ['Waiter', 'Bartender']:
+            # Use a common function for both Waiter and Bartender
+            create_employee_profile(
+                employee, user_type, schedules_data, WaiterProfile, EmployeeSchedule)
 
 
 class EmployeeListPagination(PageNumberPagination):
@@ -878,7 +883,7 @@ class WaiterProfileView(generics.RetrieveAPIView):
     queryset = WaiterProfile.objects.all()
     serializer_class = WaiterProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'employee'
+    lookup_field = 'user'
 
     @extend_schema(
         description="Retrieve details of a profile.",
@@ -894,7 +899,7 @@ class WaiterProfileView(generics.RetrieveAPIView):
 class BartenderProfileView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BartenderProfile.objects.all()
     serializer_class = BartenderProfileSerializer
-    lookup_field = 'employee'
+    lookup_field = 'user'
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(

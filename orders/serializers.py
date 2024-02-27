@@ -2,7 +2,7 @@ from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Order, ItemToOrder, Table
-from users.models import EmployeeProfile
+from users.models import Profile
 from menu.models import Menu_Item
 from menu.serializers import MenuItemSerializer
 from users.serializers import EmployeeProfileSerializer

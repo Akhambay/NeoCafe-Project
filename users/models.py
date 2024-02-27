@@ -85,8 +85,11 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+
+        # Save user first
         user.save(using=self._db)
 
+        # Set default values for refresh and access tokens
         refresh = RefreshToken.for_user(user)
         extra_fields['refresh_token'] = str(refresh)
         extra_fields['access_token'] = str(refresh.access_token)
@@ -134,7 +137,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
-
 # ===========================================================================
 # PROFILES
 # ===========================================================================
@@ -152,20 +154,30 @@ class CustomerProfile(models.Model):
         return self.email
 
 
-class EmployeeProfile(models.Model):
-    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+class Profile(models.Model):
+    USER_TYPE_CHOICES = [
+        ('Waiter', 'Waiter'),
+        ('Bartender', 'Bartender'),
+        # Add more user types as needed
+    ]
+
+    user = models.OneToOneField(
+        CustomUser, related_name='profile', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
+    user_type = models.CharField(
+        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
     schedule = models.ForeignKey(
-        Schedule, on_delete=models.SET_NULL, blank=True, null=True)
+        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
 
 class WaiterProfile(models.Model):
-    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        CustomUser, related_name='waiterprofile', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
@@ -177,7 +189,8 @@ class WaiterProfile(models.Model):
 
 
 class BartenderProfile(models.Model):
-    employee = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        CustomUser, related_name='bartenderprofile', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
