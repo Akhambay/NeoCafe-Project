@@ -511,13 +511,11 @@ class BranchMenuByCategoryView(generics.ListAPIView):
             return Menu_Item.objects.none()
 
         menu_items = Menu_Item.objects.filter(
-            category__id__iexact=category_id
+            category__id=category_id
         )
 
-        available_menu_items = menu_items.annotate(
-            category_id_as_text=F('category__id__iexact')
-        ).filter(
-            category_id_as_text=str(category_id)
+        available_menu_items = menu_items.filter(
+            category__id=category_id
         )
 
         available_menu_items = [
