@@ -12,9 +12,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.CreateModel(
+            name='CustomerProfile',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('first_name', models.CharField(max_length=50)),
+                ('bonus', models.PositiveIntegerField(default=100)),
+                ('email', models.EmailField(max_length=254)),
+                ('customer', models.OneToOneField(
+                    on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('orders', models.ForeignKey(blank=True, null=True,
+                 on_delete=django.db.models.deletion.SET_NULL, to='orders.Order')),
+            ],
+        ),
         migrations.AlterField(
             model_name='employeeprofile',
             name='employee',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='employeeprofile', to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,
+                                       related_name='employeeprofile', to=settings.AUTH_USER_MODEL),
         ),
     ]
