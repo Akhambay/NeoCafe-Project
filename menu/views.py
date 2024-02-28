@@ -448,7 +448,7 @@ class StockItemsRawEnoughList(generics.ListAPIView):
 
 
 class BranchMenuView(generics.ListAPIView):
-    serializer_class = MenuItemSerializer
+    serializer_class = MenuItemListSerializer
     # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -494,15 +494,15 @@ class BranchMenuView(generics.ListAPIView):
 @extend_schema(
     description="Get a list of menu items in a branch filtered by category.",
     summary="Branch Menu Items by Category",
-    responses={200: MenuItemSerializer(many=True)}
+    responses={200: MenuItemListSerializer(many=True)}
 )
 class BranchMenuByCategoryView(generics.ListAPIView):
-    serializer_class = MenuItemSerializer
+    serializer_class = MenuItemListSerializer
     # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         branch_id = self.kwargs.get('branch_id')
-        category_name = self.kwargs.get('category')
+        category_id = self.kwargs.get('category_id')
 
         try:
             branch = Branch.objects.get(id=branch_id)
@@ -511,7 +511,7 @@ class BranchMenuByCategoryView(generics.ListAPIView):
             return Menu_Item.objects.none()
 
         menu_items = Menu_Item.objects.filter(
-            category__name__iexact=category_name
+            category__id__iexact=category_id
         )
 
         available_menu_items = [
