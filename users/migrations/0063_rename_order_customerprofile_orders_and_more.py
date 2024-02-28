@@ -37,7 +37,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customerprofile',
             name='customer',
-            field=models.OneToOneField(default=1, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(
+                default=1, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -48,6 +49,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='user_type',
-            field=models.CharField(choices=[('Waiter', 'Waiter'), ('Bartender', 'Bartender')], default='Waiter', max_length=50),
+            field=models.CharField(choices=[(
+                'Waiter', 'Waiter'), ('Bartender', 'Bartender')], default='Waiter', max_length=50),
         ),
     ]

@@ -514,8 +514,14 @@ class BranchMenuByCategoryView(generics.ListAPIView):
             category__id__iexact=category_id
         )
 
+        available_menu_items = menu_items.annotate(
+            category_id_as_text=F('category__id__iexact')
+        ).filter(
+            category_id_as_text=str(category_id)
+        )
+
         available_menu_items = [
-            menu_item for menu_item in menu_items if self.menu_item_has_enough_ingredients(menu_item, branch)
+            menu_item for menu_item in available_menu_items if self.menu_item_has_enough_ingredients(menu_item, branch)
         ]
 
         return available_menu_items
