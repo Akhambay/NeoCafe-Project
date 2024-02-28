@@ -195,7 +195,7 @@ class CustomerProfile(models.Model):
     email = models.EmailField(max_length=50)
     orders = models.ForeignKey(
         'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
-    bonus_points = models.PositiveIntegerField(default=100)
+    bonus = models.PositiveIntegerField(default=100)
 
     def __str__(self):
         return self.email
