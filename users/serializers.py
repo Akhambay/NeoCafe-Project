@@ -359,8 +359,8 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
-        fields = ['id', 'first_name', 'bonus', 'email', 'orders',]
-        read_only_fields = ['email', 'bonus', 'orders']
+        fields = ['id', 'first_name', 'bonus_points', 'email', 'orders',]
+        read_only_fields = ['email', 'bonus_points', 'orders']
 
 
 class WaiterProfileSerializer(serializers.ModelSerializer):

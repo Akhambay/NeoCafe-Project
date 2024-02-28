@@ -142,18 +142,6 @@ class CustomUser(AbstractUser):
 # ===========================================================================
 
 
-class CustomerProfile(models.Model):
-    customer = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50, blank=True, null=True)
-    email = models.EmailField(max_length=50)
-    orders = models.ForeignKey(
-        'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
-    bonus = models.PositiveIntegerField(default=100)
-
-    def __str__(self):
-        return self.email
-
-
 class Profile(models.Model):
     USER_TYPE_CHOICES = [
         ('Waiter', 'Waiter'),
@@ -199,3 +187,15 @@ class BartenderProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class CustomerProfile(models.Model):
+    customer = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=50)
+    orders = models.ForeignKey(
+        'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
+    bonus_points = models.PositiveIntegerField(default=100)
+
+    def __str__(self):
+        return self.email

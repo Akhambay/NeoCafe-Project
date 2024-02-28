@@ -17,37 +17,6 @@ class OrderView(APIView):
         orders = Order.objects.all()
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
-    """
-    def post(self, request, *args, **kwargs):
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            order_id = serializer.data.get('id')
-            print(request.user.id, request.user.username, request.user.user_type)
-
-            user_type = request.user.user_type
-            if user_type in ['Waiter', 'Bartender', 'Employee']:
-                try:
-                    profile = EmployeeProfile.objects.get(
-                        employee=request.user)
-                    order = Order.objects.get(id=order_id)
-                    order.employee = profile
-                    order.save()
-                except EmployeeProfile.DoesNotExist:
-                    return Response({'data': 'Employee profile not found'}, status=status.HTTP_400_BAD_REQUEST)
-
-            elif user_type == 'Customer':
-                try:
-                    profile = CustomerProfile.objects.get(user=request.user)
-                    order = Order.objects.get(id=order_id)
-                    order.customer = profile
-                    order.save()
-                except CustomerProfile.DoesNotExist:
-                    return Response({'data': 'Customer profile not found'}, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors)
-    """
 
     def post(self, request, *args, **kwargs):
         serializer = OrderSerializer(data=request.data)
