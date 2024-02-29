@@ -64,10 +64,19 @@ class MenuItemSerializer(serializers.ModelSerializer):
 
 
 class StockSerializer(serializers.ModelSerializer):
+    branch_id = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
+
     class Meta:
         fields = ['id', 'stock_item', 'current_quantity', 'measurement_unit',
-                  'minimum_limit', 'type', 'restock_date', 'branch']
+                  'minimum_limit', 'type', 'restock_date', 'branch_id', 'branch_name',]
         model = Stock
+
+    def get_branch_id(self, obj):
+        return obj.branch.id if obj.branch else None
+
+    def get_branch_name(self, obj):
+        return obj.branch.branch_name if obj.branch else None
 
     def to_internal_value(self, data):
         # Convert user input to internal representation before validation
