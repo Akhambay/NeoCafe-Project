@@ -47,9 +47,9 @@ urlpatterns = [
     path('token/obtain/', obtain_jwt_token, name='token_obtain_pair'),
     path('token/refresh/', token_refresh, name='token_refresh'),
 
-    path('profile/customer/<int:customer_id>/edit/',
+    path('profile/customer/<int:user>/edit/',
          CustomerProfileDetail.as_view(), name='customer_profile'),
-    path('profile/customer/<int:customer_id>/',
+    path('profile/customer/<int:user>/',
          CustomerProfileView.as_view(), name='customer_profile'),
 
     path('profile/waiter/<int:user>/',

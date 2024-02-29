@@ -896,7 +896,7 @@ class CustomerProfileView(generics.RetrieveAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'customer_id'
+    lookup_field = 'user'
 
     @extend_schema(
         description="Retrieve details of a profile.",
@@ -913,8 +913,7 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'customer_id'
-    # permission_classes = [IsAuthenticated]
+    lookup_field = 'user'
 
     @extend_schema(
         description="Get details, update, or delete a profile.",
