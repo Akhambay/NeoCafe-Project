@@ -121,8 +121,9 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
                     day=day, start_time=start_time, end_time=end_time, employee=employee)
 
 
+"""
 class EmployeeCreateView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
+    #queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
     # permission_classes = [IsAuthenticated]
 
@@ -202,6 +203,84 @@ class EmployeeCreateView(generics.CreateAPIView):
             # Use a common function for both Waiter and Bartender
             create_employee_profile(
                 employee, user_type, schedules_data, WaiterProfile, EmployeeSchedule)
+"""
+
+
+class EmployeeCreateView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = EmployeeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+
+        refresh = RefreshToken.for_user(serializer.instance)
+        token_data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+        headers = self.get_success_headers(serializer.data)
+        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        # Set default values if needed
+        serializer.validated_data.setdefault('is_staff', True)
+
+        # Create the employee (Waiter or Bartender)
+        employee = serializer.save()
+
+        # Generate a refresh token for the employee
+        refresh = RefreshToken.for_user(employee)
+        refresh_token = str(refresh)
+
+        # Attach the refresh token to the employee instance
+        employee.refresh_token = refresh_token
+
+        employee.set_password(serializer.validated_data['password'])
+        employee.save()
+
+        # Set the user_id in the session
+        serializer.save()
+
+        # Check user_type and create a profile if it's a Waiter or Bartender
+        user_type = serializer.validated_data.get('user_type')
+        if user_type in ['Waiter', 'Bartender']:
+            # Create or retrieve the profile
+            profile, created = get_or_create_profile(employee, user_type)
+
+            # Check if the profile was created or already existed
+            if created:
+                # Extract the schedules data from the validated data
+                schedules_data = serializer.validated_data.get(
+                    'employee_schedules', [])
+
+                # Create Schedule instances and associate them with the Profile
+                for schedule_data in schedules_data:
+                    day = schedule_data['day']
+                    start_time = schedule_data['start_time']
+                    end_time = schedule_data['end_time']
+
+                    # Check if a similar schedule already exists
+                    existing_schedule = EmployeeSchedule.objects.filter(
+                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
+
+                    if not existing_schedule:
+                        # Create Schedule instance
+                        schedule_instance = EmployeeSchedule.objects.create(
+                            day=day, start_time=start_time, end_time=end_time, employee=employee)
+
+
+def get_or_create_profile(user, user_type):
+    if user_type == 'Waiter':
+        return WaiterProfile.objects.get_or_create(user=user)[0], True
+    elif user_type == 'Bartender':
+        return BartenderProfile.objects.get_or_create(user=user)[0], True
+    else:
+        # Handle other user types if needed
+        return None, False
 
 
 class EmployeeListPagination(PageNumberPagination):

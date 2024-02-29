@@ -143,7 +143,7 @@ class CustomUser(AbstractUser):
 
 
 class CustomerProfile(models.Model):
-    customer = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(max_length=50)
     orders = models.ForeignKey(
