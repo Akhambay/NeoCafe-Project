@@ -176,7 +176,7 @@ class MenuItemList(generics.ListCreateAPIView):
 
 class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Menu_Item.objects.all()
-    serializer_class = MenuItemSerializer
+    serializer_class = MenuItemListSerializer
    # permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
