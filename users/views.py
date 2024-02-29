@@ -685,11 +685,11 @@ class CustomerAuthenticationView(APIView):
 
             # Check if a CustomerProfile exists for the authenticated user
             try:
-                customer_profile = CustomerProfile.objects.get(customer=user)
+                customer_profile = CustomerProfile.objects.get(user=user)
             except CustomerProfile.DoesNotExist:
                 # If not, create a CustomerProfile for the user
                 customer_profile = CustomerProfile.objects.create(
-                    customer=user, email=user.email, first_name=user.first_name)
+                    user=user, email=user.email, first_name=user.first_name)
 
             return Response({
                 'message': 'Authentication successful.',
@@ -701,9 +701,9 @@ class CustomerAuthenticationView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# ===========================================================================
+# ======================================================================
 # BARTENDER AUTHENTICATION CHECK
-# ===========================================================================
+# ======================================================================
 
 
 class BartenderAuthenticationCheckView(APIView):
