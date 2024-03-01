@@ -122,6 +122,8 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
                 schedule_instance = schedule_model.objects.create(
                     day=day, start_time=start_time, end_time=end_time, employee=employee)
 
+############
+
 
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -129,8 +131,7 @@ class EmployeeCreateView(generics.CreateAPIView):
 
     def validate_password_length(self, password):
         if not (4 <= len(password) <= 10):
-            raise ValidationError(
-                "Password must be no more than 10 characters.")
+            return "Password must be between 4 and 10 characters."
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -138,13 +139,16 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Validate password length
         password = serializer.validated_data.get('password')
-        self.validate_password_length(password)
+        password_length_message = self.validate_password_length(password)
+
+        if password_length_message:
+            return Response({'error': password_length_message}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate password using Django's built-in validators
         try:
             validate_password(password)
         except ValidationError as e:
-            raise ValidationError({'password': e.messages})
+            return "Password must be between 4 and 10 characters."
 
         self.perform_create(serializer)
 
