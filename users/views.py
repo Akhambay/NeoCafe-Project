@@ -37,7 +37,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.utils.translation import gettext as _
-
+from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 # ===========================================================================
 # TOKEN OBTAIN
 # ===========================================================================
@@ -121,98 +123,28 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
                     day=day, start_time=start_time, end_time=end_time, employee=employee)
 
 
-"""
-class EmployeeCreateView(generics.CreateAPIView):
-    #queryset = CustomUser.objects.all()
-    serializer_class = EmployeeSerializer
-    # permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        description="Create a new employee.",
-        summary="Create Employee",
-        responses={201: EmployeeAddSerializer, 204: "No Content", }
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
-
-        refresh = RefreshToken.for_user(serializer.instance)
-        token_data = {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-
-        headers = self.get_success_headers(serializer.data)
-        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
-
-    def perform_create(self, serializer):
-        # Set default values if needed
-        serializer.validated_data.setdefault('is_staff', True)
-
-        # Create the employee (Waiter)
-        employee = serializer.save()
-
-        # Generate a refresh token for the employee
-        refresh = RefreshToken.for_user(employee)
-        refresh_token = str(refresh)
-
-        # Attach the refresh token to the employee instance
-        employee.refresh_token = refresh_token
-
-        employee.set_password(serializer.validated_data['password'])
-        employee.save()
-
-        # Set the user_id in the session
-        serializer.save()
-
-        # Check user_type and create a profile if it's a Waiter
-        user_type = serializer.validated_data.get('user_type')
-        if user_type in ['Waiter', 'Bartender']:
-            # Create or retrieve the profile
-            profile, created = Profile.objects.get_or_create(user=employee)
-
-            # Check if the profile was created or already existed
-            if created:
-                # Extract the schedules data from the validated data
-                schedules_data = serializer.validated_data.get(
-                    'employee_schedules', [])
-
-                # Create Schedule instances and associate them with the Profile
-                for schedule_data in schedules_data:
-                    day = schedule_data['day']
-                    start_time = schedule_data['start_time']
-                    end_time = schedule_data['end_time']
-
-                    # Check if a similar schedule already exists
-                    existing_schedule = EmployeeSchedule.objects.filter(
-                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
-
-                    if not existing_schedule:
-                        # Create Schedule instance
-                        schedule_instance = EmployeeSchedule.objects.create(
-                            day=day, start_time=start_time, end_time=end_time, employee=employee)
-
-        # Set the user_id in the session
-        user_type = serializer.validated_data.get('user_type')
-        schedules_data = serializer.validated_data.get(
-            'employee_schedules', [])
-
-        if user_type in ['Waiter', 'Bartender']:
-            # Use a common function for both Waiter and Bartender
-            create_employee_profile(
-                employee, user_type, schedules_data, WaiterProfile, EmployeeSchedule)
-"""
-
-
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = EmployeeSerializer
 
+    def validate_password_length(self, password):
+        if not (4 <= len(password) <= 10):
+            raise ValidationError(
+                "Password must be no more than 10 characters.")
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Validate password length
+        password = serializer.validated_data.get('password')
+        self.validate_password_length(password)
+
+        # Validate password using Django's built-in validators
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise ValidationError({'password': e.messages})
 
         self.perform_create(serializer)
 
@@ -228,6 +160,16 @@ class EmployeeCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         # Set default values if needed
         serializer.validated_data.setdefault('is_staff', True)
+
+        # Validate password length again (just to be sure)
+        password = serializer.validated_data.get('password')
+        self.validate_password_length(password)
+
+        # Validate password using Django's built-in validators
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise ValidationError({'password': e.messages})
 
         # Create the employee (Waiter or Bartender)
         employee = serializer.save()
@@ -238,6 +180,10 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Attach the refresh token to the employee instance
         employee.refresh_token = refresh_token
+
+        # Use make_password to hash the password
+        # employee.set_password(make_password(password))
+        # employee.save()
 
         employee.set_password(serializer.validated_data['password'])
         employee.save()

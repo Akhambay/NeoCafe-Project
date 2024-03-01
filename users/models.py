@@ -116,7 +116,7 @@ class CustomUser(AbstractUser):
 
     ]
 
-    first_name = models.CharField(null=True, blank=True, max_length=50)
+    first_name = models.CharField(max_length=50)
     last_name = models.CharField(null=True, blank=True, max_length=50)
     user_type = models.CharField(
         max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
@@ -144,7 +144,7 @@ class CustomUser(AbstractUser):
 
 class CustomerProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50, blank=True, null=True)
+    first_name = models.CharField(max_length=50)
     email = models.EmailField(max_length=50)
     orders = models.ForeignKey(
         'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
