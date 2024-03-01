@@ -5,7 +5,7 @@ from .models import Menu_Item, Category, Stock, Ingredient
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'image']
         model = Category
 
 

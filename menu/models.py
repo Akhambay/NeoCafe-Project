@@ -12,6 +12,8 @@ from django.core.validators import MinValueValidator
 class Category(models.Model):
     name = models.CharField(max_length=100, default="Выпечка", validators=[
                             MinLengthValidator(3)])
+    image = models.ImageField(
+        upload_to='category_images/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.name}"
