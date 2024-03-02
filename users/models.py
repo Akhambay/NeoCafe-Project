@@ -89,6 +89,8 @@ class CustomUserManager(BaseUserManager):
         # Save user first
         user.save(using=self._db)
 
+        Profile.objects.create(user=user, email=email, user_type='Waiter')
+
         # Set default values for refresh and access tokens
         refresh = RefreshToken.for_user(user)
         extra_fields['refresh_token'] = str(refresh)

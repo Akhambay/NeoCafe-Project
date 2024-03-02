@@ -59,15 +59,15 @@ class EmployeeScheduleSerializer(serializers.Serializer):
 
 
 class EmployeeAddSerializer(serializers.ModelSerializer):
-    schedule = EmployeeScheduleSerializer(many=True)
+    employee_schedules = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         fields = ['id', 'username', 'password', 'first_name', 'email',
-                  'user_type', 'branch', 'schedule']
+                  'user_type', 'branch', 'employee_schedules']
         model = CustomUser
 
     def create(self, validated_data):
-        schedules_data = validated_data.pop('schedule', [])
+        schedules_data = validated_data.pop('employee_schedules', [])
 
         # Create the employee
         employee = CustomUser.objects.create(**validated_data)
@@ -79,7 +79,7 @@ class EmployeeAddSerializer(serializers.ModelSerializer):
         return employee
 
     def update(self, instance, validated_data):
-        schedules_data = validated_data.pop('schedule', [])
+        schedules_data = validated_data.pop('employee_schedules', [])
         instance = super().update(instance, validated_data)
 
         # Update or create Schedule instances based on the provided data

@@ -103,7 +103,7 @@ class AdminLoginTokenView(TokenObtainPairView):
 def create_employee_profile(employee, user_type, schedules_data, profile_model, schedule_model):
     # Create or retrieve profile
     employee_profile, created = profile_model.objects.get_or_create(
-        employee=employee)
+        user=employee)
 
     # Check if the profile was created or already existed
     if created:
@@ -127,11 +127,13 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
 
 class EmployeeCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = EmployeeSerializer
+    serializer_class = EmployeeAddSerializer
 
     def validate_password_length(self, password):
         if not (4 <= len(password) <= 10):
-            return "Password must be between 4 and 10 characters."
+            return Response({'error': 'Password must be between 4 and 10 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # return "Password must be between 4 and 10 characters."
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -148,7 +150,7 @@ class EmployeeCreateView(generics.CreateAPIView):
         try:
             validate_password(password)
         except ValidationError as e:
-            return "Password must be between 4 and 10 characters."
+            return Response({'password': e.messages}, status=status.HTTP_400_BAD_REQUEST)
 
         self.perform_create(serializer)
 
@@ -173,7 +175,7 @@ class EmployeeCreateView(generics.CreateAPIView):
         try:
             validate_password(password)
         except ValidationError as e:
-            raise ValidationError({'password': e.messages})
+            return Response({'password': e.messages}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create the employee (Waiter or Bartender)
         employee = serializer.save()
@@ -185,42 +187,13 @@ class EmployeeCreateView(generics.CreateAPIView):
         # Attach the refresh token to the employee instance
         employee.refresh_token = refresh_token
 
-        # Use make_password to hash the password
-        # employee.set_password(make_password(password))
-        # employee.save()
-
-        employee.set_password(serializer.validated_data['password'])
-        employee.save()
-
-        # Set the user_id in the session
-        serializer.save()
+        # employee.set_password(serializer.validated_data['password'])
 
         # Check user_type and create a profile if it's a Waiter or Bartender
         user_type = serializer.validated_data.get('user_type')
         if user_type in ['Waiter', 'Bartender']:
-            # Create or retrieve the profile
-            profile, created = get_or_create_profile(employee, user_type)
-
-            # Check if the profile was created or already existed
-            if created:
-                # Extract the schedules data from the validated data
-                schedules_data = serializer.validated_data.get(
-                    'employee_schedules', [])
-
-                # Create Schedule instances and associate them with the Profile
-                for schedule_data in schedules_data:
-                    day = schedule_data['day']
-                    start_time = schedule_data['start_time']
-                    end_time = schedule_data['end_time']
-
-                    # Check if a similar schedule already exists
-                    existing_schedule = EmployeeSchedule.objects.filter(
-                        day=day, start_time=start_time, end_time=end_time, employee=employee).first()
-
-                    if not existing_schedule:
-                        # Create Schedule instance
-                        schedule_instance = EmployeeSchedule.objects.create(
-                            day=day, start_time=start_time, end_time=end_time, employee=employee)
+            create_employee_profile(employee, user_type, serializer.validated_data.get('employee_schedules', []),
+                                    Profile, EmployeeSchedule)
 
 
 def get_or_create_profile(user, user_type):

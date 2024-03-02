@@ -22,17 +22,17 @@ class OrderView(APIView):
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            print(request.user.id, request.user.username, request.user.user_type)
 
             order_id = serializer.data.get('id')
-            print(order_id)
             order = Order.objects.get(id=order_id)
-            print(order)
-            order.employee = request.user.profile
-            print(request.user.profile.user.id)
-            order.save()
-            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors)
+
+            if hasattr(request.user, 'profile'):
+                order.employee = request.user.profile
+                order.save()
+                return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
