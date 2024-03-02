@@ -15,7 +15,7 @@ class Table(models.Model):
 
     table_number = models.PositiveIntegerField()
     status = models.CharField(
-        max_length=20, choices=status_choice, default='Available')
+        max_length=20, choices=status_choice, default='Reserved')
 
     def __str__(self):
         return self.table_number

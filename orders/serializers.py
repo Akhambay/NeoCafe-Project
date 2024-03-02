@@ -17,11 +17,26 @@ class ItemToOrderSerializer(serializers.ModelSerializer):
         # order
 
 
+class TableSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Table
+        fields = ['table_number', 'status']
+
+    def create(self, validated_data):
+        order_data = validated_data.pop('order_set')
+        table = Table.objects.create(**validated_data)
+        for order in order_data:
+            Order.objects.create(table=table, **order)
+        return table
+
+
 class OrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
+    table = TableSerializer()
 
     class Meta:
         model = Order
@@ -30,11 +45,23 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO')
+        table_data = validated_data.pop('table', None)
         order = Order.objects.create(**validated_data)
 
         for ito in ito_data:
             drop_id = ito.pop('id')
             ItemToOrder.objects.create(order=order, **ito)
+
+        if table_data:
+            table_number = table_data.get('table_number', 1)
+            # Provide a default status if not provided
+            status = table_data.get('status', 'Reserved')
+            table, _ = Table.objects.get_or_create(
+                table_number=table_number, defaults={'status': status})
+
+            order.table = table
+            order.save()
+
         return order
 
     def update(self, instance, validated_data):
@@ -64,13 +91,6 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-
-
-class TableSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Table
-        fields = ['id', 'table_number', 'status']
 
 
 class TableDetailSerializer(serializers.ModelSerializer):
