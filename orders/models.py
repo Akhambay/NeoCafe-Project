@@ -62,7 +62,7 @@ class Order(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     customer = models.ForeignKey(
-        'users.CustomerProfile', on_delete=models.CASCADE, related_name='orders')
+        'users.CustomerProfile', on_delete=models.CASCADE, related_name='orders', null=True)
 
     total_price = models.PositiveIntegerField(default=0)
     table = models.ForeignKey(
