@@ -143,16 +143,13 @@ class BranchSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     employee_schedules = EmployeeScheduleSerializer(many=True)
-    branch_id = serializers.SerializerMethodField()
+    # branch = BranchSerializer()
     branch_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email',
-                  'user_type', 'branch_id', 'branch_name', 'employee_schedules', ]
-
-    def get_branch_id(self, obj):
-        return obj.branch.id if obj.branch else None
+                  'user_type', 'branch', 'branch_name', 'employee_schedules', ]
 
     def get_branch_name(self, obj):
         return obj.branch.branch_name if obj.branch else None
