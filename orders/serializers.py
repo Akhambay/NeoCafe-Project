@@ -87,6 +87,51 @@ class OrderSerializer(serializers.ModelSerializer):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+class OrderOnlineSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(read_only=True)
+    total_price = serializers.IntegerField(min_value=0, read_only=True)
+    total_sum = serializers.SerializerMethodField()
+    ITO = ItemToOrderSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'total_price', 'status', 'customer',
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'ITO']
+        read_only_fields = ['status', 'total_price', 'total_sum']
+
+    def create(self, validated_data):
+        ito_data = validated_data.pop('ITO', [])
+        customer = validated_data.pop('customer', None)
+
+        # Assuming 'customer' is a CustomerProfile instance, not just the customer ID.
+        order = Order.objects.create(customer=customer, **validated_data)
+
+        for ito in ito_data:
+            ito.pop('id', None)
+            ItemToOrder.objects.create(order=order, **ito)
+
+        return order
+
+    def update(self, instance, validated_data):
+        ito_data = validated_data.get('ITO', [])
+
+        for ito in ito_data:
+            ito_instance = ItemToOrder.objects.get(id=ito.get('id'))
+            ito_instance.item = ito.get('item', ito_instance.item)
+            ito_instance.quantity = ito.get('quantity', ito_instance.quantity)
+            ito_instance.save()
+
+        return instance
+
+    def get_total_sum(self, obj):
+        total_sum = 0
+        for ito in obj.ITO.all():
+            total_sum += ito.item.price_per_unit * ito.quantity
+        obj.total_price = total_sum
+        obj.save()
+        return total_sum
+
+
 class CustomerOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order

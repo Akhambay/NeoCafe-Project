@@ -148,8 +148,6 @@ class CustomerProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     email = models.EmailField(max_length=50)
-    orders = models.ForeignKey(
-        'orders.Order', on_delete=models.SET_NULL, blank=True, null=True)
     bonus_points = models.PositiveIntegerField(default=100)
 
     def __str__(self):
