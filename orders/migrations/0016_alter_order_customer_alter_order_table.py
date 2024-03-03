@@ -16,11 +16,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='customer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, null=True),
         ),
         migrations.AlterField(
             model_name='order',
             name='table',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='orders.table'),
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, to='orders.table'),
         ),
     ]
