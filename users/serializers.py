@@ -6,6 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+from orders.serializers import OrderSerializer
 
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -106,7 +107,8 @@ class BranchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Branch
-        fields = '__all__'
+        fields = ["id", "branch_name", "address", "phone_number",
+                  "link_2gis", "table_quantity", "image", "description", "schedules"]
 
     def create(self, validated_data):
         schedules_data = validated_data.pop('schedules', [])
@@ -194,6 +196,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'password', 'first_name', 'email',
+                  'user_type', 'bonus_points', 'orders', ]
+
+    def create(self, validated_data):
+        return CustomUser.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
+
+class CustomerEmailConfirmSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'confirmation_code',]
@@ -362,10 +377,14 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    customer_id = serializers.ReadOnlyField(source='user.id')
+    orders = OrderSerializer(many=True, read_only=True)
+
     class Meta:
         model = CustomerProfile
-        fields = ['id', 'first_name', 'bonus', 'email', 'orders',]
-        read_only_fields = ['email', 'bonus', 'orders']
+        fields = ['customer_id', 'first_name',
+                  'bonus_points', 'email', 'orders',]
+        read_only_fields = ['email', 'bonus_points', 'orders']
 
 
 class WaiterProfileSerializer(serializers.ModelSerializer):

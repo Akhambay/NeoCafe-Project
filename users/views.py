@@ -8,7 +8,7 @@ from .serializers import (
     BranchSerializer, EmployeeSerializer, ScheduleSerializer, EmployeeScheduleSerializer,
     BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
     WaiterAuthenticationCheckSerializer, WaiterLoginSerializer,
-    CustomerProfileSerializer, EmployeeProfileSerializer,
+    CustomerProfileSerializer, EmployeeProfileSerializer, CustomerSerializer,
     AdminLoginSerializer, CustomTokenObtainPairSerializer, CustomerProfile, Profile,
     WaiterProfileSerializer, BartenderProfileSerializer,
 )
@@ -223,7 +223,49 @@ class EmployeeList(generics.ListCreateAPIView):
         responses={200: EmployeeSerializer(many=True)}
     )
     def get_queryset(self):
-        queryset = CustomUser.objects.all()
+        queryset = CustomUser.objects.filter(
+            user_type__in=['Waiter', 'Bartender']
+        )
+
+        # Get the search parameters from the query parameters
+        search_term = self.request.query_params.get('search', None)
+
+        if search_term:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_term) |
+                Q(last_name__icontains=search_term) |
+                Q(email__icontains=search_term) |
+                Q(user_type__icontains=search_term)
+            )
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class CustomerList(generics.ListCreateAPIView):
+    serializer_class = CustomerSerializer
+    pagination_class = EmployeeListPagination
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Get a list of all customers",
+        summary="List Customers",
+        responses={200: CustomerSerializer(many=True)}
+    )
+    def get_queryset(self):
+        queryset = CustomUser.objects.filter(
+            user_type__in=['Customer', 'customer']
+        )
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
@@ -251,7 +293,9 @@ class EmployeeList(generics.ListCreateAPIView):
 
 
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CustomUser.objects.all()
+    queryset = CustomUser.objects.filter(
+        user_type__in=['Waiter', 'Bartender']
+    )
     serializer_class = EmployeeSerializer
     # permission_classes = [IsAuthenticated]
 
@@ -283,9 +327,45 @@ class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
         return self.destroy(request, *args, **kwargs)
 
 
+class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CustomUser.objects.filter(
+        user_type__in=['Customer', 'customer']
+    )
+    serializer_class = CustomerSerializer
+    # permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Get details, update, or delete an customer.",
+        summary="Retrieve/Update/Delete Customer",
+        responses={
+            200: CustomerSerializer,
+            204: "No Content",
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Update an customer.",
+        summary="Update customer",
+        responses={200: CustomerSerializer, 204: "No Content", }
+    )
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    @extend_schema(
+        description="Delete an customer.",
+        summary="Delete customer",
+        responses={204: "No Content", }
+    )
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
 # ===========================================================================
 # BRANCH
 # ===========================================================================
+
+
 class BranchCreateView(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer

@@ -1,5 +1,7 @@
 from django.urls import path, include
-from .views import (EmployeeCreateView, EmployeeList, EmployeeDetail, AdminLoginView,
+from .views import (AdminLoginView,
+                    EmployeeCreateView, EmployeeList, EmployeeDetail,
+                    CustomerList, CustomerDetail,
                     BranchCreateView, BranchList, BranchDetail,
                     CustomerEmailCheckView, CustomerRegistrationView,
                     CustomerAuthenticationCheckView, CustomerAuthenticationView,
@@ -17,6 +19,9 @@ urlpatterns = [
     path('employee/add/', EmployeeCreateView.as_view(), name='employee'),
     path('employee/all/', EmployeeList.as_view(), name='employee_list'),
     path('employee/<int:pk>/', EmployeeDetail.as_view(), name='employee_detail'),
+
+    path('customer/all/', CustomerList.as_view(), name='customer_list'),
+    path('customer/<int:pk>/', CustomerDetail.as_view(), name='customer_detail'),
 
     path("auth/", include("rest_framework.urls")),
     path("ignore/this/", include("dj_rest_auth.urls")),
