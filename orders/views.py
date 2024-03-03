@@ -2,7 +2,7 @@ from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
-from .serializers import OrderSerializer, CustomerOrderSerializer
+from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -35,14 +35,46 @@ class OrderView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class OrderOnlineView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        orders = Order.objects.filter(customer=request.user)
+        serializer = OrderOnlineSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        # Add the customer field to the data
+        data['customer'] = request.user.pk
+
+        serializer = OrderOnlineSerializer(
+            data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @extend_schema(
     description="List all orders or create a new order",
     summary="List and Create Orders",
     responses={200: OrderSerializer(many=True)}
 )
-class OrderListCreateView(generics.ListCreateAPIView):
+class OrderListView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    # permission_classes = [IsAuthenticated]
+
+
+@extend_schema(
+    description="List all online orders",
+    summary="List online Orders",
+    responses={200: OrderOnlineSerializer(many=True)}
+)
+class OrderOnlineListView(generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderOnlineSerializer
     # permission_classes = [IsAuthenticated]
 
 

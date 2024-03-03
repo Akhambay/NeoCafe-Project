@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from orders.serializers import OrderSerializer
+from orders.models import Order
 
 
 class AdminLoginSerializer(serializers.Serializer):
@@ -378,13 +379,28 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     customer_id = serializers.ReadOnlyField(source='user.id')
-    orders = OrderSerializer(many=True, read_only=True)
+    orders = OrderSerializer(many=True)
 
     class Meta:
         model = CustomerProfile
         fields = ['customer_id', 'first_name',
                   'bonus_points', 'email', 'orders',]
-        read_only_fields = ['email', 'bonus_points', 'orders']
+        read_only_fields = ['email']
+
+    def create(self, validated_data):
+        orders_data = validated_data.pop('orders', [])
+        user_data = validated_data.pop('user', {})  # Extract user data
+        user = CustomUser.objects.create(**user_data)
+
+        customer_profile = CustomerProfile.objects.create(
+            user=user, **validated_data)
+
+        # Associate orders with the customer profile
+        for order_data in orders_data:
+            Order.objects.create(
+                customer_profile=customer_profile, **order_data)
+
+        return customer_profile
 
 
 class WaiterProfileSerializer(serializers.ModelSerializer):

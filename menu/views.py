@@ -2,7 +2,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Category, Menu_Item, Stock, Branch, Ingredient
-from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer, IngredientSerializer, MenuItemListSerializer
+from .serializers import CategorySerializer, MenuItemSerializer, StockSerializer, IngredientSerializer, MenuItemListSerializer, StockAddSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db.models import F, ExpressionWrapper, fields
@@ -195,11 +195,11 @@ class MenuItemDetail(generics.RetrieveUpdateDestroyAPIView):
 @extend_schema(
     description="Create a new stock item.",
     summary="Create Stock Item",
-    responses={201: StockSerializer, 204: "No Content", }
+    responses={201: StockAddSerializer, 204: "No Content", }
 )
 class StockItemCreateView(generics.CreateAPIView):
     queryset = Stock.objects.all()
-    serializer_class = StockSerializer
+    serializer_class = StockAddSerializer
     # permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
@@ -221,7 +221,7 @@ class StockItemCreateView(generics.CreateAPIView):
             existing_stock.save()
 
             headers = self.get_success_headers(serializer.data)
-            response_serializer = StockSerializer(existing_stock)
+            response_serializer = StockAddSerializer(existing_stock)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         else:
             # Create a new stock item
