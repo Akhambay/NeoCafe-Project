@@ -5,7 +5,7 @@ from .models import Order, ItemToOrder, Table
 from users.models import Profile
 from menu.models import Menu_Item
 from menu.serializers import MenuItemSerializer
-from users.serializers import EmployeeProfileSerializer
+# from users.serializers import EmployeeProfileSerializer
 
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
