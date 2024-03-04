@@ -4,7 +4,7 @@ from .models import (CustomUser, Branch, Schedule,
                      WaiterProfile, BartenderProfile)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from rest_framework_simplejwt.tokens import RefreshToken
 from orders.serializers import OrderSerializer
 from orders.models import Order
@@ -329,46 +329,55 @@ class BartenderLoginSerializer(serializers.ModelSerializer):
 
 
 class WaiterAuthenticationCheckSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    username = serializers.CharField()
+    password = serializers.CharField()
 
     def validate(self, data):
-        email = data.get('email', None)
+        username = data.get('username')
+        password = data.get('password')
 
-        # Check if the email is in the database
-        user_exists = get_user_model().objects.filter(email=email).exists()
+        # Check if the username is in the database
+        user = get_user_model().objects.filter(username=username).first()
 
-        if not user_exists:
-            # You can add additional validation if needed
-            # For example, check if the email format is valid
+        if user:
+            data['user'] = user
+        else:
+            raise serializers.ValidationError(
+                "Waiter with this username is not registered.")
+
+        return data
+
+
+# ===========================================================================
+# WAITER AUTHENTICATION
+# ===========================================================================
+class WaiterLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirmation_code = serializers.CharField()
+
+    def validate(self, data):
+        email = data.get('email')
+        confirmation_code = data.get('confirmation_code')
+
+        # Retrieve user data from the session
+        pending_user_data = self.context['request'].session.get(
+            'pending_confirmation_user')
+
+        user_id = pending_user_data.get('user_id')
+
+        user = get_user_model().objects.filter(
+            id=user_id, email=email, confirmation_code=confirmation_code).first()
+
+        if user is not None:
+            # Add 'user' to validated_data before returning
+            data['user'] = user
+
+            # Login the user
+            login(self.context['request'], user)
 
             return data
         else:
-            # If the email exists, proceed with sending a new confirmation code
-            return data
-
-
-class WaiterLoginSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'confirmation_code']
-
-    def create(self, validated_data):
-        """
-        Retrieve an existing user based on email and confirmation code.
-        """
-        email = validated_data['email']
-        confirmation_code = validated_data['confirmation_code']
-
-        # Check if the user already exists
-        user = User.objects.filter(
-            email=email, confirmation_code=confirmation_code).first()
-
-        if user is None:
-            # If no user is found, you may raise an exception or handle it as needed
-            raise serializers.ValidationError(
-                "User not found with the provided email and confirmation code")
-
-        return user
+            raise serializers.ValidationError("Invalid confirmation code.")
 
 
 class EmployeeProfileSerializer(serializers.ModelSerializer):
