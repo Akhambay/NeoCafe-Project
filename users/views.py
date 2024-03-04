@@ -807,15 +807,16 @@ class WaiterAuthenticationCheckView(APIView):
     serializer_class = WaiterAuthenticationCheckSerializer
 
     @extend_schema(
-        description="Check if Waiter's email is in the database and send a confirmation code.",
+        description="Check if Waiter's username is in the database and send a confirmation code.",
         summary="Waiter Authentication Check",
         responses={200: "Confirmation code sent successfully.",
-                   404: "Waiter with this email is not registered."}
+                   404: "Waiter with this username is not registered."}
     )
     def post(self, request, *args, **kwargs):
         serializer = WaiterAuthenticationCheckSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
+
+        user = serializer.validated_data['user']
 
         # Generate and send a new 4-digit code
         confirmation_code = get_random_string(
@@ -826,27 +827,24 @@ class WaiterAuthenticationCheckView(APIView):
 
         # Set a flag in the user's session to indicate the need for confirmation
         request.session['pending_confirmation_user'] = {
-            'data': serializer.validated_data,
+            'user_id': user.id,
             'confirmation_code': confirmation_code
         }
 
-        user = get_user_model().objects.filter(email=email).first()
+        # Save the confirmation code in the user model
+        user.confirmation_code = confirmation_code
+        user.save()
 
-        if user:
-            user.confirmation_code = confirmation_code
-            user.save()
+        # Send confirmation email
+        subject = 'Login to Waiter\'s admin panel'
+        message = f'Your confirmation code is: {confirmation_code}'
+        from_email = 'assyl.akhambay@gmail.com'
+        recipient_list = [user.email]
 
-            # Send confirmation email
-            subject = 'Login to Waiter\'s admin panel'
-            message = f'Your confirmation code is: {confirmation_code}'
-            from_email = 'assyl.akhambay@gmail.com'
-            recipient_list = [email]
+        send_mail(subject, message, from_email, recipient_list)
 
-            send_mail(subject, message, from_email, recipient_list)
+        return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
 
-            return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Waiter with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
 
 # ===========================================================================
 # WAITER AUTHENTICATION
@@ -857,38 +855,29 @@ class WaiterAuthenticationView(APIView):
     serializer_class = WaiterLoginSerializer
 
     @extend_schema(
-        description="Authenticate waiter after providing email and confirmation code.",
+        description="Authenticate waiter after providing username and confirmation code.",
         summary="Waiter Authentication",
         responses={200: "Authentication successful.",
                    401: "Invalid credentials."}
     )
     def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        confirmation_code = request.data.get('confirmation_code')
+        serializer = WaiterLoginSerializer(
+            data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
 
-        # Retrieve user data from the session
-        pending_user_data = request.session.get('pending_confirmation_user')
+        user = serializer.validated_data['user']
+        branch_id = user.branch.id
 
-        user = User.objects.filter(
-            email=email, confirmation_code=confirmation_code).first()
+        # Check if the user already has a token
+        refresh = RefreshToken.for_user(serializer.validated_data['user'])
+        access_token = refresh.access_token
 
-        if user is not None:
-            # Login the user
-            login(request, user)
-            update_last_login(None, user)
-
-            # Check if the user already has a token
-            refresh = RefreshToken.for_user(user)
-
-            # Access the token using the `access_token` attribute
-            access_token = refresh.access_token
-            return Response({
-                'message': 'Authentication successful.',
-                'access_token': str(access_token),
-                'refresh_token': str(refresh),
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({
+            'message': 'Authentication successful.',
+            'access_token': str(access_token),
+            'refresh_token': str(refresh),
+            'branch_id': branch_id,
+        }, status=status.HTTP_200_OK)
 
 # ===========================================================================
 # PROFILES
