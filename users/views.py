@@ -748,11 +748,14 @@ class BartenderAuthenticationCheckView(APIView):
             message = f'Your confirmation code is: {
                 confirmation_code}'
             from_email = 'assyl.akhambay@gmail.com'
-            recipient_list = [email]
+            recipient_list = [user.email]
 
             send_mail(subject, message, from_email, recipient_list)
 
-            return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
+            return Response({
+                'message': 'Confirmation code sent successfully.',
+                'bartender_email': user.email
+            }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Bartender with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -843,9 +846,10 @@ class WaiterAuthenticationCheckView(APIView):
 
         send_mail(subject, message, from_email, recipient_list)
 
-        return Response({'message': 'Confirmation code sent successfully.'}, status=status.HTTP_200_OK)
-
-
+        return Response({
+            'message': 'Confirmation code sent successfully.',
+            'waiter_email': user.email
+        }, status=status.HTTP_200_OK)
 # ===========================================================================
 # WAITER AUTHENTICATION
 # ===========================================================================
