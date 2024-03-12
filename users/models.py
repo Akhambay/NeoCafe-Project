@@ -63,7 +63,7 @@ class EmployeeSchedule(models.Model):
 class Branch(models.Model):
     branch_name = models.CharField(max_length=250)
     address = models.CharField(max_length=500)
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=20)
     image = models.ImageField(null=True, blank=True,
                               upload_to='branch_images/')
     description = models.TextField(blank=True)
