@@ -1,3 +1,4 @@
+import logging
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import Response
 from rest_framework import status
@@ -850,9 +851,12 @@ class WaiterAuthenticationCheckView(APIView):
             'message': 'Confirmation code sent successfully.',
             'waiter_email': user.email
         }, status=status.HTTP_200_OK)
+
+
 # ===========================================================================
 # WAITER AUTHENTICATION
 # ===========================================================================
+logger = logging.getLogger(__name__)
 
 
 class WaiterAuthenticationView(APIView):
@@ -865,24 +869,31 @@ class WaiterAuthenticationView(APIView):
                    401: "Invalid credentials."}
     )
     def post(self, request, *args, **kwargs):
-        serializer = WaiterLoginSerializer(
-            data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        try:
+            # Extract and log the request data
+            request_data = request.data
+            logger.debug(f"Received request data: {request_data}")
+            print(request.data)
+            serializer = WaiterLoginSerializer(
+                data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
 
-        user = serializer.validated_data['user']
-        branch_id = user.branch.id
+            user = serializer.validated_data['user']
+            branch_id = user.branch.id
 
-        # Check if the user already has a token
-        refresh = RefreshToken.for_user(serializer.validated_data['user'])
-        access_token = refresh.access_token
+            # Check if the user already has a token
+            refresh = RefreshToken.for_user(serializer.validated_data['user'])
+            access_token = refresh.access_token
 
-        return Response({
-            'message': 'Authentication successful.',
-            'access_token': str(access_token),
-            'refresh_token': str(refresh),
-            'branch_id': branch_id,
-        }, status=status.HTTP_200_OK)
-
+            return Response({
+                'message': 'Authentication successful.',
+                'access_token': str(access_token),
+                'refresh_token': str(refresh),
+                'branch_id': branch_id,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception("Error processing the request")
+            return Response({"error": "Internal Server Error"}, status=500)
 # ===========================================================================
 # PROFILES
 # ===========================================================================
