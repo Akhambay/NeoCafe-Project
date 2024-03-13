@@ -2,7 +2,7 @@ from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
-from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer
+from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -132,3 +132,37 @@ class ModifyOrderView(APIView):
             order.delete()
             return Response({'data': 'order is canceled'})
         return Response({'data': f'time is up or order is {order.status}'})
+
+
+class TableView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        tables = Table.objects.all()
+        serializer = TableSerializer(tables, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = TableSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
+
+
+class TableDetailView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            table = Table.objects.get(area=kwargs['table_number'])
+        except Table.DoesNotExist:
+            return Response({'data': 'Table not found'}, status.HTTP_404_NOT_FOUND)
+        serializer = TableDetailSerializer(table)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        serializer = TableDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors)
