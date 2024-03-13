@@ -87,6 +87,21 @@ class OrderSerializer(serializers.ModelSerializer):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+class TableDetailSerializer(serializers.ModelSerializer):
+    order_set = OrderSerializer(many=True)
+
+    class Meta:
+        model = Table
+        fields = ['id', 'table_number', 'status', 'order_set']
+
+    def create(self, validated_data):
+        order_data = validated_data.pop('order_set')
+        table = Table.objects.create(**validated_data)
+        for order in order_data:
+            Order.objects.create(table=table, **order)
+        return table
+
+
 class OrderOnlineSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     total_price = serializers.IntegerField(min_value=0, read_only=True)
