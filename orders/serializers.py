@@ -21,7 +21,7 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ['table_number', 'status']
+        fields = ['table_number', 'is_available']
 
     def create(self, validated_data):
         order_data = validated_data.pop('order_set')
@@ -92,7 +92,7 @@ class TableDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ['id', 'table_number', 'status', 'order_set']
+        fields = ['id', 'table_number', 'is_available', 'order_set']
 
     def create(self, validated_data):
         order_data = validated_data.pop('order_set')
