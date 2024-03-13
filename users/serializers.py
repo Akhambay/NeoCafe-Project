@@ -346,11 +346,11 @@ class WaiterAuthenticationCheckSerializer(serializers.Serializer):
                 "Waiter with this username is not registered.")
 
         return data
-
-
 # ===========================================================================
 # WAITER AUTHENTICATION
 # ===========================================================================
+
+
 class WaiterLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     confirmation_code = serializers.CharField()
