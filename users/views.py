@@ -870,10 +870,6 @@ class WaiterAuthenticationView(APIView):
     )
     def post(self, request, *args, **kwargs):
         try:
-            # Extract and log the request data
-            request_data = request.data
-            logger.debug(f"Received request data: {request_data}")
-            print(request.data)
             serializer = WaiterLoginSerializer(
                 data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
@@ -882,7 +878,7 @@ class WaiterAuthenticationView(APIView):
             branch_id = user.branch.id
 
             # Check if the user already has a token
-            refresh = RefreshToken.for_user(serializer.validated_data['user'])
+            refresh = RefreshToken.for_user(user)
             access_token = refresh.access_token
 
             return Response({
@@ -892,8 +888,9 @@ class WaiterAuthenticationView(APIView):
                 'branch_id': branch_id,
             }, status=status.HTTP_200_OK)
         except Exception as e:
+            logger = logging.getLogger(__name__)
             logger.exception("Error processing the request")
-            return Response({"error": "Internal Server Error"}, status=500)
+            return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # ===========================================================================
 # PROFILES
 # ===========================================================================
