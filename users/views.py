@@ -5,7 +5,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .serializers import (
     CustomerEmailSerializer, CustomerRegistrationSerializer, CustomerLoginSerializer,
-    CustomerAuthenticationCheckSerializer, EmployeeAddSerializer,
+    CustomerAuthenticationCheckSerializer, EmployeeAddSerializer, BranchEditSerializer,
     BranchSerializer, EmployeeSerializer, ScheduleSerializer, EmployeeScheduleSerializer,
     BartenderAuthenticationCheckSerializer, BartenderLoginSerializer,
     WaiterAuthenticationCheckSerializer, WaiterLoginSerializer,
@@ -418,6 +418,20 @@ class BranchList(generics.ListCreateAPIView):
 
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Branch.objects.all()
+    serializer_class = BranchEditSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
+"""
+class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     # permission_classes = [IsAuthenticated]
 
@@ -458,6 +472,8 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
         if 'schedules' not in self.request.data or not self.request.data['schedules']:
             serializer.instance.schedules = existing_schedules
             serializer.instance.save()
+"""
+
 
 # ===========================================================================
 # ADMIN LOGIN
