@@ -142,6 +142,13 @@ class BranchSerializer(serializers.ModelSerializer):
         return instance
 
 
+class BranchEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ["id", "branch_name", "address", "phone_number",
+                  "link_2gis", "table_quantity", "image", "description", "schedules"]
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     employee_schedules = EmployeeScheduleSerializer(many=True)
     # branch = BranchSerializer()
