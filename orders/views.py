@@ -153,7 +153,7 @@ class TableDetailView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            table = Table.objects.get(area=kwargs['table_number'])
+            table = Table.objects.get(table_number=kwargs['table_number'])
         except Table.DoesNotExist:
             return Response({'data': 'Table not found'}, status.HTTP_404_NOT_FOUND)
         serializer = TableDetailSerializer(table)
