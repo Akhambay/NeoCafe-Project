@@ -88,6 +88,12 @@ class OrderSerializer(serializers.ModelSerializer):
             total_sum += total_price
         obj.save()
         return total_sum
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.table:
+            data['table'] = TableSerializer(instance.table).data
+        return data
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
