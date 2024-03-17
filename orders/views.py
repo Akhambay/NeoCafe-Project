@@ -3,7 +3,7 @@ from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
-from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailedSerializer
+from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailedSerializer, OrderDetailedSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -82,12 +82,30 @@ class OrderOnlineListView(generics.ListCreateAPIView):
 @extend_schema(
     description="Retrieve, update, or delete an order",
     summary="Retrieve, Update, Delete Order",
-    responses={200: OrderSerializer(many=False)}
+    responses={200: OrderDetailedSerializer(many=False)}
 )
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = OrderDetailedSerializer
     # permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        order_instance = self.get_object()
+        table_pk = request.data.get('table')
+
+        if table_pk:
+            try:
+                # Retrieve the Table instance based on the provided table primary key
+                table_instance = Table.objects.get(pk=table_pk)
+            except Table.DoesNotExist:
+                # Handle the case when the Table instance does not exist
+                return Response({'error': 'Table not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Assign the retrieved Table instance to the Order's table field
+            order_instance.table = table_instance
+            order_instance.save()
+
+        return super().put(request, *args, **kwargs)
 
 
 @extend_schema(

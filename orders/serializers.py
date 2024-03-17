@@ -6,6 +6,7 @@ from users.models import Profile
 from menu.models import Menu_Item
 from menu.serializers import MenuItemSerializer
 # from users.serializers import EmployeeProfileSerializer
+from django.utils import timezone
 
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
@@ -50,13 +51,16 @@ class OrderSerializer(serializers.ModelSerializer):
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
 
-        table_number = table_data.get('table_number')
-        branch_id = table_data.get('branch')
+        if table_data:
+            table_number = table_data.get('table_number')
+            branch_id = table_data.get('branch')
 
-        table, _ = Table.objects.get_or_create(
-            table_number=table_number, branch_id=branch_id, defaults={'is_available': False})
+            table, _ = Table.objects.get_or_create(
+                table_number=table_number, branch_id=branch_id, defaults={'is_available': False})
 
-        order = Order.objects.create(table=table, **validated_data)
+            validated_data['table'] = table
+
+        order = Order.objects.create(**validated_data)
 
         for ito in ito_data:
             ItemToOrder.objects.create(order=order, **ito)
@@ -83,6 +87,72 @@ class OrderSerializer(serializers.ModelSerializer):
             total_sum += total_price
         obj.save()
         return total_sum
+
+
+class OrderDetailedSerializer(serializers.ModelSerializer):
+    order_status = serializers.CharField(default="New")
+    total_sum = serializers.SerializerMethodField()
+    ITO = ItemToOrderSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'table', 'order_status',
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
+
+    def create(self, validated_data):
+        ito_data = validated_data.pop('ITO', None)
+        table_pk = validated_data.pop('table', None)  # Extracting the table pk
+
+        if table_pk:
+            try:
+                table = Table.objects.get(pk=table_pk)
+            except Table.DoesNotExist:
+                raise serializers.ValidationError("Table does not exist")
+
+            validated_data['table'] = table
+
+        order = Order.objects.create(**validated_data)
+
+        for ito in ito_data:
+            ItemToOrder.objects.create(order=order, **ito)
+
+        return order
+
+    def update(self, instance, validated_data):
+
+        instance.order_status = validated_data.get(
+            'order_status', instance.order_status)
+        instance.branch = validated_data.get('branch', instance.branch)
+        instance.order_type = validated_data.get(
+            'order_type', instance.order_type)
+        instance.employee = validated_data.get('employee', instance.employee)
+
+        # Update nested serializer data
+        ito_data = validated_data.pop('ITO', [])
+        for ito_item_data in ito_data:
+            ito_item_id = ito_item_data.get('id')
+            ito_item_quantity = ito_item_data.get('quantity')
+            ito_item = instance.ITO.get(id=ito_item_id)
+
+            # Update quantity for the existing ItemToOrder instance
+            ito_item.quantity = ito_item_quantity
+            ito_item.save()
+        if instance.order_status == "Done":
+            instance.completed_at = timezone.now()
+
+        # Save the changes to the Order instance
+        instance.save()
+
+        return instance
+
+    def get_total_sum(self, obj):
+        total_sum = 0
+        for ito in obj.ITO.all():
+            total_price = ito.item.price_per_unit * ito.quantity
+            total_sum += total_price
+        obj.save()
+        return total_sum
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
