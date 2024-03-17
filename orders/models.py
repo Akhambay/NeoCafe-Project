@@ -1,5 +1,5 @@
 from django.db import models
-from menu.models import Menu_Item
+from menu.models import Menu_Item, Branch
 from django.contrib.auth.models import User
 
 # ===========================================================================
@@ -10,6 +10,8 @@ from django.contrib.auth.models import User
 class Table(models.Model):
     table_number = models.PositiveIntegerField()
     is_available = models.BooleanField(default=False)
+    branch = models.ForeignKey(
+        Branch, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return str(self.table_number)  # Ensure to return a string
@@ -41,7 +43,7 @@ class Order(models.Model):
         ('Takeaway', 'Takeaway')
     )
 
-    status = models.CharField(
+    order_status = models.CharField(
         max_length=20,
         choices=status_choice,
         default="New"
@@ -67,7 +69,7 @@ class Order(models.Model):
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
     def __str__(self):
-        return f"Order #{self.pk} - {self.order_type} - {self.status}"
+        return f"Order #{self.pk} - {self.order_type} - {self.order_status}"
 
 
 class ItemToOrder(models.Model):

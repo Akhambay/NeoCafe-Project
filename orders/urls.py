@@ -1,7 +1,8 @@
 # urls.py
+from .views import TableCreateView, TableListView
 from django.urls import path
 from .views import (OrderView, OrderOnlineView, OrderListView, OrderOnlineListView, OrderDetailView,
-                    CustomerOrderHistoryView, ModifyOrderView, TableDetailView, TableView)
+                    CustomerOrderHistoryView, ModifyOrderView, TableView, TableDetailedView)
 
 urlpatterns = [
     path('orders/add/', OrderView.as_view(), name='order-create'),
@@ -17,6 +18,10 @@ urlpatterns = [
          name='customer-order-history'),
     path('orders/edit/', ModifyOrderView.as_view(), name='order-create'),
 
-    path('table/', TableView.as_view()),
-    path('table/<int:table_number>/', TableDetailView.as_view()),
+    path('tables/create/', TableCreateView.as_view(), name='table-create'),
+    path('tables/branch/<int:branch_id>/',
+         TableListView.as_view(), name='table-list'),
+    path('tables/', TableView.as_view()),
+    path('tables/<int:table_number>/', TableDetailedView.as_view()),
 ]
+# <int:table_number>

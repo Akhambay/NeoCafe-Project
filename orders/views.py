@@ -1,8 +1,9 @@
+from django.http import Http404
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
-from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailSerializer
+from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailedSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -134,6 +135,19 @@ class ModifyOrderView(APIView):
         return Response({'data': f'time is up or order is {order.status}'})
 
 
+class TableCreateView(generics.CreateAPIView):
+    queryset = Table.objects.all()
+    serializer_class = TableSerializer
+
+
+class TableListView(generics.ListAPIView):
+    serializer_class = TableSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs['branch_id']
+        return Table.objects.filter(branch_id=branch_id)
+
+
 class TableView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -149,18 +163,18 @@ class TableView(APIView):
         return Response(serializer.errors)
 
 
-class TableDetailView(APIView):
+class TableDetailedView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
             table = Table.objects.get(table_number=kwargs['table_number'])
         except Table.DoesNotExist:
             return Response({'data': 'Table not found'}, status.HTTP_404_NOT_FOUND)
-        serializer = TableDetailSerializer(table)
+        serializer = TableDetailedSerializer(table)
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        serializer = TableDetailSerializer(data=request.data)
+        serializer = TableDetailedSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
