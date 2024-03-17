@@ -37,10 +37,9 @@ class TableSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(read_only=True, default="New")
-    # total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    table = TableSerializer()
+    # table = TableSerializer()
 
     class Meta:
         model = Order
@@ -52,19 +51,18 @@ class OrderSerializer(serializers.ModelSerializer):
         table_data = validated_data.pop('table', None)
         order = Order.objects.create(**validated_data)
 
+        order_type = validated_data.pop('order_type', None)
+        branch = validated_data.pop('branch', None)
+
+        table_number = validated_data['table']['table_number']
+        table, _ = Table.objects.get_or_create(
+            table_number=table_number, branch=branch, defaults={'is_available': True})
+
+        order = Order.objects.create(table=table, order_type=order_type)
+
         for ito in ito_data:
             # drop_id = ito.pop('id', None)
             ItemToOrder.objects.create(order=order, **ito)
-
-        if table_data:
-            table_number = table_data.get('table_number', 1)
-            # Provide a default status if not provided
-            is_available = table_data.get('is_available', True)
-            table, _ = Table.objects.get_or_create(
-                table_number=table_number, defaults={'is_available': is_available})
-
-            order.table = table
-            order.save()
 
         return order
 
@@ -88,12 +86,6 @@ class OrderSerializer(serializers.ModelSerializer):
             total_sum += total_price
         obj.save()
         return total_sum
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if instance.table:
-            data['table'] = TableSerializer(instance.table).data
-        return data
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
