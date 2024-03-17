@@ -9,12 +9,16 @@ from menu.serializers import MenuItemSerializer
 
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required=False)
+    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'quantity', ]
+        fields = ['id', 'item', 'quantity', 'total_price']
         # order
+
+    def get_total_price(self, obj):
+        return obj.item.price_per_unit * obj.quantity
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -32,7 +36,7 @@ class TableSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True, default="New")
     total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
@@ -41,23 +45,23 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'total_price', 'table', 'status',
-                  'created_at', 'customer', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def create(self, validated_data):
-        ito_data = validated_data.pop('ITO')
+        ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
         order = Order.objects.create(**validated_data)
 
         for ito in ito_data:
-            drop_id = ito.pop('id')
+            # drop_id = ito.pop('id', None)
             ItemToOrder.objects.create(order=order, **ito)
 
         if table_data:
             table_number = table_data.get('table_number', 1)
             # Provide a default status if not provided
-            status = table_data.get('status', 'Reserved')
+            is_available = table_data.get('is_available', True)
             table, _ = Table.objects.get_or_create(
-                table_number=table_number, defaults={'status': status})
+                table_number=table_number, defaults={'is_available': is_available})
 
             order.table = table
             order.save()
@@ -67,7 +71,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.table = validated_data.get('table', instance.table)
         instance.save()
-        ito_data = validated_data.get('ItemToOrder')
+        ito_data = validated_data.get('ITO')
         for ito in ito_data:
             ito_instance = ItemToOrder.objects.get(
                 id=ito.get('id'))
@@ -81,8 +85,6 @@ class OrderSerializer(serializers.ModelSerializer):
         total_sum = 0
         for ito in obj.ITO.all():
             total_sum += ito.item.price_per_unit * ito.quantity
-        obj.total_price = total_sum
-        obj.save()
         return total_sum
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
