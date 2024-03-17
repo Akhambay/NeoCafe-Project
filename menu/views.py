@@ -102,14 +102,13 @@ class MenuItemCreateView(generics.CreateAPIView):
         ingredients_data = serializer.validated_data.pop('ingredients', [])
 
         # Create the menu item
-        menu_item = Menu_Item.objects.create(**serializer.validated_data)
+        menu_item = serializer.save()   # This line is causing the error
 
         # Create ingredients for the menu item
         for ingredient_data in ingredients_data:
-            Ingredient.objects.create(menu_item=menu_item, **ingredient_data)
-
-        # Refresh the menu item instance to include ingredients
-        menu_item.refresh_from_db()
+            # Associate each ingredient with the menu item
+            ingredient_data['menu_item'] = menu_item
+            Ingredient.objects.create(**ingredient_data)
 
         headers = self.get_success_headers(serializer.data)
         response_serializer = MenuItemSerializer(menu_item)
