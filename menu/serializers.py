@@ -49,29 +49,50 @@ class MenuItemListSerializer(serializers.ModelSerializer):
                   'price_per_unit', 'branch', 'category', 'ingredients']
 
     def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients', [])
-        instance = super().update(instance, validated_data)
+        # Update the Menu_Item instance fields
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get(
+            'description', instance.description)
+        instance.item_image = validated_data.get(
+            'item_image', instance.item_image)
+        instance.price_per_unit = validated_data.get(
+            'price_per_unit', instance.price_per_unit)
+        instance.branch = validated_data.get('branch', instance.branch)
 
-        # Track existing ingredient IDs to avoid duplicates
-        existing_ingredient_ids = set()
+        # Fetch or create Category instance based on its name
+        category_data = validated_data.get('category')
+        if category_data and 'name' in category_data:
+            category_name = category_data['name']
+            category_instance, _ = Category.objects.get_or_create(
+                name=category_name)
+            instance.category = category_instance
 
-        # Update existing ingredients or create new ones
+        instance.save()
+
+        # Update or create ingredients
+        ingredients_data = validated_data.get('ingredients', [])
+        existing_ingredient_ids = []
+
         for ingredient_data in ingredients_data:
-            ingredient_id = ingredient_data.get('id', None)
+            ingredient_id = ingredient_data.get('id')
             if ingredient_id:
-                # If ingredient ID exists, update existing ingredient
+                # Update existing ingredient
                 ingredient = Ingredient.objects.filter(
                     pk=ingredient_id, menu_item=instance).first()
                 if ingredient:
                     ingredient.name = ingredient_data.get(
                         'name', ingredient.name)
+                    ingredient.quantity = ingredient_data.get(
+                        'quantity', ingredient.quantity)
+                    ingredient.measurement_unit = ingredient_data.get(
+                        'measurement_unit', ingredient.measurement_unit)
                     ingredient.save()
-                    existing_ingredient_ids.add(ingredient_id)
+                    existing_ingredient_ids.append(ingredient_id)
             else:
-                # If ingredient ID does not exist, create new ingredient
+                # Create new ingredient
                 new_ingredient = Ingredient.objects.create(
                     menu_item=instance, **ingredient_data)
-                existing_ingredient_ids.add(new_ingredient.id)
+                existing_ingredient_ids.append(new_ingredient.id)
 
         # Delete ingredients that were not included in the update
         instance.ingredients.exclude(pk__in=existing_ingredient_ids).delete()
@@ -80,6 +101,7 @@ class MenuItemListSerializer(serializers.ModelSerializer):
 
 
 class MenuItemSerializer(serializers.ModelSerializer):
+    # Ensure read-only for ingredients
     ingredients = IngredientSerializer(many=True)
 
     class Meta:
@@ -92,39 +114,11 @@ class MenuItemSerializer(serializers.ModelSerializer):
         menu_item = Menu_Item.objects.create(**validated_data)
 
         for ingredient_data in ingredients_data:
-            Ingredient.objects.create(menu_item=menu_item, **ingredient_data)
+            # Add menu_item field to ingredient data
+            ingredient_data['menu_item'] = menu_item
+            Ingredient.objects.create(**ingredient_data)
 
         return menu_item
-
-    def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients', [])
-        instance = super().update(instance, validated_data)
-
-        # Track existing ingredient IDs to avoid duplicates
-        existing_ingredient_ids = set()
-
-        # Update existing ingredients or create new ones
-        for ingredient_data in ingredients_data:
-            ingredient_id = ingredient_data.get('id', None)
-            if ingredient_id:
-                # If ingredient ID exists, update existing ingredient
-                ingredient = Ingredient.objects.filter(
-                    pk=ingredient_id, menu_item=instance).first()
-                if ingredient:
-                    ingredient.name = ingredient_data.get(
-                        'name', ingredient.name)
-                    ingredient.save()
-                    existing_ingredient_ids.add(ingredient_id)
-            else:
-                # If ingredient ID does not exist, create new ingredient
-                new_ingredient = Ingredient.objects.create(
-                    menu_item=instance, **ingredient_data)
-                existing_ingredient_ids.add(new_ingredient.id)
-
-        # Delete ingredients that were not included in the update
-        instance.ingredients.exclude(pk__in=existing_ingredient_ids).delete()
-
-        return instance
 
 
 class StockSerializer(serializers.ModelSerializer):
