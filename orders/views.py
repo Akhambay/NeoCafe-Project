@@ -165,16 +165,25 @@ class TableView(APIView):
 
 class TableDetailedView(APIView):
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, branch_id, table_number, *args, **kwargs):
         try:
-            table = Table.objects.get(table_number=kwargs['table_number'])
+            # Retrieve the table for the given branch_id and table_number
+            table = Table.objects.get(
+                branch_id=branch_id, table_number=table_number)
+            serializer = TableDetailedSerializer(table)
+            return Response(serializer.data)
         except Table.DoesNotExist:
-            return Response({'data': 'Table not found'}, status.HTTP_404_NOT_FOUND)
-        serializer = TableDetailedSerializer(table)
-        return Response(serializer.data)
+            return Response({'data': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def post(self, request, *args, **kwargs):
-        serializer = TableDetailedSerializer(data=request.data)
+    def post(self, request, branch_id, table_number, *args, **kwargs):
+        # Add the branch_id and table_number to the request data
+        request_data = request.data.copy()
+        request_data['table_number'] = table_number
+        request_data['branch'] = branch_id
+
+        # Serialize the data with TableDetailedSerializer
+        serializer = TableDetailedSerializer(data=request_data)
+
         if serializer.is_valid():
             serializer.save()
             return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
