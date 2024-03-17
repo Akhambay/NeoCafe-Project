@@ -1,3 +1,4 @@
+from django.db.models import F
 import logging
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import Response
@@ -398,7 +399,7 @@ class BranchList(generics.ListCreateAPIView):
         responses={200: BranchSerializer(many=True), 204: "No Content"}
     )
     def get_queryset(self):
-        queryset = Branch.objects.all()
+        queryset = Branch.objects.all().order_by(F('id').desc())
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
@@ -427,52 +428,6 @@ class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-
-
-"""
-class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Branch.objects.all()
-    serializer_class = BranchSerializer
-    # permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        description="Get details, update, or delete a branch.",
-        summary="Retrieve/Update/Delete Branch",
-        responses={
-            200: BranchSerializer,
-            204: "No Content",
-        }
-    )
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        description="Update a branch.",
-        summary="Update Branch",
-        responses={200: BranchSerializer, 204: "No Content", }
-    )
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(
-        description="Delete a branch.",
-        summary="Delete Branch",
-        responses={204: "No Content", }
-    )
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-    def perform_update(self, serializer):
-        existing_image = serializer.instance.image
-        existing_schedules = serializer.instance.schedules
-        serializer.save()
-
-        if 'image' not in self.request.data or not self.request.data['image']:
-            serializer.instance.image = existing_image
-        if 'schedules' not in self.request.data or not self.request.data['schedules']:
-            serializer.instance.schedules = existing_schedules
-            serializer.instance.save()
-"""
 
 
 # ===========================================================================

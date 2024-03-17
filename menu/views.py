@@ -138,7 +138,7 @@ class MenuItemList(generics.ListCreateAPIView):
         responses={200: MenuItemListSerializer, 204: "No Content", }
     )
     def get_queryset(self):
-        queryset = Menu_Item.objects.all()
+        queryset = Menu_Item.objects.all().order_by(F('id').desc())
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
@@ -251,7 +251,7 @@ class StockItemsList(generics.ListCreateAPIView):
         responses={200: StockSerializer, 204: "No Content", }
     )
     def get_queryset(self):
-        queryset = Stock.objects.all()
+        queryset = Stock.objects.all().order_by(F('id').desc())
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
