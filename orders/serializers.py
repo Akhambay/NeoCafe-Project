@@ -54,7 +54,7 @@ class OrderSerializer(serializers.ModelSerializer):
         branch_id = table_data.get('branch')
 
         table, _ = Table.objects.get_or_create(
-            table_number=table_number, branch_id=branch_id, defaults={'is_available': True})
+            table_number=table_number, branch_id=branch_id, defaults={'is_available': False})
 
         order = Order.objects.create(table=table, **validated_data)
 
