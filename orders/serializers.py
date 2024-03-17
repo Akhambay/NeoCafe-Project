@@ -25,26 +25,26 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ['table_number', 'is_available']
+        fields = ['id', 'table_number', 'is_available', 'branch']
 
-    def create(self, validated_data):
+    """def create(self, validated_data):
         order_data = validated_data.pop('order_set')
         table = Table.objects.create(**validated_data)
         for order in order_data:
             Order.objects.create(table=table, **order)
-        return table
+        return table"""
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(read_only=True, default="New")
-    total_price = serializers.IntegerField(min_value=0, read_only=True)
+    order_status = serializers.CharField(read_only=True, default="New")
+    # total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
 
     class Meta:
         model = Order
-        fields = ['id', 'total_price', 'table', 'status',
+        fields = ['id', 'table', 'order_status',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def create(self, validated_data):
@@ -84,12 +84,29 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_total_sum(self, obj):
         total_sum = 0
         for ito in obj.ITO.all():
-            total_sum += ito.item.price_per_unit * ito.quantity
+            total_price = ito.item.price_per_unit * ito.quantity
+            total_sum += total_price
+        obj.save()
         return total_sum
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 class TableDetailSerializer(serializers.ModelSerializer):
+    order_set = OrderSerializer(many=True)
+
+    class Meta:
+        model = Table
+        fields = ['id', 'table_number', 'is_available', 'order_set']
+
+    def create(self, validated_data):
+        order_data = validated_data.pop('order_set')
+        table = Table.objects.create(**validated_data)
+        for order in order_data:
+            Order.objects.create(table=table, **order)
+        return table
+
+
+class TableDetailedSerializer(serializers.ModelSerializer):
     order_set = OrderSerializer(many=True)
 
     class Meta:
