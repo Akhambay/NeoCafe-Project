@@ -22,6 +22,7 @@ urlpatterns = [
     path('tables/branch/<int:branch_id>/',
          TableListView.as_view(), name='table-list'),
     path('tables/', TableView.as_view()),
-    path('tables/<int:table_number>/', TableDetailedView.as_view()),
+    path('tables/branch/<int:branch_id>/<int:table_number>/',
+         TableDetailedView.as_view()),
 ]
 # <int:table_number>
