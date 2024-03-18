@@ -2,7 +2,8 @@
 from .views import TableCreateView, TableListView
 from django.urls import path
 from .views import (OrderView, OrderOnlineView, OrderListView, OrderOnlineListView, OrderDetailView,
-                    CustomerOrderHistoryView, ModifyOrderView, TableView, TableDetailedView)
+                    CustomerOrderHistoryView, ModifyOrderView, TableView, TableDetailedView,
+                    TopSellingMenuItemsAPIView)
 
 urlpatterns = [
     path('orders/add/', OrderView.as_view(), name='order-create'),
@@ -24,5 +25,7 @@ urlpatterns = [
     path('tables/', TableView.as_view()),
     path('tables/branch/<int:branch_id>/<int:table_number>/',
          TableDetailedView.as_view()),
+
+    path('branches/<int:branch_id>/top-selling-menu-items/',
+         TopSellingMenuItemsAPIView.as_view(), name='top_selling_menu_items'),
 ]
-# <int:table_number>

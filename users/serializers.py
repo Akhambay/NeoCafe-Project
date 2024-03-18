@@ -143,6 +143,8 @@ class BranchSerializer(serializers.ModelSerializer):
 
 
 class BranchEditSerializer(serializers.ModelSerializer):
+    # schedules = ScheduleSerializer(many=True)
+
     class Meta:
         model = Branch
         fields = ["id", "branch_name", "address", "phone_number",

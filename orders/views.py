@@ -1,3 +1,6 @@
+from django.db.models import Count
+from menu.models import Menu_Item
+from rest_framework.decorators import api_view
 from django.http import Http404
 from rest_framework import generics
 from drf_spectacular.utils import extend_schema
@@ -207,3 +210,27 @@ class TableDetailedView(APIView):
             return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors)
+
+
+class TopSellingMenuItemsAPIView(APIView):
+    def get(self, request, branch_id, format=None):
+        # Get orders for the specific branch
+        branch_orders = Order.objects.filter(
+            branch_id=branch_id, order_status='Done')
+
+        # Count the quantity of each menu item sold
+        sold_items = branch_orders.values(
+            'ITO__item_id', 'ITO__item__name').annotate(total_sold=Count('ITO__item'))
+
+        # Sort the sold items by total_sold in descending order
+        sold_items = sorted(
+            sold_items, key=lambda x: x['total_sold'], reverse=True)
+
+        # Get the top-3 best selling items
+        top_selling_items = sold_items[:3]
+
+        # Serialize the top selling items
+        serialized_data = [{'name': item['ITO__item__name'],
+                            'total_sold': item['total_sold']} for item in top_selling_items]
+
+        return Response(serialized_data)
