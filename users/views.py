@@ -42,6 +42,7 @@ from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
+from django.middleware.csrf import get_token
 # ===========================================================================
 # TOKEN OBTAIN
 # ===========================================================================
@@ -818,9 +819,12 @@ class WaiterAuthenticationCheckView(APIView):
 
         send_mail(subject, message, from_email, recipient_list)
 
+        csrf_token = get_token(request)
+
         return Response({
             'message': 'Confirmation code sent successfully.',
-            'waiter_email': user.email
+            'waiter_email': user.email,
+            'csrf_token': get_token(request)
         }, status=status.HTTP_200_OK)
 
 
