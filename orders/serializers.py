@@ -136,6 +136,9 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
                             raise serializers.ValidationError(
                                 f"Insufficient stock for ingredient {ingredient.name}")
 
+            if instance.order_status == "Done":
+                instance.completed_at = timezone.now()
+
         # Save the changes to the Order instance
         instance.save()
 
