@@ -3,10 +3,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Order, ItemToOrder, Table
 from users.models import Profile
-from menu.models import Menu_Item
+from menu.models import Menu_Item, Stock
 from menu.serializers import MenuItemSerializer
 # from users.serializers import EmployeeProfileSerializer
 from django.utils import timezone
+from django.db import transaction
 
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
@@ -99,27 +100,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         fields = ['id', 'table', 'order_status',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
-    def create(self, validated_data):
-        ito_data = validated_data.pop('ITO', None)
-        table_pk = validated_data.pop('table', None)  # Extracting the table pk
-
-        if table_pk:
-            try:
-                table = Table.objects.get(pk=table_pk)
-            except Table.DoesNotExist:
-                raise serializers.ValidationError("Table does not exist")
-
-            validated_data['table'] = table
-
-        order = Order.objects.create(**validated_data)
-
-        for ito in ito_data:
-            ItemToOrder.objects.create(order=order, **ito)
-
-        return order
-
     def update(self, instance, validated_data):
-
         instance.order_status = validated_data.get(
             'order_status', instance.order_status)
         instance.branch = validated_data.get('branch', instance.branch)
@@ -132,13 +113,28 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         for ito_item_data in ito_data:
             ito_item_id = ito_item_data.get('id')
             ito_item_quantity = ito_item_data.get('quantity')
-            ito_item = instance.ITO.get(id=ito_item_id)
 
-            # Update quantity for the existing ItemToOrder instance
+            # Retrieve the ItemToOrder instance or create a new one if it doesn't exist
+            ito_item, _ = ItemToOrder.objects.get_or_create(
+                id=ito_item_id, defaults={'order': instance})
             ito_item.quantity = ito_item_quantity
             ito_item.save()
-        if instance.order_status == "Done":
-            instance.completed_at = timezone.now()
+
+            # Deduct ingredients from stock if order status is 'In Progress'
+            if instance.order_status == "In Progress":
+                for ingredient in ito_item.item.ingredients.all():
+                    stock_item = Stock.objects.filter(
+                        branch=instance.branch, stock_item=ingredient.name).first()
+                    ingredient_quantity = ingredient.quantity
+                    if stock_item:
+                        stock_item.current_quantity -= ito_item_quantity * ingredient_quantity
+
+                        stock_item.save()
+
+                        # Ensure stock is not negative
+                        if stock_item.current_quantity < 0:
+                            raise serializers.ValidationError(
+                                f"Insufficient stock for ingredient {ingredient.name}")
 
         # Save the changes to the Order instance
         instance.save()
@@ -152,6 +148,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
             total_sum += total_price
         obj.save()
         return total_sum
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
