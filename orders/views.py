@@ -227,7 +227,7 @@ class TopSellingMenuItemsAPIView(APIView):
             sold_items, key=lambda x: x['total_sold'], reverse=True)
 
         # Get the top-3 best selling items
-        top_selling_items = sold_items[:3]
+        top_selling_items = sold_items[:10]
 
         # Serialize the top selling items
         serialized_data = [{'name': item['ITO__item__name'],
