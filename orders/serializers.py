@@ -8,6 +8,7 @@ from menu.serializers import MenuItemSerializer
 # from users.serializers import EmployeeProfileSerializer
 from django.utils import timezone
 from django.db import transaction
+from datetime import datetime
 
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
@@ -37,11 +38,28 @@ class TableSerializer(serializers.ModelSerializer):
         return table"""
 
 
+class TimeField(serializers.Field):
+    def to_representation(self, value):
+        if value is None:
+            return None
+        return value.strftime('%H:%M')
+
+    def to_internal_value(self, data):
+        try:
+            return datetime.strptime(data, '%H:%M').time()
+        except ValueError:
+            raise serializers.ValidationError(
+                "Invalid time format. Use HH:MM format.")
+
+
 class OrderSerializer(serializers.ModelSerializer):
-    order_status = serializers.CharField(read_only=True, default="New")
+    order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
+    created_at = TimeField()
+    updated_at = TimeField()
+    completed_at = TimeField(allow_null=True, required=False)
 
     class Meta:
         model = Order
@@ -91,9 +109,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailedSerializer(serializers.ModelSerializer):
-    order_status = serializers.CharField(default="New")
+    order_status = serializers.CharField(default="Новый")
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
+    created_at = TimeField()
+    updated_at = TimeField()
+    completed_at = TimeField(allow_null=True, required=False)
 
     class Meta:
         model = Order
@@ -121,7 +142,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
             ito_item.save()
 
             # Deduct ingredients from stock if order status is 'In Progress'
-            if instance.order_status == "In Progress":
+            if instance.order_status == "В процессе":
                 for ingredient in ito_item.item.ingredients.all():
                     stock_item = Stock.objects.filter(
                         branch=instance.branch, stock_item=ingredient.name).first()
@@ -136,8 +157,8 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
                             raise serializers.ValidationError(
                                 f"Insufficient stock for ingredient {ingredient.name}")
 
-            if instance.order_status == "Done":
-                instance.completed_at = timezone.now()
+        if instance.order_status == "Завершен":
+            instance.completed_at = timezone.now()
 
         # Save the changes to the Order instance
         instance.save()
@@ -191,6 +212,9 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
     total_price = serializers.IntegerField(min_value=0, read_only=True)
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
+    created_at = serializers.DateTimeField(format='%H:%M')
+    updated_at = serializers.DateTimeField(format='%H:%M')
+    completed_at = serializers.DateTimeField(format='%H:%M')
 
     class Meta:
         model = Order
