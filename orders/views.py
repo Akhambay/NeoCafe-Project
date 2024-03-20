@@ -80,18 +80,19 @@ class WaiterOrdersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, branch_id):
-        print(branch_id)
-        orders = Order.objects.filter(
-            branch_id=branch_id)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        if request.user.branch_id == branch_id:
+            orders = Order.objects.filter(
+                branch_id=branch_id)
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class NewOrdersView(APIView):
     """
     View to list new orders for a specific branch where the waiter works.
     """
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="List new orders for the specific branch where the waiter works.",
@@ -99,11 +100,12 @@ class NewOrdersView(APIView):
         responses={200: OrderSerializer(many=True)}
     )
     def get(self, request, branch_id):
-        print(branch_id)
-        orders = Order.objects.filter(
-            branch_id=branch_id, order_status='Новый')
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        if request.user.branch_id == branch_id:
+            orders = Order.objects.filter(
+                branch_id=branch_id, order_status='Новый')
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class InProgressOrdersListView(generics.ListCreateAPIView):
@@ -119,11 +121,12 @@ class InProgressOrdersListView(generics.ListCreateAPIView):
         responses={200: OrderSerializer(many=True)}
     )
     def get(self, request, branch_id):
-        print(branch_id)
-        orders = Order.objects.filter(
-            branch_id=branch_id, order_status='В процессе')
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        if request.user.branch_id == branch_id:
+            orders = Order.objects.filter(
+                branch_id=branch_id, order_status='В процессе')
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ReadyOrdersListView(generics.ListCreateAPIView):
@@ -139,11 +142,12 @@ class ReadyOrdersListView(generics.ListCreateAPIView):
         responses={200: OrderSerializer(many=True)}
     )
     def get(self, request, branch_id):
-        print(branch_id)
-        orders = Order.objects.filter(
-            branch_id=branch_id, order_status='Готов')
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        if request.user.branch_id == branch_id:
+            orders = Order.objects.filter(
+                branch_id=branch_id, order_status='Готов')
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @extend_schema(
