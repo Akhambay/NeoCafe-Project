@@ -14,14 +14,17 @@ from datetime import datetime
 class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
+    item_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'quantity', 'total_price']
-        # order
+        fields = ['id', 'item', 'item_name', 'quantity', 'total_price']
 
     def get_total_price(self, obj):
         return obj.item.price_per_unit * obj.quantity
+
+    def get_item_name(self, obj):
+        return obj.item.name
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -63,7 +66,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'table', 'order_status',
+        fields = ['id', 'order_number', 'table', 'order_status',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def create(self, validated_data):
@@ -118,7 +121,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'table', 'order_status',
+        fields = ['id', 'order_number', 'table', 'order_status',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def update(self, instance, validated_data):
@@ -218,9 +221,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'total_price', 'status', 'customer',
+        fields = ['id', 'order_number', 'total_price', 'status', 'customer',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'ITO']
-        read_only_fields = ['status', 'total_price', 'total_sum']
+        read_only_fields = ['order_number',
+                            'status', 'total_price', 'total_sum']
 
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO', [])
