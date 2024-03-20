@@ -170,6 +170,8 @@ class Profile(models.Model):
         max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, related_name='employee', on_delete=models.CASCADE)  # Add this field
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -183,6 +185,8 @@ class WaiterProfile(models.Model):
     email = models.EmailField()
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, related_name='waiters', on_delete=models.CASCADE)  # Add this field
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

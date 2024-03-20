@@ -3,7 +3,7 @@ from .views import TableCreateView, TableListView
 from django.urls import path
 from .views import (OrderView, OrderOnlineView, OrderListView, OrderOnlineListView, OrderDetailView,
                     CustomerOrderHistoryView, ModifyOrderView, TableView, TableDetailedView,
-                    TopSellingMenuItemsAPIView, OrderReadyListView, OrderInProgressListView, OrderNewListView)
+                    TopSellingMenuItemsAPIView, ReadyOrdersListView, InProgressOrdersListView, NewOrdersView)
 
 urlpatterns = [
 
@@ -11,12 +11,15 @@ urlpatterns = [
          name='order-online-create'),
 
     path('orders/add/', OrderView.as_view(), name='order-create'),
-    path('orders/all/', OrderListView.as_view(), name='order-list'),
-    path('orders/new/', OrderNewListView.as_view(), name='order-new'),
+    path('orders/all/<int:branch_id>/',
+         OrderListView.as_view(), name='order-list'),
 
-    path('orders/progress/', OrderInProgressListView.as_view(),
-         name='order-progress'),
-    path('orders/ready/', OrderReadyListView.as_view(), name='order-ready'),
+    path('orders/new/<int:branch_id>/',
+         NewOrdersView.as_view(), name='waiter_new_orders'),
+    path('orders/ready/<int:branch_id>/',
+         ReadyOrdersListView.as_view(), name='waiter_ready_orders'),
+    path('orders/inprogress/<int:branch_id>/',
+         InProgressOrdersListView.as_view(), name='waiter_inprogress_orders'),
 
     path('orders-online/all/', OrderOnlineListView.as_view(),
          name='order-online-list'),
