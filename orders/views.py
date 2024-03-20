@@ -1,15 +1,15 @@
+from django.core.exceptions import PermissionDenied
+from rest_framework import generics, status
 from django.db.models import Count
 from menu.models import Menu_Item
 from rest_framework.decorators import api_view
 from django.http import Http404
-from rest_framework import generics
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
 from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailedSerializer, OrderDetailedSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -158,6 +158,7 @@ class ReadyOrdersListView(generics.ListCreateAPIView):
 class OrderOnlineListView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderOnlineSerializer
+
     # permission_classes = [IsAuthenticated]
 
 
@@ -167,6 +168,37 @@ class OrderOnlineListView(generics.ListCreateAPIView):
     responses={200: OrderDetailedSerializer(many=False)}
 )
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        branch_id = self.kwargs.get('branch_id')
+        table_number = self.kwargs.get('table_number')
+        order = get_object_or_404(
+            Order, table__branch_id=branch_id, table__table_number=table_number)
+
+        # Check if the order belongs to the branch where the user works
+        if order.branch_id != self.request.user.branch_id:
+            # If not, raise an unauthorized error
+            raise PermissionDenied(
+                "You don't have permission to access this order.")
+
+        return order
+
+    def put(self, request, *args, **kwargs):
+        # Retrieve the order object to update
+        order_instance = self.get_object()
+
+        # Update the order instance based on the request data
+        serializer = self.get_serializer(order_instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+
+"""class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailedSerializer
     # permission_classes = [IsAuthenticated]
@@ -188,51 +220,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
             order_instance.save()
 
         return super().put(request, *args, **kwargs)
-
-
-@extend_schema(
-    description="Retrieve customer order history",
-    summary="Customer Order History",
-    responses={200: CustomerOrderSerializer(many=True)}
-)
-class CustomerOrderHistoryView(generics.ListAPIView):
-    serializer_class = CustomerOrderSerializer
-
-    def get_queryset(self):
-        customer = self.request.user
-        return Order.objects.filter(customer=customer)
-
-
-class ModifyOrderView(APIView):
-
-    def put(self, request, *args, **kwargs):
-        order = Order.objects.get(id=kwargs['order_id'])
-        order_minute, order_hour = order.date_created.minute, order.date_created.hour * 60
-        current_minute, current_hour = timezone.now().minute, timezone.now().hour * 60
-        order_time = order_minute + order_hour
-        current_time = current_minute + current_hour
-        abs_value = abs(order_time - current_time)
-        serializer = OrderSerializer(order, data=request.data)
-        if serializer.is_valid():
-            if abs_value <= 5 and order.status == 'В процессе':
-                serializer.save()
-                # order_id = serializer.data.get('id') my homework
-                # count_order(order_id)
-                return Response({'data': 'order updated success'})
-            return Response({'data': f'time is up or order is {order.status}'})
-        return Response(serializer.errors)
-
-    def delete(self, request, *args, **kwargs):
-        order = Order.objects.get(id=kwargs['order_id'])
-        order_minute, order_hour = order.date_created.minute, order.date_created.hour * 60
-        current_minute, current_hour = timezone.now().minute, timezone.now().hour * 60
-        order_time = order_minute + order_hour
-        current_time = current_minute + current_hour
-        abs_value = abs(order_time - current_time)
-        if abs_value <= 5 and order.status == 'В процессе':
-            order.delete()
-            return Response({'data': 'order is canceled'})
-        return Response({'data': f'time is up or order is {order.status}'})
+"""
 
 
 class TableCreateView(generics.CreateAPIView):
