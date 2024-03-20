@@ -1,7 +1,7 @@
 # urls.py
 from .views import TableCreateView, TableListView
 from django.urls import path
-from .views import (OrderView, OrderOnlineView, OrderListView, OrderOnlineListView, OrderDetailView,
+from .views import (OrderView, OrderOnlineView, WaiterOrdersView, OrderOnlineListView, OrderDetailView,
                     CustomerOrderHistoryView, ModifyOrderView, TableView, TableDetailedView,
                     TopSellingMenuItemsAPIView, ReadyOrdersListView, InProgressOrdersListView, NewOrdersView)
 
@@ -12,7 +12,7 @@ urlpatterns = [
 
     path('orders/add/', OrderView.as_view(), name='order-create'),
     path('orders/all/<int:branch_id>/',
-         OrderListView.as_view(), name='order-list'),
+         WaiterOrdersView.as_view(), name='order-list'),
 
     path('orders/new/<int:branch_id>/',
          NewOrdersView.as_view(), name='waiter_new_orders'),

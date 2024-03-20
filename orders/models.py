@@ -68,8 +68,22 @@ class Order(models.Model):
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
+    order_number = models.PositiveIntegerField(null=True, blank=True)
+
     def __str__(self):
-        return f"Order #{self.pk} - {self.order_type} - {self.order_status}"
+        return f"Order #{self.order_number} - {self.order_type} - {self.order_status}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # If the instance is being created
+            # Get the latest order number
+            last_order = Order.objects.order_by('-order_number').first()
+            if last_order:
+                last_order_number = last_order.order_number
+            else:
+                last_order_number = 3000  # Start from 3000 if no orders exist
+            # Increment the order number
+            self.order_number = last_order_number + 1
+        super().save(*args, **kwargs)
 
 
 class ItemToOrder(models.Model):
