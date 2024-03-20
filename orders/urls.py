@@ -24,7 +24,7 @@ urlpatterns = [
     path('orders-online/all/', OrderOnlineListView.as_view(),
          name='order-online-list'),
 
-    path('orders/<int:branch_id>/detail/<int:order_id>/',
+    path('orders/<int:branch_id>/detail/<int:table_number>/',
          OrderDetailView.as_view(), name='order-detail'),
 
     path('tables/create/', TableCreateView.as_view(), name='table-create'),
