@@ -851,6 +851,8 @@ class WaiterAuthenticationView(APIView):
 
             user = serializer.validated_data['user']
             branch_id = user.branch.id
+            user_id = user.id
+            profile_id = user.profile.id
 
             # Check if the user already has a token
             refresh = RefreshToken.for_user(user)
@@ -861,6 +863,8 @@ class WaiterAuthenticationView(APIView):
                 'access_token': str(access_token),
                 'refresh_token': str(refresh),
                 'branch_id': branch_id,
+                'user_id': user_id,
+                'profile_id': profile_id
             }, status=status.HTTP_200_OK)
         except Exception as e:
             logger = logging.getLogger(__name__)
