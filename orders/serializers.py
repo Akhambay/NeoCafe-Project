@@ -115,8 +115,8 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(default="Новый")
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    created_at = TimeField()
-    updated_at = TimeField()
+    created_at = TimeField(required=False)
+    updated_at = TimeField(required=False)
     completed_at = TimeField(allow_null=True, required=False)
 
     class Meta:
@@ -171,8 +171,8 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
     def get_total_sum(self, obj):
         total_sum = 0
         for ito in obj.ITO.all():
-            total_price = ito.item.price_per_unit * ito.quantity
-            total_sum += total_price
+            total_sum += ito.item.price_per_unit * ito.quantity
+        obj.total_price = total_sum
         obj.save()
         return total_sum
 
