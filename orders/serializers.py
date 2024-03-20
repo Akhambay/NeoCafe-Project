@@ -132,7 +132,6 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
             'order_type', instance.order_type)
         instance.employee = validated_data.get('employee', instance.employee)
 
-        # Update nested serializer data
         ito_data = validated_data.pop('ITO', [])
         for ito_item_data in ito_data:
             ito_item_id = ito_item_data.get('id')
