@@ -137,13 +137,11 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
             ito_item_id = ito_item_data.get('id')
             ito_item_quantity = ito_item_data.get('quantity')
 
-            # Retrieve the ItemToOrder instance or create a new one if it doesn't exist
             ito_item, _ = ItemToOrder.objects.get_or_create(
                 id=ito_item_id, defaults={'order': instance})
             ito_item.quantity = ito_item_quantity
             ito_item.save()
 
-            # Deduct ingredients from stock if order status is 'In Progress'
             if instance.order_status == "В процессе":
                 for ingredient in ito_item.item.ingredients.all():
                     stock_item = Stock.objects.filter(
