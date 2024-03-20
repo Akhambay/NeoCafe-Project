@@ -31,11 +31,11 @@ class Table(models.Model):
 
 class Order(models.Model):
     status_choice = (
-        ('New', 'New'),
-        ('In Progress', 'In Progress'),
-        ('Ready', 'Ready'),
-        ('Cancelled', 'Cancelled'),
-        ('Done', 'Done'),
+        ('Новый', 'Новый'),
+        ('В процессе', 'В процессе'),
+        ('Готов', 'Готов'),
+        ('Отменен', 'Отменен'),
+        ('Завершен', 'Завершен'),
     )
 
     order_type_choice = (
@@ -46,7 +46,7 @@ class Order(models.Model):
     order_status = models.CharField(
         max_length=20,
         choices=status_choice,
-        default="New"
+        default="Новый"
     )
 
     order_type = models.CharField(

@@ -61,14 +61,50 @@ class OrderOnlineView(APIView):
 
 
 @extend_schema(
-    description="List all orders or create a new order",
-    summary="List and Create Orders",
+    description="List all orders",
+    summary="List Orders",
     responses={200: OrderSerializer(many=True)}
 )
 class OrderListView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     # permission_classes = [IsAuthenticated]
+
+
+class OrderNewListView(generics.ListCreateAPIView):
+    serializer_class = OrderSerializer
+
+    @extend_schema(
+        description="List all orders with status 'New'",
+        summary="List Orders with Status 'New'",
+        responses={200: OrderSerializer(many=True)}
+    )
+    def get_queryset(self):
+        return Order.objects.filter(order_status='Новый')
+
+
+class OrderInProgressListView(generics.ListCreateAPIView):
+    serializer_class = OrderSerializer
+
+    @extend_schema(
+        description="List all orders with status 'В процессе'",
+        summary="List Orders with Status 'В процессе'",
+        responses={200: OrderSerializer(many=True)}
+    )
+    def get_queryset(self):
+        return Order.objects.filter(order_status='В процессе')
+
+
+class OrderReadyListView(generics.ListCreateAPIView):
+    serializer_class = OrderSerializer
+
+    @extend_schema(
+        description="List all orders with status 'Готов'",
+        summary="List Orders with Status 'Готов'",
+        responses={200: OrderSerializer(many=True)}
+    )
+    def get_queryset(self):
+        return Order.objects.filter(order_status='Готов')
 
 
 @extend_schema(
@@ -135,7 +171,7 @@ class ModifyOrderView(APIView):
         abs_value = abs(order_time - current_time)
         serializer = OrderSerializer(order, data=request.data)
         if serializer.is_valid():
-            if abs_value <= 5 and order.status == 'In progress':
+            if abs_value <= 5 and order.status == 'В процессе':
                 serializer.save()
                 # order_id = serializer.data.get('id') my homework
                 # count_order(order_id)
@@ -150,7 +186,7 @@ class ModifyOrderView(APIView):
         order_time = order_minute + order_hour
         current_time = current_minute + current_hour
         abs_value = abs(order_time - current_time)
-        if abs_value <= 5 and order.status == 'in process':
+        if abs_value <= 5 and order.status == 'В процессе':
             order.delete()
             return Response({'data': 'order is canceled'})
         return Response({'data': f'time is up or order is {order.status}'})
@@ -216,7 +252,7 @@ class TopSellingMenuItemsAPIView(APIView):
     def get(self, request, branch_id, format=None):
         # Get orders for the specific branch
         branch_orders = Order.objects.filter(
-            branch_id=branch_id, order_status='Done')
+            branch_id=branch_id, order_status='Завершен')
 
         # Count the quantity of each menu item sold
         sold_items = branch_orders.values(
