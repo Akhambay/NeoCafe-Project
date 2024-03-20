@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from users.models import Branch
 
 
 class OrderView(APIView):
@@ -71,40 +73,77 @@ class OrderListView(generics.ListCreateAPIView):
     # permission_classes = [IsAuthenticated]
 
 
-class OrderNewListView(generics.ListCreateAPIView):
-    serializer_class = OrderSerializer
+class WaiterOrdersView(APIView):
+    """
+    View to list orders for a specific branch where the waiter works.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, branch_id):
+        print(branch_id)
+        orders = Order.objects.filter(
+            branch_id=branch_id)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+
+class NewOrdersView(APIView):
+    """
+    View to list new orders for a specific branch where the waiter works.
+    """
+    # permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="List all orders with status 'New'",
-        summary="List Orders with Status 'New'",
+        description="List new orders for the specific branch where the waiter works.",
+        summary="List New Orders",
         responses={200: OrderSerializer(many=True)}
     )
-    def get_queryset(self):
-        return Order.objects.filter(order_status='Новый')
+    def get(self, request, branch_id):
+        print(branch_id)
+        orders = Order.objects.filter(
+            branch_id=branch_id, order_status='Новый')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 
-class OrderInProgressListView(generics.ListCreateAPIView):
+class InProgressOrdersListView(generics.ListCreateAPIView):
+    """
+    List all in progress orders for the branch where the waiter works.
+    """
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="List all orders with status 'В процессе'",
+        description="List all orders with status 'В процессе' for the branch where the waiter works.",
         summary="List Orders with Status 'В процессе'",
         responses={200: OrderSerializer(many=True)}
     )
-    def get_queryset(self):
-        return Order.objects.filter(order_status='В процессе')
+    def get(self, request, branch_id):
+        print(branch_id)
+        orders = Order.objects.filter(
+            branch_id=branch_id, order_status='В процессе')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 
-class OrderReadyListView(generics.ListCreateAPIView):
+class ReadyOrdersListView(generics.ListCreateAPIView):
+    """
+    List all Ready orders for the branch where the waiter works.
+    """
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="List all orders with status 'Готов'",
+        description="List all orders with status 'Готов' for the branch where the waiter works.",
         summary="List Orders with Status 'Готов'",
         responses={200: OrderSerializer(many=True)}
     )
-    def get_queryset(self):
-        return Order.objects.filter(order_status='Готов')
+    def get(self, request, branch_id):
+        print(branch_id)
+        orders = Order.objects.filter(
+            branch_id=branch_id, order_status='Готов')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema(
