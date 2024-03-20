@@ -132,6 +132,9 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
             'order_type', instance.order_type)
         instance.employee = validated_data.get('employee', instance.employee)
 
+        instance.order_number = validated_data.get(
+            'order_number', instance.order_number)
+
         ito_data = validated_data.pop('ITO', [])
         for ito_item_data in ito_data:
             ito_item_id = ito_item_data.get('id')

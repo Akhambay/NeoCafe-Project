@@ -170,6 +170,42 @@ class OrderOnlineListView(generics.ListCreateAPIView):
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderDetailedSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        branch_id = self.kwargs.get('branch_id')
+        order_id = self.kwargs.get('order_id')
+
+        # Retrieve the order object based on the branch ID and order ID
+        order = get_object_or_404(
+            Order, branch_id=branch_id, id=order_id)
+        print(order)
+        print(order.branch_id)
+        print(self.request.user.branch_id)
+
+        # Check if the order belongs to the branch where the user works
+        if order.branch_id != self.request.user.branch_id:
+            # If not, raise an unauthorized error
+            raise PermissionDenied(
+                "You don't have permission to access this order.")
+
+        return order
+
+    def put(self, request, *args, **kwargs):
+        # Retrieve the order object to update
+        order_instance = self.get_object()
+
+        # Update the order instance based on the request data
+        serializer = self.get_serializer(order_instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+
+"""class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderDetailedSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
@@ -195,7 +231,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(serializer.data)
+        return Response(serializer.data)"""
 
 
 """class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
