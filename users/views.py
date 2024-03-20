@@ -831,9 +831,6 @@ class WaiterAuthenticationCheckView(APIView):
 # ===========================================================================
 # WAITER AUTHENTICATION
 # ===========================================================================
-logger = logging.getLogger(__name__)
-
-
 class WaiterAuthenticationView(APIView):
     serializer_class = WaiterLoginSerializer
 
@@ -852,7 +849,7 @@ class WaiterAuthenticationView(APIView):
             user = serializer.validated_data['user']
             branch_id = user.branch.id
             user_id = user.id
-            profile_id = user.profile.id
+            # profile_id = user.profile.id
 
             # Check if the user already has a token
             refresh = RefreshToken.for_user(user)
@@ -863,12 +860,9 @@ class WaiterAuthenticationView(APIView):
                 'access_token': str(access_token),
                 'refresh_token': str(refresh),
                 'branch_id': branch_id,
-                'user_id': user_id,
-                'profile_id': profile_id
+                'user_id': user_id
             }, status=status.HTTP_200_OK)
         except Exception as e:
-            logger = logging.getLogger(__name__)
-            logger.exception("Error processing the request")
             return Response({"error": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # ===========================================================================
 # PROFILES
