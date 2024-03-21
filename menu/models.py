@@ -41,8 +41,7 @@ class Stock(models.Model):
     ]
 
     stock_item = models.CharField(max_length=225)
-    current_quantity = models.PositiveIntegerField(
-        default=0, validators=[MinValueValidator(0)])
+    current_quantity = models.IntegerField()
     measurement_unit = models.CharField(
         max_length=15, choices=MEASUREMENT_UNIT_CHOICES)
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)

@@ -125,40 +125,79 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
 
     def update(self, instance, validated_data):
+        # Update basic order information
         instance.order_status = validated_data.get(
             'order_status', instance.order_status)
         instance.branch = validated_data.get('branch', instance.branch)
         instance.order_type = validated_data.get(
             'order_type', instance.order_type)
         instance.employee = validated_data.get('employee', instance.employee)
-
         instance.order_number = validated_data.get(
             'order_number', instance.order_number)
 
+        # Update or delete items in the order
         ito_data = validated_data.pop('ITO', [])
+        existing_ito_items = {
+            ito_item.id: ito_item for ito_item in instance.ITO.all()}
+
+        # Collect data for stock quantity validation
+        available_to_order = []
+        stock_quantity = []
+        order_quantity = []
+        ingredients_in_stock = True
+
         for ito_item_data in ito_data:
             ito_item_id = ito_item_data.get('id')
             ito_item_quantity = ito_item_data.get('quantity')
 
-            ito_item, _ = ItemToOrder.objects.get_or_create(
-                id=ito_item_id, defaults={'order': instance})
-            ito_item.quantity = ito_item_quantity
-            ito_item.save()
+            if ito_item_id:
+                # Update existing ItemToOrder instance
+                ito_item_instance = existing_ito_items.pop(ito_item_id, None)
+                if ito_item_instance:
+                    ito_item_instance.quantity = ito_item_quantity
+                    ito_item_instance.save()
+                else:
+                    raise serializers.ValidationError(
+                        f"Item with id {ito_item_id} does not exist in this order.")
+            else:
+                # Create new ItemToOrder instance
+                ito_item_instance = ItemToOrder.objects.create(
+                    order=instance, **ito_item_data)
 
-            if instance.order_status == "В процессе":
-                for ingredient in ito_item.item.ingredients.all():
+            # Collect data for stock quantity validation
+            for ingredient in ito_item_instance.item.ingredients.all():
+                stock_item = Stock.objects.filter(
+                    branch=instance.branch, stock_item=ingredient.name).first()
+                if stock_item:
+                    available_quantity = stock_item.current_quantity // ingredient.quantity
+                    available_to_order.append(available_quantity)
+                    stock_quantity.append(stock_item.current_quantity)
+                    order_quantity.append(ingredient.quantity)
+
+                    required_quantity = ito_item_quantity * ingredient.quantity
+
+                    # Check if stock is enough for the required quantity
+                    if stock_item.current_quantity < required_quantity:
+                        ingredients_in_stock = False
+                        break
+
+        # If all ingredients are enough in stock, subtract ingredients from stock
+        if instance.order_status == "В процессе" and ingredients_in_stock:
+            for ito_item_data in ito_data:
+                for ingredient in ito_item_instance.item.ingredients.all():
                     stock_item = Stock.objects.filter(
                         branch=instance.branch, stock_item=ingredient.name).first()
-                    ingredient_quantity = ingredient.quantity
                     if stock_item:
-                        stock_item.current_quantity -= ito_item_quantity * ingredient_quantity
-
+                        required_quantity = ito_item_quantity * ingredient.quantity
+                        stock_item.current_quantity -= required_quantity
                         stock_item.save()
 
-                        # Ensure stock is not negative
-                        if stock_item.current_quantity < 0:
-                            raise serializers.ValidationError(
-                                f"Insufficient stock for ingredient {ingredient.name}")
+        # Delete any remaining ItemToOrder instances (if any)
+        for ito_item_instance in existing_ito_items.values():
+            ito_item_instance.delete()
+
+        # Update total sum
+        instance.total_sum = self.get_total_sum(instance)
 
         if instance.order_status == "Завершен":
             instance.completed_at = timezone.now()
@@ -172,8 +211,6 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         total_sum = 0
         for ito in obj.ITO.all():
             total_sum += ito.item.price_per_unit * ito.quantity
-        obj.total_price = total_sum
-        obj.save()
         return total_sum
 
 

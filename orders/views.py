@@ -41,6 +41,44 @@ class OrderView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    description="Retrieve, update, or delete an order by its ID",
+    summary="Retrieve, Update, Delete Order by ID",
+    responses={200: OrderDetailedSerializer()}
+)
+class OrderDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        order_id = self.kwargs.get('order_id')
+        return get_object_or_404(Order, id=order_id)
+
+    def put(self, request, *args, **kwargs):
+        order_instance = self.get_object()
+        serializer = self.get_serializer(
+            order_instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            # Check if table_number is provided in request data
+            new_table_number = request.data.get('table_number')
+            if new_table_number is not None:
+                # Get the table instance corresponding to the provided table number
+                new_table = get_object_or_404(
+                    Table, table_number=new_table_number)
+                serializer.validated_data['table'] = new_table
+
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        order_instance = self.get_object()
+        order_instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class OrderOnlineView(APIView):
     permission_classes = [IsAuthenticated]
 

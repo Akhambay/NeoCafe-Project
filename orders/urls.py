@@ -3,7 +3,7 @@ from .views import TableCreateView, TableListView
 from django.urls import path
 from .views import (OrderView, OrderOnlineView, WaiterOrdersView, OrderOnlineListView, OrderDetailView,
                     TableView, TableDetailedView, TopSellingMenuItemsAPIView,
-                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView)
+                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView, OrderDetailByIdView)
 
 urlpatterns = [
 
@@ -14,6 +14,8 @@ urlpatterns = [
     path('orders/all/<int:branch_id>/',
          WaiterOrdersView.as_view(), name='order-list'),
 
+    path('orders/<int:order_id>/',
+         OrderDetailByIdView.as_view(), name='order-create'),
     path('orders/new/<int:branch_id>/',
          NewOrdersView.as_view(), name='waiter_new_orders'),
     path('orders/ready/<int:branch_id>/',
@@ -32,7 +34,7 @@ urlpatterns = [
          TableListView.as_view(), name='table-list'),
     path('tables/', TableView.as_view()),
     path('tables/branch/<int:branch_id>/<int:table_number>/',
-         TableDetailedView.as_view()),
+         OrderDetailView.as_view()),
 
     path('branch/<int:branch_id>/top-selling-menu-items/',
          TopSellingMenuItemsAPIView.as_view(), name='top_selling_menu_items'),
