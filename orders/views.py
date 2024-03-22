@@ -317,6 +317,7 @@ class TableView(APIView):
 
 class TableDetailedView(APIView):
 
+    # Retrieve a table
     def get(self, request, branch_id, table_number, *args, **kwargs):
         try:
             # Retrieve the table for the given branch_id and table_number
@@ -325,8 +326,9 @@ class TableDetailedView(APIView):
             serializer = TableDetailedSerializer(table)
             return Response(serializer.data)
         except Table.DoesNotExist:
-            return Response({'data': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    # Create a table
     def post(self, request, branch_id, table_number, *args, **kwargs):
         # Add the branch_id and table_number to the request data
         request_data = request.data.copy()
@@ -338,9 +340,35 @@ class TableDetailedView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Table created successfully'}, status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Update a table
+    def put(self, request, branch_id, table_number, *args, **kwargs):
+        try:
+            table = Table.objects.get(
+                branch_id=branch_id, table_number=table_number)
+        except Table.DoesNotExist:
+            return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TableDetailedSerializer(table, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Table updated successfully'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Delete a table
+    def delete(self, request, branch_id, table_number, *args, **kwargs):
+        try:
+            table = Table.objects.get(
+                branch_id=branch_id, table_number=table_number)
+        except Table.DoesNotExist:
+            return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        table.delete()
+        return Response({'message': 'Table deleted successfully'})
 
 
 class TopSellingMenuItemsAPIView(APIView):
