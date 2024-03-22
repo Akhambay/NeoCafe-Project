@@ -6,7 +6,6 @@ from .models import Order, ItemToOrder, Table
 from users.models import Profile
 from menu.models import Menu_Item, Stock
 from menu.serializers import MenuItemSerializer
-# from users.serializers import EmployeeProfileSerializer
 from django.utils import timezone
 from django.db import transaction
 from datetime import datetime
