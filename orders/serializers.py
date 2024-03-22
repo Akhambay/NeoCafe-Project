@@ -412,12 +412,6 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TableDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Table
-        fields = ['id', 'table_number', 'status']
-
-
 # ===========================================================================
 # MTO
 # ===========================================================================

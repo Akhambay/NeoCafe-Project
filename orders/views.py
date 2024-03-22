@@ -323,7 +323,7 @@ class TableDetailedView(APIView):
             # Retrieve the table for the given branch_id and table_number
             table = Table.objects.get(
                 branch_id=branch_id, table_number=table_number)
-            serializer = TableDetailedSerializer(table)
+            serializer = TableSerializer(table)
             return Response(serializer.data)
         except Table.DoesNotExist:
             return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
