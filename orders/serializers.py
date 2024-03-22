@@ -33,6 +33,17 @@ class TableSerializer(serializers.ModelSerializer):
         model = Table
         fields = ['id', 'table_number', 'is_available', 'branch']
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        orders = instance.order_set.all()
+        for order in orders:
+            if order.order_status in ['Новый', 'В процессе', 'Готов']:
+                representation['is_available'] = False
+                break
+            else:
+                representation['is_available'] = True
+        return representation
+
 
 class TimeField(serializers.Field):
     def to_representation(self, value):
@@ -48,13 +59,21 @@ class TimeField(serializers.Field):
                 "Invalid time format. Use HH:MM format.")
 
 
+"""
+На вынос - новый, в процессе, завершен, отменен.
+В заведении - Новый, В процессе, Готов, завершен, отменен.
+бизнес логика такая - когда бармен приготовил заказ в заведении - официанту пришло уведомление о статусе «готово» = можно забирать заказ с бара и относить клиентам.
+официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
+"""
+
+
 class OrderSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-    created_at = TimeField()
-    updated_at = TimeField()
+    created_at = TimeField(required=False)
+    updated_at = TimeField(required=False)
     completed_at = TimeField(allow_null=True, required=False)
 
     class Meta:
@@ -217,20 +236,16 @@ class TableDetailSerializer(serializers.ModelSerializer):
         model = Table
         fields = ['id', 'table_number', 'is_available', 'order_set']
 
-    def create(self, validated_data):
-        order_data = validated_data.pop('order_set')
-        table = Table.objects.create(**validated_data)
-        for order in order_data:
-            Order.objects.create(table=table, **order)
-        return table
-
-
-class TableDetailedSerializer(serializers.ModelSerializer):
-    order_set = OrderSerializer(many=True)
-
-    class Meta:
-        model = Table
-        fields = ['id', 'table_number', 'is_available', 'order_set']
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        orders = instance.order_set.all()
+        for order in orders:
+            if order.order_status in ['Новый', 'В процессе', 'Готов']:
+                representation['is_available'] = False
+                break
+            else:
+                representation['is_available'] = True
+        return representation
 
     def create(self, validated_data):
         order_data = validated_data.pop('order_set')
