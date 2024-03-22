@@ -413,18 +413,10 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
 
 
 class TableDetailSerializer(serializers.ModelSerializer):
-    order_set = OrderSerializer(many=True)
-
     class Meta:
         model = Table
-        fields = ['id', 'table_number', 'status', 'order_set']
+        fields = ['id', 'table_number', 'status']
 
-    def create(self, validated_data):
-        order_data = validated_data.pop('order_set')
-        table = Table.objects.create(**validated_data)
-        for order in order_data:
-            Order.objects.create(table=table, **order)
-        return table
 
 # ===========================================================================
 # MTO
