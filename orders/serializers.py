@@ -229,7 +229,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-class TableDetailSerializer(serializers.ModelSerializer):
+class TableDetailedSerializer(serializers.ModelSerializer):
     order_set = OrderSerializer(many=True)
 
     class Meta:
