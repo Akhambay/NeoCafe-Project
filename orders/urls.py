@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (OrderView, OrderOnlineView, WaiterOrdersView, OrderOnlineListView, OrderDetailView,
-                    TableView, TableCreateView, TableListView, OrderOnlineDetailView,
+                    TableView, TableCreateView, TableListView, TableDetailedView, OrderOnlineDetailView,
                     TopSellingMenuItemsAPIView, CustomerOrdersView, OrderDetailByIdView,
                     ReadyOrdersListView, InProgressOrdersListView, NewOrdersView)
 
@@ -36,6 +36,10 @@ urlpatterns = [
     path('tables/', TableView.as_view()),
     path('tables/branch/<int:branch_id>/<int:table_number>/',
          OrderDetailView.as_view()),
+    path('tables/branch/<int:branch_id>/edit-table/<int:table_number>/',
+         TableDetailedView.as_view()),
+
+
     path('orders/online/<int:order_id>/',
          OrderOnlineDetailView.as_view()),
 
