@@ -7,7 +7,9 @@ from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
 from users.models import WaiterProfile, CustomerProfile, Profile
-from .serializers import OrderSerializer, CustomerOrderSerializer, OrderOnlineSerializer, TableSerializer, TableDetailedSerializer, OrderDetailedSerializer
+from .serializers import (OrderSerializer, OrderOnlineSerializer, OrderDetailedSerializer,
+                          OrderOnlineDetailedSerializer, CustomerOrderSerializer,
+                          TableSerializer, TableDetailedSerializer)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -83,20 +85,24 @@ class OrderOnlineView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        orders = Order.objects.filter(customer=request.user)
+        orders = Order.objects.all()
         serializer = OrderOnlineSerializer(orders, many=True)
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        data = request.data.copy()
-        # Add the customer field to the data
-        data['customer'] = request.user.pk
-
-        serializer = OrderOnlineSerializer(
-            data=data, context={'request': request})
+        serializer = OrderOnlineSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+
+            order_id = serializer.data.get('id')
+            order = Order.objects.get(id=order_id)
+
+            if hasattr(request.user, 'profile'):
+                order.customer = request.user.profile
+                order.save()
+                return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -108,6 +114,17 @@ class OrderOnlineView(APIView):
 class OrderListView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    # permission_classes = [IsAuthenticated]
+
+
+@extend_schema(
+    description="List all orders",
+    summary="List Orders",
+    responses={200: OrderOnlineSerializer(many=True)}
+)
+class OrderOnlineListView(generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderOnlineSerializer
     # permission_classes = [IsAuthenticated]
 
 
@@ -124,6 +141,18 @@ class WaiterOrdersView(APIView):
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class CustomerOrdersView(APIView):
+    """
+    View to list orders for a specific branch where the customer orders.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orders = Order.objects.all()
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 
 class NewOrdersView(APIView):
@@ -223,6 +252,28 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
                 "You don't have permission to access this order.")
 
         return order
+
+    def put(self, request, *args, **kwargs):
+        # Retrieve the order object to update
+        order_instance = self.get_object()
+
+        # Update the order instance based on the request data
+        serializer = self.get_serializer(order_instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+
+@extend_schema(
+    description="Retrieve, update, or delete an order",
+    summary="Retrieve, Update, Delete Order",
+    responses={200: OrderDetailedSerializer(many=False)}
+)
+class OrderOnlineDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderOnlineDetailedSerializer
+    permission_classes = [IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
         # Retrieve the order object to update
