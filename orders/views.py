@@ -254,7 +254,6 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         return order
 
     def put(self, request, *args, **kwargs):
-        # Retrieve the order object to update
         order_instance = self.get_object()
 
         # Update the order instance based on the request data
