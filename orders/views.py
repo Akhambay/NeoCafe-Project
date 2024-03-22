@@ -21,10 +21,11 @@ from users.models import Branch
 class OrderView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        orders = Order.objects.all()
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+    def get_user_profile(self, user):
+        try:
+            return user.profile
+        except Profile.DoesNotExist:
+            return None
 
     def post(self, request, *args, **kwargs):
         serializer = OrderSerializer(data=request.data)
@@ -34,13 +35,27 @@ class OrderView(APIView):
             order_id = serializer.data.get('id')
             order = Order.objects.get(id=order_id)
 
-            if hasattr(request.user, 'profile'):
-                order.employee = request.user.profile
+            user = request.user
+            profile = self.get_user_profile(user)
+            if profile:
+                order.employee = profile
                 order.save()
                 return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    ##
+    """
+    def get(self, request, branch_id):
+        if request.user.branch_id == branch_id:
+            orders = Order.objects.filter(
+                branch_id=branch_id)
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+        """
+    ##
 
 
 @extend_schema(
