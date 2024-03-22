@@ -171,7 +171,7 @@ class Profile(models.Model):
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
-        Branch, related_name='employee', on_delete=models.CASCADE)  # Add this field
+        Branch, related_name='employee', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -186,7 +186,7 @@ class WaiterProfile(models.Model):
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
-        Branch, related_name='waiters', on_delete=models.CASCADE)  # Add this field
+        Branch, related_name='waiters', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -200,6 +200,8 @@ class BartenderProfile(models.Model):
     email = models.EmailField()
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, related_name='bartender', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
