@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
@@ -247,43 +248,151 @@ class TableDetailedSerializer(serializers.ModelSerializer):
         return table
 
 
+# ================================================================
+# ORDER ONLINE
+# ================================================================
+
+
 class OrderOnlineSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(read_only=True)
-    total_price = serializers.IntegerField(min_value=0, read_only=True)
+    order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
+    bonus_points = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    created_at = serializers.DateTimeField(format='%H:%M')
-    updated_at = serializers.DateTimeField(format='%H:%M')
-    completed_at = serializers.DateTimeField(format='%H:%M')
+    created_at = TimeField()
+    updated_at = TimeField()
+    completed_at = TimeField(allow_null=True, required=False)
 
     class Meta:
         model = Order
-        fields = ['id', 'order_number', 'total_price', 'status', 'customer',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'ITO']
-        read_only_fields = ['order_number',
-                            'status', 'total_price', 'total_sum']
+        fields = ['id', 'order_number', 'order_status',
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'customer', 'bonus_points', 'ITO']
 
     def create(self, validated_data):
-        ito_data = validated_data.pop('ITO', [])
-        customer = validated_data.pop('customer', None)
+        ito_data = validated_data.pop('ITO', None)
 
-        # Assuming 'customer' is a CustomerProfile instance, not just the customer ID.
-        order = Order.objects.create(customer=customer, **validated_data)
+        order = Order.objects.create(**validated_data)
 
         for ito in ito_data:
-            ito.pop('id', None)
             ItemToOrder.objects.create(order=order, **ito)
 
         return order
 
     def update(self, instance, validated_data):
-        ito_data = validated_data.get('ITO', [])
-
+        instance.save()
+        ito_data = validated_data.get('ITO')
         for ito in ito_data:
-            ito_instance = ItemToOrder.objects.get(id=ito.get('id'))
+            ito_instance = ItemToOrder.objects.get(
+                id=ito.get('id'))
             ito_instance.item = ito.get('item', ito_instance.item)
-            ito_instance.quantity = ito.get('quantity', ito_instance.quantity)
+            ito_instance.quantity = ito.get(
+                'quantity', ito_instance.quantity)
             ito_instance.save()
+        return instance
+
+    def get_total_sum(self, obj):
+        total_sum = 0
+        for ito in obj.ITO.all():
+            total_price = ito.item.price_per_unit * ito.quantity
+            total_sum += total_price
+        obj.save()
+        return total_sum
+
+
+class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
+    order_status = serializers.CharField(default="Новый")
+    total_sum = serializers.SerializerMethodField()
+    bonus_points = serializers.SerializerMethodField()
+    ITO = ItemToOrderSerializer(many=True)
+    created_at = TimeField(required=False)
+    updated_at = TimeField(required=False)
+    completed_at = TimeField(allow_null=True, required=False)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'order_number', 'order_status',
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'customer', 'bonus_points', 'ITO']
+
+    def update(self, instance, validated_data):
+        # Update basic order information
+        instance.order_status = validated_data.get(
+            'order_status', instance.order_status)
+        instance.branch = validated_data.get('branch', instance.branch)
+        instance.order_type = validated_data.get(
+            'order_type', instance.order_type)
+        instance.customer = validated_data.get('customer', instance.customer)
+        instance.order_number = validated_data.get(
+            'order_number', instance.order_number)
+
+        # Update or delete items in the order
+        ito_data = validated_data.pop('ITO', [])
+        existing_ito_items = {
+            ito_item.id: ito_item for ito_item in instance.ITO.all()}
+
+        # Collect data for stock quantity validation
+        available_to_order = []
+        stock_quantity = []
+        order_quantity = []
+        ingredients_in_stock = True
+
+        for ito_item_data in ito_data:
+            ito_item_id = ito_item_data.get('id')
+            ito_item_quantity = ito_item_data.get('quantity')
+
+            if ito_item_id:
+                # Update existing ItemToOrder instance
+                ito_item_instance = existing_ito_items.pop(ito_item_id, None)
+                if ito_item_instance:
+                    ito_item_instance.quantity = ito_item_quantity
+                    ito_item_instance.save()
+                else:
+                    raise serializers.ValidationError(
+                        f"Item with id {ito_item_id} does not exist in this order.")
+            else:
+                # Create new ItemToOrder instance
+                ito_item_instance = ItemToOrder.objects.create(
+                    order=instance, **ito_item_data)
+
+            # Collect data for stock quantity validation
+            for ingredient in ito_item_instance.item.ingredients.all():
+                stock_item = Stock.objects.filter(
+                    branch=instance.branch, stock_item=ingredient.name).first()
+                if stock_item:
+                    available_quantity = stock_item.current_quantity // ingredient.quantity
+                    available_to_order.append(available_quantity)
+                    stock_quantity.append(stock_item.current_quantity)
+                    order_quantity.append(ingredient.quantity)
+
+                    required_quantity = ito_item_quantity * ingredient.quantity
+
+                    # Check if stock is enough for the required quantity
+                    if stock_item.current_quantity < required_quantity:
+                        ingredients_in_stock = False
+                        break
+
+        # If all ingredients are enough in stock, subtract ingredients from stock
+        if instance.order_status == "В процессе" and ingredients_in_stock:
+            for ito_item_data in ito_data:
+                for ingredient in ito_item_instance.item.ingredients.all():
+                    stock_item = Stock.objects.filter(
+                        branch=instance.branch, stock_item=ingredient.name).first()
+                    if stock_item:
+                        required_quantity = ito_item_quantity * ingredient.quantity
+                        stock_item.current_quantity -= required_quantity
+                        stock_item.save()
+
+        # Delete any remaining ItemToOrder instances (if any)
+        for ito_item_instance in existing_ito_items.values():
+            ito_item_instance.delete()
+
+        # Update total sum and bonus points
+        instance.total_sum = self.get_total_sum(instance)
+        instance.bonus_points = self.get_bonus_points(instance.total_sum)
+
+        if instance.order_status == "Завершен":
+            instance.completed_at = timezone.now()
+
+        # Save the changes to the Order instance
+        instance.save()
 
         return instance
 
@@ -291,9 +400,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         total_sum = 0
         for ito in obj.ITO.all():
             total_sum += ito.item.price_per_unit * ito.quantity
-        obj.total_price = total_sum
-        obj.save()
         return total_sum
+
+    def get_bonus_points(self, total_sum):
+        return Decimal(total_sum) * Decimal('0.10')
 
 
 class CustomerOrderSerializer(serializers.ModelSerializer):
