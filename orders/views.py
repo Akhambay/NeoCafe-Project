@@ -335,8 +335,7 @@ class TableDetailedView(APIView):
         request_data['table_number'] = table_number
         request_data['branch'] = branch_id
 
-        # Serialize the data with TableDetailedSerializer
-        serializer = TableDetailedSerializer(data=request_data)
+        serializer = TableSerializer(data=request_data)
 
         if serializer.is_valid():
             serializer.save()
@@ -352,7 +351,7 @@ class TableDetailedView(APIView):
         except Table.DoesNotExist:
             return Response({'error': 'Table not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = TableDetailedSerializer(table, data=request.data)
+        serializer = TableSerializer(table, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Table updated successfully'})
