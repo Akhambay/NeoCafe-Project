@@ -57,7 +57,7 @@ urlpatterns = [
     path('profile/customer/<int:user>/',
          CustomerProfileView.as_view(), name='customer_profile'),
 
-    path('profile/waiter/<int:user>/',
+    path('profile/waiter/<int:user_id>/',
          WaiterProfileView.as_view(), name='waiter-profile'),
     path('profile/bartender/<int:user>/',
          BartenderProfileView.as_view(), name='bartender-profile'),

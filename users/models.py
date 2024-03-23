@@ -136,6 +136,14 @@ class CustomUser(AbstractUser):
 
     objects = CustomUserManager()
 
+    @property
+    def profile(self):
+        # Access the related profile based on user_type
+        if self.user_type == 'Waiter':
+            return self.waiterprofile
+        elif self.user_type == 'Bartender':
+            return self.bartenderprofile
+
     def __str__(self):
         return self.email
 
@@ -174,7 +182,7 @@ class Profile(models.Model):
         Branch, related_name='employee', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.user_type}"
 
 
 class WaiterProfile(models.Model):

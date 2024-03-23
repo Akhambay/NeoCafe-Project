@@ -136,8 +136,6 @@ class EmployeeCreateView(generics.CreateAPIView):
         if not (4 <= len(password) <= 10):
             return Response({'error': 'Password must be between 4 and 10 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # return "Password must be between 4 and 10 characters."
-
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -155,7 +153,7 @@ class EmployeeCreateView(generics.CreateAPIView):
         except ValidationError as e:
             return Response({'password': e.messages}, status=status.HTTP_400_BAD_REQUEST)
 
-        self.perform_create(serializer)
+        employee, profile_id = self.perform_create(serializer)
 
         refresh = RefreshToken.for_user(serializer.instance)
         token_data = {
@@ -164,7 +162,17 @@ class EmployeeCreateView(generics.CreateAPIView):
         }
 
         headers = self.get_success_headers(serializer.data)
-        return Response({'employee_data': serializer.data, 'tokens': token_data}, status=status.HTTP_201_CREATED, headers=headers)
+
+        # Add user_id and profile_id to the response
+        user_id = employee.id
+        response_data = {
+            'employee_data': serializer.data,
+            'tokens': token_data,
+            'user_id': user_id,
+            'profile_id': profile_id,  # Include profile_id in the response
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         # Set default values if needed
@@ -172,13 +180,15 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Validate password length again (just to be sure)
         password = serializer.validated_data.get('password')
-        self.validate_password_length(password)
+        if not (4 <= len(password) <= 10):
+            raise ValidationError(
+                {'error': 'Password must be between 4 and 10 characters.'})
 
         # Validate password using Django's built-in validators
         try:
             validate_password(password)
         except ValidationError as e:
-            return Response({'password': e.messages}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({'password': e.messages})
 
         # Create the employee (Waiter or Bartender)
         employee = serializer.save()
@@ -190,23 +200,27 @@ class EmployeeCreateView(generics.CreateAPIView):
         # Attach the refresh token to the employee instance
         employee.refresh_token = refresh_token
 
-        # employee.set_password(serializer.validated_data['password'])
-
         # Check user_type and create a profile if it's a Waiter or Bartender
         user_type = serializer.validated_data.get('user_type')
-        if user_type in ['Waiter', 'Bartender']:
-            create_employee_profile(employee, user_type, serializer.validated_data.get('employee_schedules', []),
-                                    Profile, EmployeeSchedule)
+        profile = None
+        if user_type == 'Waiter':
+            profile = WaiterProfile.objects.create(user=employee)
+        elif user_type == 'Bartender':
+            profile = BartenderProfile.objects.create(user=employee)
 
+        # Retrieve profile_id after creating the profile
+        profile_id = profile.id if profile else None
 
-def get_or_create_profile(user, user_type):
-    if user_type == 'Waiter':
-        return WaiterProfile.objects.get_or_create(user=user)[0], True
-    elif user_type == 'Bartender':
-        return BartenderProfile.objects.get_or_create(user=user)[0], True
-    else:
-        # Handle other user types if needed
-        return None, False
+        return employee, profile_id
+
+    def get_or_create_profile(self, user, user_type):
+        if user_type == 'Waiter':
+            return WaiterProfile.objects.get_or_create(user=user)[0], True
+        elif user_type == 'Bartender':
+            return BartenderProfile.objects.get_or_create(user=user)[0], True
+        else:
+            # Handle other user types if needed
+            return None, False
 
 
 class EmployeeListPagination(PageNumberPagination):
@@ -938,7 +952,7 @@ class WaiterProfileView(generics.RetrieveAPIView):
     queryset = WaiterProfile.objects.all()
     serializer_class = WaiterProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'user'
+    lookup_field = 'user_id'
 
     @extend_schema(
         description="Retrieve details of a profile.",
