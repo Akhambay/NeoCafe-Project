@@ -23,8 +23,11 @@ class OrderView(APIView):
 
     def get_user_profile(self, user):
         try:
-            return user.profile
+            profile = user.profile
+            print("User profile found:", profile)
+            return profile
         except Profile.DoesNotExist:
+            print("User profile does not exist.")
             return None
 
     def post(self, request, *args, **kwargs):
