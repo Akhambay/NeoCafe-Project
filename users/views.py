@@ -378,9 +378,16 @@ class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
+
 # ===========================================================================
 # BRANCH
 # ===========================================================================
+
+
+class BranchListPagination(PageNumberPagination):
+    page_size = 6
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class BranchCreateView(generics.CreateAPIView):
@@ -406,6 +413,7 @@ class BranchCreateView(generics.CreateAPIView):
 
 class BranchList(generics.ListCreateAPIView):
     serializer_class = BranchSerializer
+    pagination_class = BranchListPagination
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -428,8 +436,13 @@ class BranchList(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
+        # Pagination
+        paginator = BranchListPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+
+        serializer = self.get_serializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class BranchDetail(generics.RetrieveUpdateDestroyAPIView):
