@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -79,27 +80,22 @@ class Branch(models.Model):
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+    def create_user(self, email, password=None, user_type='Waiter', **extra_fields):
+        with transaction.atomic():
+            if not email:
+                raise ValueError('The Email field must be set')
+            email = self.normalize_email(email)
+            user = self.model(email=email, **extra_fields)
+            user.set_password(password)
+            user.save(using=self._db)
 
-        # Save user first
-        user.save(using=self._db)
+            # Create a profile for the user
+            if user_type == 'Waiter':
+                WaiterProfile.objects.create(user=user)
+            elif user_type == 'Bartender':
+                BartenderProfile.objects.create(user=user)
 
-        Profile.objects.create(user=user, email=email, user_type='Waiter')
-
-        # Set default values for refresh and access tokens
-        refresh = RefreshToken.for_user(user)
-        extra_fields['refresh_token'] = str(refresh)
-        extra_fields['access_token'] = str(refresh.access_token)
-
-        # Save again after setting bonus_points and access_token
-        user.save(using=self._db)
-
-        return user
+            return user
 
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
@@ -115,7 +111,6 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('Waiter', 'Waiter'),
         ('Bartender', 'Bartender'),
-
     ]
 
     first_name = models.CharField(max_length=50)
@@ -143,9 +138,23 @@ class CustomUser(AbstractUser):
             return self.waiterprofile
         elif self.user_type == 'Bartender':
             return self.bartenderprofile
+        else:
+            return None
 
-    def __str__(self):
-        return self.email
+    @property
+    def waiterprofile(self):
+        try:
+            return self.waiterprofile
+        except WaiterProfile.DoesNotExist:
+            return None
+
+    @property
+    def bartenderprofile(self):
+        try:
+            return self.bartenderprofile
+        except BartenderProfile.DoesNotExist:
+            return None
+
 
 # ===========================================================================
 # PROFILES
@@ -186,11 +195,14 @@ class Profile(models.Model):
 
 
 class WaiterProfile(models.Model):
+
     user = models.OneToOneField(
         CustomUser, related_name='waiterprofile', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
+    user_type = models.CharField(
+        max_length=50, default='Waiter')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
@@ -201,11 +213,14 @@ class WaiterProfile(models.Model):
 
 
 class BartenderProfile(models.Model):
+
     user = models.OneToOneField(
         CustomUser, related_name='bartenderprofile', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField()
+    user_type = models.CharField(
+        max_length=50, default='Bartender')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(

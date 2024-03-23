@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
-from users.models import WaiterProfile, CustomerProfile, Profile
+from users.models import WaiterProfile, BartenderProfile, Profile
 from .serializers import (OrderSerializer, OrderOnlineSerializer, OrderDetailedSerializer,
                           OrderOnlineDetailedSerializer, CustomerOrderSerializer,
                           TableSerializer, TableDetailedSerializer)
@@ -15,15 +15,60 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from users.models import Branch
+from rest_framework import status
+from django.db import transaction
+
+
+from django.db import transaction
 
 
 class OrderView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_user_profile(self, user):
+    def post(self, request, *args, **kwargs):
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            order_id = serializer.data.get('id')
+            order = Order.objects.get(id=order_id)
+
+            # Retrieve the user's profile based on authentication
+            user_profile = request.user.profile
+
+            if not user_profile:
+                # If user doesn't have a profile, try to create one
+                try:
+                    with transaction.atomic():
+                        if request.user.user_type == 'Waiter':
+                            WaiterProfile.objects.create(user=request.user)
+                        elif request.user.user_type == 'Bartender':
+                            BartenderProfile.objects.create(user=request.user)
+                except Exception as e:
+                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # Attempt to retrieve the user's profile again after creation
+                user_profile = request.user.profile
+
+                if not user_profile:
+                    return Response({'error': 'Failed to create user profile.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # At this point, user_profile should exist
+            order.employee = user_profile.user  # Assign user associated with the profile
+            order.save()
+            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    """class OrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_user_profile(self, request):
         try:
-            profile = user.profile
+            print(request.user)
+            print(request.user.first_name)
+            print(request.user.profile)
+            profile = request.user.profile
             print("User profile found:", profile)
             return profile
         except Profile.DoesNotExist:
@@ -38,27 +83,14 @@ class OrderView(APIView):
             order_id = serializer.data.get('id')
             order = Order.objects.get(id=order_id)
 
-            user = request.user
-            profile = self.get_user_profile(user)
+            profile = self.get_user_profile(request)
             if profile:
                 order.employee = profile
                 order.save()
                 return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    ##
-    """
-    def get(self, request, branch_id):
-        if request.user.branch_id == branch_id:
-            orders = Order.objects.filter(
-                branch_id=branch_id)
-            serializer = OrderSerializer(orders, many=True)
-            return Response(serializer.data)
-        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
-        """
-    ##
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
 
 
 @extend_schema(
