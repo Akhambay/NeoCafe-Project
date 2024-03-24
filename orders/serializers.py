@@ -3,7 +3,7 @@ from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Order, ItemToOrder, Table
-from users.models import Profile
+from users.models import Profile, WaiterProfile, BartenderProfile
 from menu.models import Menu_Item, Stock
 from menu.serializers import MenuItemSerializer
 from django.utils import timezone
@@ -75,11 +75,31 @@ class OrderSerializer(serializers.ModelSerializer):
     created_at = TimeField(required=False)
     updated_at = TimeField(required=False)
     completed_at = TimeField(allow_null=True, required=False)
+    employee_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'table', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
+
+    def get_employee_profile(self, obj):
+        from users.serializers import WaiterProfileSerializer, BartenderProfileSerializer
+        from users.models import CustomUser
+
+        # Check if obj.employee is not None and is an instance of CustomUser
+        if obj.employee and isinstance(obj.employee, CustomUser):
+            if obj.employee.user_type == 'Waiter':
+                waiter_profile = WaiterProfile.objects.filter(
+                    user=obj.employee).first()
+                if waiter_profile:
+                    return WaiterProfileSerializer(waiter_profile).data
+            elif obj.employee.user_type == 'Bartender':
+                bartender_profile = BartenderProfile.objects.filter(
+                    user=obj.employee).first()
+                if bartender_profile:
+                    return BartenderProfileSerializer(bartender_profile).data
+
+        return None
 
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO', None)
