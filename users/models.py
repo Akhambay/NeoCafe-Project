@@ -144,14 +144,14 @@ class CustomUser(AbstractUser):
     @property
     def waiterprofile(self):
         try:
-            return self.waiterprofile
+            return self.waiterprofile_set.get()
         except WaiterProfile.DoesNotExist:
             return None
 
     @property
     def bartenderprofile(self):
         try:
-            return self.bartenderprofile
+            return self.bartenderprofile_set.get()
         except BartenderProfile.DoesNotExist:
             return None
 
@@ -194,37 +194,9 @@ class Profile(models.Model):
         return f"{self.first_name} {self.user_type}"
 
 
-class WaiterProfile(models.Model):
-
-    user = models.OneToOneField(
-        CustomUser, related_name='waiterprofile', on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50, blank=True, null=True)
-    email = models.EmailField()
-    user_type = models.CharField(
-        max_length=50, default='Waiter')
-    schedule = models.ForeignKey(
-        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
-    branch = models.ForeignKey(
-        Branch, related_name='waiters', on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+class WaiterProfile(Profile):
+    pass
 
 
-class BartenderProfile(models.Model):
-
-    user = models.OneToOneField(
-        CustomUser, related_name='bartenderprofile', on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50, blank=True, null=True)
-    email = models.EmailField()
-    user_type = models.CharField(
-        max_length=50, default='Bartender')
-    schedule = models.ForeignKey(
-        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
-    branch = models.ForeignKey(
-        Branch, related_name='bartender', on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+class BartenderProfile(Profile):
+    pass
