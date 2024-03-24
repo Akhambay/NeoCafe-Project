@@ -246,6 +246,7 @@ class EmployeeList(generics.ListCreateAPIView):
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
+        branch_name = self.request.query_params.get('branch_name', None)
 
         if search_term:
             queryset = queryset.filter(
@@ -254,6 +255,10 @@ class EmployeeList(generics.ListCreateAPIView):
                 Q(email__icontains=search_term) |
                 Q(user_type__icontains=search_term)
             )
+
+        if branch_name:
+            branch = get_object_or_404(Branch, branch_name=branch_name)
+            queryset = queryset.filter(branch=branch)
 
         return queryset
 

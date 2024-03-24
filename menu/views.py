@@ -255,6 +255,7 @@ class StockItemsList(generics.ListCreateAPIView):
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)
+        branch_name = self.request.query_params.get('branch_name', None)
 
         if search_term:
             try:
@@ -270,6 +271,8 @@ class StockItemsList(generics.ListCreateAPIView):
                 queryset = queryset.filter(
                     Q(stock_item__icontains=search_term)
                 )
+        if branch_name:
+            queryset = queryset.filter(branch__branch_name=branch_name)
 
         return queryset
 
