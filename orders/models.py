@@ -64,7 +64,7 @@ class Order(models.Model):
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(
-        'users.Profile', on_delete=models.SET_NULL, blank=True, null=True, related_name='orders')
+        'users.Profile', on_delete=models.SET_NULL, null=True)
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
