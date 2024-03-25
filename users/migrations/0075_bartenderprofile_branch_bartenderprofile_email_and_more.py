@@ -12,16 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='bartenderprofile',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=50, null=True),
-        ),
-        migrations.AddField(
-            model_name='bartenderprofile',
-            name='last_name',
-            field=models.CharField(blank=True, max_length=50, null=True),
-        ),
-        migrations.AddField(
-            model_name='bartenderprofile',
             name='profile_ptr',
             field=models.AutoField(default=0, primary_key=True, serialize=False),
         ),
@@ -44,16 +34,6 @@ class Migration(migrations.Migration):
             model_name='bartenderprofile',
             name='user',
             field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='bartender_profile', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AddField(
-            model_name='waiterprofile',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=50, null=True),
-        ),
-        migrations.AddField(
-            model_name='waiterprofile',
-            name='last_name',
-            field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
             model_name='waiterprofile',

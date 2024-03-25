@@ -188,27 +188,51 @@ class Profile(models.Model):
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
-        Branch, related_name='employee', on_delete=models.CASCADE, blank=True, null=True)
-    profile_ptr = models.AutoField(primary_key=True, default=0)
+        Branch, related_name='profiles', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.user_type}"
 
-    class Meta:
-        abstract = True
 
+class WaiterProfile(models.Model):
+    USER_TYPE_CHOICES = [
+        ('Waiter', 'Waiter'),
+        # Add more user types as needed
+    ]
 
-class WaiterProfile(Profile):
     user = models.OneToOneField(
-        CustomUser, related_name='bartender_profile', on_delete=models.CASCADE, blank=True, null=True)
+        CustomUser, related_name='waiterprofile', on_delete=models.CASCADE, blank=True, null=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    user_type = models.CharField(
+        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
+    schedule = models.ForeignKey(
+        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
         Branch, related_name='waiter_profiles', on_delete=models.CASCADE, blank=True, null=True)
-    pass
+
+    def __str__(self):
+        return f"{self.first_name} {self.user_type}"
 
 
-class BartenderProfile(Profile):
+class BartenderProfile(models.Model):
+    USER_TYPE_CHOICES = [
+        ('Bartender', 'Bartender'),
+        # Add more user types as needed
+    ]
+
     user = models.OneToOneField(
-        CustomUser, related_name='waiter_profile', on_delete=models.CASCADE, blank=True, null=True)
+        CustomUser, related_name='bartenderprofile', on_delete=models.CASCADE, blank=True, null=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    user_type = models.CharField(
+        max_length=50, choices=USER_TYPE_CHOICES, default='Bartender')
+    schedule = models.ForeignKey(
+        EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
         Branch, related_name='bartender_profiles', on_delete=models.CASCADE, blank=True, null=True)
-    pass
+
+    def __str__(self):
+        return f"{self.first_name} {self.user_type}"
