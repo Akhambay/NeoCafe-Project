@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bartenderprofile',
             name='profile_ptr',
-            field=models.AutoField(default=0, primary_key=True, serialize=False),
+            field=models.AutoField(primary_key=True, serialize=False),
         ),
         migrations.AddField(
             model_name='bartenderprofile',
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='waiterprofile',
             name='profile_ptr',
-            field=models.AutoField(default=0, primary_key=True, serialize=False),
+            field=models.AutoField(primary_key=True, serialize=False),
         ),
         migrations.AddField(
             model_name='waiterprofile',
@@ -64,4 +64,3 @@ class Migration(migrations.Migration):
             name='Profile',
         ),
     ]
-
