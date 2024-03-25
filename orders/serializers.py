@@ -84,10 +84,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_employee_profile(self, obj):
         from users.serializers import WaiterProfileSerializer, BartenderProfileSerializer
-        from users.models import CustomUser
-
-        # Check if obj.employee is not None and is an instance of CustomUser
-        if obj.employee and isinstance(obj.employee, CustomUser):
+        if obj.employee:
             if obj.employee.user_type == 'Waiter':
                 waiter_profile = WaiterProfile.objects.filter(
                     user=obj.employee).first()
@@ -105,6 +102,9 @@ class OrderSerializer(serializers.ModelSerializer):
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
 
+        # Get the authenticated user
+        authenticated_user = self.context['request'].user
+
         if table_data:
             table_number = table_data.get('table_number')
             branch_id = table_data.get('branch')
@@ -114,7 +114,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
             validated_data['table'] = table
 
-        order = Order.objects.create(**validated_data)
+        order = Order.objects.create(
+            employee=authenticated_user, **validated_data)
 
         for ito in ito_data:
             ItemToOrder.objects.create(order=order, **ito)

@@ -57,7 +57,8 @@ class OrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        serializer = OrderSerializer(data=request.data)
+        serializer = OrderSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             with transaction.atomic():
@@ -75,11 +76,15 @@ class OrderView(APIView):
 
                 # Assign the user profile to the order
                 if profile_created:
-                    order.employee = user_profile
+                    # Assuming there's a user field in WaiterProfile
+                    custom_user_instance = user_profile.user
+                    order.employee = custom_user_instance
                     order.save()
                 else:
                     # If the profile already exists, ensure it is associated with the order
-                    order.employee = user_profile
+                    # Assuming there's a user field in WaiterProfile
+                    custom_user_instance = user_profile.user
+                    order.employee = custom_user_instance
                     order.save()
 
                 return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
