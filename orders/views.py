@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+from django.core.exceptions import ObjectDoesNotExist
+>>>>>>> first
 from django.core.exceptions import PermissionDenied
 from rest_framework import generics, status
 from django.db.models import Count
@@ -6,7 +10,11 @@ from rest_framework.decorators import api_view
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
+<<<<<<< HEAD
 from users.models import WaiterProfile, BartenderProfile, Profile
+=======
+from users.models import WaiterProfile, BartenderProfile, Profile, EmployeeSchedule
+>>>>>>> first
 from .serializers import (OrderSerializer, OrderOnlineSerializer, OrderDetailedSerializer,
                           OrderOnlineDetailedSerializer, CustomerOrderSerializer,
                           TableSerializer, TableDetailedSerializer)
@@ -17,15 +25,54 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db import transaction
+<<<<<<< HEAD
 
 
 from django.db import transaction
 
 
+=======
+from users.views import create_employee_profile
+import traceback
+from django.db import transaction
+
+
+def create_employee_profile(employee, profile_model, schedules_data=None):
+    # Create or retrieve profile
+    employee_profile, created = profile_model.objects.get_or_create(
+        user=employee)
+
+    # Check if the profile was created or already existed
+    if created and schedules_data is not None:
+        # Create Schedule instances and associate them with the profile
+        for schedule_data in schedules_data:
+            day = schedule_data['day']
+            start_time = schedule_data['start_time']
+            end_time = schedule_data['end_time']
+
+            # Create Schedule instance
+            schedule_instance = EmployeeSchedule.objects.create(
+                day=day, start_time=start_time, end_time=end_time, employee=employee_profile)
+
+    return employee_profile
+
+
+def create_or_get_employee_profile(user, profile_model):
+    try:
+        # Check if the user already has a profile
+        return profile_model.objects.get(user=user), False
+    except profile_model.DoesNotExist:
+        # Create a new profile if it doesn't exist
+        profile = profile_model.objects.create(user=user)
+        return profile, True
+
+
+>>>>>>> first
 class OrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
+<<<<<<< HEAD
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -92,6 +139,42 @@ class OrderView(APIView):
                 return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
 
+=======
+        serializer = OrderSerializer(
+            data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            with transaction.atomic():
+                if request.user.user_type == 'Waiter':
+                    profile_model = WaiterProfile
+                elif request.user.user_type == 'Bartender':
+                    profile_model = BartenderProfile
+
+                # Create or retrieve the profile
+                user_profile, profile_created = create_or_get_employee_profile(
+                    request.user, profile_model)
+
+                order_id = serializer.data.get('id')
+                order = Order.objects.get(id=order_id)
+
+                # Assign the user profile to the order
+                if profile_created:
+                    # Assuming there's a user field in WaiterProfile
+                    custom_user_instance = user_profile.user
+                    order.employee = custom_user_instance
+                    order.save()
+                else:
+                    # If the profile already exists, ensure it is associated with the order
+                    # Assuming there's a user field in WaiterProfile
+                    custom_user_instance = user_profile.user
+                    order.employee = custom_user_instance
+                    order.save()
+
+                return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+>>>>>>> first
 
 @extend_schema(
     description="Retrieve, update, or delete an order by its ID",

@@ -103,7 +103,11 @@ class AdminLoginTokenView(TokenObtainPairView):
 # ===========================================================================
 # EMPLOYEE
 # ===========================================================================
+<<<<<<< HEAD
 def create_employee_profile(employee, user_type, schedules_data, profile_model, schedule_model):
+=======
+def create_employee_profile(employee, user_type, schedules_data, profile_model):
+>>>>>>> first
     # Create or retrieve profile
     employee_profile, created = profile_model.objects.get_or_create(
         user=employee)
@@ -116,6 +120,7 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
             start_time = schedule_data['start_time']
             end_time = schedule_data['end_time']
 
+<<<<<<< HEAD
             # Check if a similar schedule already exists
             existing_schedule = schedule_model.objects.filter(
                 day=day, start_time=start_time, end_time=end_time, employee=employee).first()
@@ -124,6 +129,14 @@ def create_employee_profile(employee, user_type, schedules_data, profile_model, 
                 # Create Schedule instance
                 schedule_instance = schedule_model.objects.create(
                     day=day, start_time=start_time, end_time=end_time, employee=employee)
+=======
+            # Create Schedule instance
+            schedule_instance = EmployeeSchedule.objects.create(
+                day=day, start_time=start_time, end_time=end_time, employee=employee_profile)
+
+    return employee_profile
+
+>>>>>>> first
 
 ############
 

@@ -144,14 +144,22 @@ class CustomUser(AbstractUser):
     @property
     def waiterprofile(self):
         try:
+<<<<<<< HEAD
             return self.waiterprofile
+=======
+            return self.waiterprofile_set.get()
+>>>>>>> first
         except WaiterProfile.DoesNotExist:
             return None
 
     @property
     def bartenderprofile(self):
         try:
+<<<<<<< HEAD
             return self.bartenderprofile
+=======
+            return self.bartenderprofile_set.get()
+>>>>>>> first
         except BartenderProfile.DoesNotExist:
             return None
 
@@ -194,6 +202,7 @@ class Profile(models.Model):
         return f"{self.first_name} {self.user_type}"
 
 
+<<<<<<< HEAD
 class WaiterProfile(models.Model):
 
     user = models.OneToOneField(
@@ -228,3 +237,11 @@ class BartenderProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+=======
+class WaiterProfile(Profile):
+    pass
+
+
+class BartenderProfile(Profile):
+    pass
+>>>>>>> first
