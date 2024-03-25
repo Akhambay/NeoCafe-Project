@@ -11,6 +11,5 @@ class Migration(migrations.Migration):
         # Drop the temporary profile_ptr_id_temp column
         migrations.RemoveField(
             model_name='bartenderprofile',
-            name='profile_ptr_id_temp',
         ),
     ]
