@@ -5,6 +5,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('users', '0073_bartenderprofile_user_type_waiterprofile_user_type'),
+ ('users', '0072_bartenderprofile_branch_alter_profile_branch_and_more'),
+
     ]
 
     operations = [
