@@ -78,13 +78,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bartenderprofile',
             name='profile_ptr',
-            field=models.OneToOneField(auto_created=True, default=1, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.profile'),
+            field=models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.profile'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='waiterprofile',
             name='profile_ptr',
-            field=models.OneToOneField(auto_created=True, default=1, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.profile'),
+            field=models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='users.profile'),
             preserve_default=False,
         ),
     ]
