@@ -179,10 +179,10 @@ class Profile(models.Model):
     ]
 
     user = models.OneToOneField(
-        CustomUser, related_name='profile', on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
+        CustomUser, related_name='profile', on_delete=models.CASCADE, blank=True, null=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
-    email = models.EmailField()
+    email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
         max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
     schedule = models.ForeignKey(
@@ -194,10 +194,21 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.user_type}"
 
+    class Meta:
+        abstract = True
+
 
 class WaiterProfile(Profile):
+    user = models.OneToOneField(
+        CustomUser, related_name='bartender_profile', on_delete=models.CASCADE, blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, related_name='waiter_profiles', on_delete=models.CASCADE, blank=True, null=True)
     pass
 
 
 class BartenderProfile(Profile):
+    user = models.OneToOneField(
+        CustomUser, related_name='waiter_profile', on_delete=models.CASCADE, blank=True, null=True)
+    branch = models.ForeignKey(
+        Branch, related_name='bartender_profiles', on_delete=models.CASCADE, blank=True, null=True)
     pass
