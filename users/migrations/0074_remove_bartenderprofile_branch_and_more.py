@@ -1,5 +1,4 @@
 from django.db import migrations, models
-import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -21,10 +20,15 @@ class Migration(migrations.Migration):
             "UPDATE users_bartenderprofile SET profile_ptr_id_temp = profile_ptr_id",
             "UPDATE users_bartenderprofile SET profile_ptr_id = profile_ptr_id_temp",
         ),
-        # Remove the NOT NULL constraint from profile_ptr_id column
+        # Remove the NOT NULL constraint from profile_ptr_id_temp column
         migrations.AlterField(
             model_name='bartenderprofile',
-            name='profile_ptr_id',
+            name='profile_ptr_id_temp',
             field=models.IntegerField(null=True),
+        ),
+        # Drop the temporary profile_ptr_id_temp column
+        migrations.RemoveField(
+            model_name='bartenderprofile',
+            name='profile_ptr_id_temp',
         ),
     ]
