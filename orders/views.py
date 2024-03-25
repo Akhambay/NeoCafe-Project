@@ -1,7 +1,5 @@
-<<<<<<< HEAD
-=======
+
 from django.core.exceptions import ObjectDoesNotExist
->>>>>>> first
 from django.core.exceptions import PermissionDenied
 from rest_framework import generics, status
 from django.db.models import Count
@@ -10,11 +8,7 @@ from rest_framework.decorators import api_view
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
-<<<<<<< HEAD
-from users.models import WaiterProfile, BartenderProfile, Profile
-=======
 from users.models import WaiterProfile, BartenderProfile, Profile, EmployeeSchedule
->>>>>>> first
 from .serializers import (OrderSerializer, OrderOnlineSerializer, OrderDetailedSerializer,
                           OrderOnlineDetailedSerializer, CustomerOrderSerializer,
                           TableSerializer, TableDetailedSerializer)
@@ -25,13 +19,6 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db import transaction
-<<<<<<< HEAD
-
-
-from django.db import transaction
-
-
-=======
 from users.views import create_employee_profile
 import traceback
 from django.db import transaction
@@ -67,79 +54,10 @@ def create_or_get_employee_profile(user, profile_model):
         return profile, True
 
 
->>>>>>> first
 class OrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-<<<<<<< HEAD
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-
-            order_id = serializer.data.get('id')
-            order = Order.objects.get(id=order_id)
-
-            # Retrieve the user's profile based on authentication
-            user_profile = request.user.profile
-
-            if not user_profile:
-                # If user doesn't have a profile, try to create one
-                try:
-                    with transaction.atomic():
-                        if request.user.user_type == 'Waiter':
-                            WaiterProfile.objects.create(user=request.user)
-                        elif request.user.user_type == 'Bartender':
-                            BartenderProfile.objects.create(user=request.user)
-                except Exception as e:
-                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                # Attempt to retrieve the user's profile again after creation
-                user_profile = request.user.profile
-
-                if not user_profile:
-                    return Response({'error': 'Failed to create user profile.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            # At this point, user_profile should exist
-            order.employee = user_profile.user  # Assign user associated with the profile
-            order.save()
-            return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    """class OrderView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_user_profile(self, request):
-        try:
-            print(request.user)
-            print(request.user.first_name)
-            print(request.user.profile)
-            profile = request.user.profile
-            print("User profile found:", profile)
-            return profile
-        except Profile.DoesNotExist:
-            print("User profile does not exist.")
-            return None
-
-    def post(self, request, *args, **kwargs):
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-
-            order_id = serializer.data.get('id')
-            order = Order.objects.get(id=order_id)
-
-            profile = self.get_user_profile(request)
-            if profile:
-                order.employee = profile
-                order.save()
-                return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
-
-=======
         serializer = OrderSerializer(
             data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -174,7 +92,6 @@ class OrderView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
->>>>>>> first
 
 @extend_schema(
     description="Retrieve, update, or delete an order by its ID",

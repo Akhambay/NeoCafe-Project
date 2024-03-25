@@ -3,11 +3,7 @@ from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Order, ItemToOrder, Table
-<<<<<<< HEAD
-from users.models import Profile
-=======
 from users.models import Profile, WaiterProfile, BartenderProfile
->>>>>>> first
 from menu.models import Menu_Item, Stock
 from menu.serializers import MenuItemSerializer
 from django.utils import timezone
@@ -76,24 +72,15 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-<<<<<<< HEAD
-    created_at = TimeField(required=False)
-    updated_at = TimeField(required=False)
-    completed_at = TimeField(allow_null=True, required=False)
-=======
     created_at = serializers.TimeField(required=False)
     updated_at = serializers.TimeField(required=False)
     completed_at = serializers.TimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
->>>>>>> first
 
     class Meta:
         model = Order
-        fields = ['id', 'order_number', 'table', 'order_status',
-<<<<<<< HEAD
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
-=======
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
+        fields = ['id', 'order_number', 'table', 'order_status', 'created_at', 'updated_at',
+                  'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
 
     def get_employee_profile(self, obj):
         from users.serializers import WaiterProfileSerializer, BartenderProfileSerializer
@@ -110,18 +97,14 @@ class OrderSerializer(serializers.ModelSerializer):
                     return BartenderProfileSerializer(bartender_profile).data
 
         return None
->>>>>>> first
 
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
 
-<<<<<<< HEAD
-=======
         # Get the authenticated user
         authenticated_user = self.context['request'].user
 
->>>>>>> first
         if table_data:
             table_number = table_data.get('table_number')
             branch_id = table_data.get('branch')
@@ -131,12 +114,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
             validated_data['table'] = table
 
-<<<<<<< HEAD
-        order = Order.objects.create(**validated_data)
-=======
         order = Order.objects.create(
             employee=authenticated_user, **validated_data)
->>>>>>> first
 
         for ito in ito_data:
             ItemToOrder.objects.create(order=order, **ito)
@@ -161,10 +140,6 @@ class OrderSerializer(serializers.ModelSerializer):
         for ito in obj.ITO.all():
             total_price = ito.item.price_per_unit * ito.quantity
             total_sum += total_price
-<<<<<<< HEAD
-        obj.save()
-=======
->>>>>>> first
         return total_sum
 
 

@@ -1,10 +1,8 @@
 from django.db import models
 from menu.models import Menu_Item, Branch
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-=======
 from users.models import CustomUser
->>>>>>> first
+
 
 # ===========================================================================
 # TABLE
@@ -57,32 +55,18 @@ class Order(models.Model):
         max_length=20,
         choices=order_type_choice
     )
-<<<<<<< HEAD
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-
-    customer = models.ForeignKey(
-        'users.CustomerProfile', on_delete=models.CASCADE, related_name='orders', null=True)
-=======
     created_at = models.TimeField(auto_now_add=True)
     updated_at = models.TimeField(auto_now=True)
     completed_at = models.TimeField(null=True, blank=True)
 
     customer = models.ForeignKey(
         CustomUser, related_name='order_customer', on_delete=models.SET_NULL, null=True)
->>>>>>> first
 
     total_price = models.PositiveIntegerField(default=0)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(
-<<<<<<< HEAD
-        'users.Profile', on_delete=models.SET_NULL, null=True)
-=======
         CustomUser, related_name='order_employee', on_delete=models.SET_NULL, null=True)
-
->>>>>>> first
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
