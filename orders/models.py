@@ -1,8 +1,6 @@
 from django.db import models
 from menu.models import Menu_Item, Branch
 from django.contrib.auth.models import User
-from users.models import CustomUser
-
 
 # ===========================================================================
 # TABLE
@@ -55,18 +53,18 @@ class Order(models.Model):
         max_length=20,
         choices=order_type_choice
     )
-    created_at = models.TimeField(auto_now_add=True)
-    updated_at = models.TimeField(auto_now=True)
-    completed_at = models.TimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     customer = models.ForeignKey(
-        CustomUser, related_name='order_customer', on_delete=models.SET_NULL, null=True)
+        'users.CustomerProfile', on_delete=models.CASCADE, related_name='orders', null=True)
 
     total_price = models.PositiveIntegerField(default=0)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(
-        CustomUser, related_name='order_employee', on_delete=models.SET_NULL, null=True)
+        'users.Profile', on_delete=models.SET_NULL, null=True)
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
