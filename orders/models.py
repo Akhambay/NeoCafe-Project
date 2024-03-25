@@ -1,5 +1,6 @@
 from django.db import models
 from menu.models import Menu_Item, Branch
+from users.models import CustomUser
 from django.contrib.auth.models import User
 
 # ===========================================================================
@@ -64,7 +65,7 @@ class Order(models.Model):
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(
-        'users.Profile', on_delete=models.SET_NULL, null=True)
+        CustomUser, on_delete=models.SET_NULL, null=True)
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 

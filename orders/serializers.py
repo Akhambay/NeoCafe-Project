@@ -75,11 +75,30 @@ class OrderSerializer(serializers.ModelSerializer):
     created_at = TimeField(required=False)
     updated_at = TimeField(required=False)
     completed_at = TimeField(allow_null=True, required=False)
+    employee_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'table', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
+
+    def get_employee_profile(self, instance):
+        from users.models import CustomUser
+        from users.serializers import CustomUserSerializer
+        employee = instance.employee
+        if employee:
+            user_type = employee.user_type
+            if user_type == 'Waiter':
+                waiter_profile = CustomUser.objects.filter(
+                    id=employee.id, user_type='Waiter').first()
+                if waiter_profile:
+                    return CustomUserSerializer(waiter_profile).data
+            elif user_type == 'Bartender':
+                bartender_profile = CustomUser.objects.filter(
+                    id=employee.id, user_type='Bartender').first()
+                if bartender_profile:
+                    return CustomUserSerializer(bartender_profile).data
+        return None
 
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO', None)
