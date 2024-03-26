@@ -90,8 +90,8 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-    created_at = serializers.DateTimeField()
-    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField(allow_null=True, required=False)
+    updated_at = serializers.DateTimeField(allow_null=True, required=False)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
 
