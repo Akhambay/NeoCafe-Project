@@ -131,6 +131,14 @@ class OrderSerializer(serializers.ModelSerializer):
 
             validated_data['table'] = table
 
+        # Convert datetime fields to string format
+        validated_data['created_at'] = validated_data.get(
+            'created_at').strftime('%H:%M')
+        validated_data['updated_at'] = validated_data.get(
+            'updated_at').strftime('%H:%M')
+        validated_data['completed_at'] = validated_data.get('completed_at').strftime(
+            '%H:%M') if validated_data.get('completed_at') else None
+
         order = Order.objects.create(**validated_data)
 
         for ito in ito_data:
