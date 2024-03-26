@@ -90,9 +90,6 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-    created_at = TimeField(required=False)
-    updated_at = TimeField(required=False)
-    completed_at = TimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
 
     class Meta:
@@ -132,14 +129,6 @@ class OrderSerializer(serializers.ModelSerializer):
             validated_data['table'] = table
 
         order = Order.objects.create(**validated_data)
-
-        # Convert datetime fields to HH:MM format using TimeField serializer
-        validated_data['created_at'] = self.fields['created_at'].to_representation(
-            validated_data.get('created_at'))
-        validated_data['updated_at'] = self.fields['updated_at'].to_representation(
-            validated_data.get('updated_at'))
-        validated_data['completed_at'] = self.fields['completed_at'].to_representation(
-            validated_data.get('completed_at')) if validated_data.get('completed_at') else None
 
         for ito in ito_data:
             ItemToOrder.objects.create(order=order, **ito)
