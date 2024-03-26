@@ -45,7 +45,7 @@ class TableSerializer(serializers.ModelSerializer):
         return representation
 
 
-class TimeField(serializers.Field):
+"""class TimeField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return None
@@ -54,6 +54,24 @@ class TimeField(serializers.Field):
     def to_internal_value(self, data):
         try:
             return datetime.strptime(data, '%H:%M').time()
+        except ValueError:
+            raise serializers.ValidationError(
+                "Invalid time format. Use HH:MM format.")"""
+
+
+class TimeField(serializers.Field):
+    def to_representation(self, value):
+        if value is None:
+            return None
+        return value.strftime('%H:%M')
+
+    def to_internal_value(self, data):
+        try:
+            if isinstance(data, str):
+                return datetime.strptime(data, '%H:%M').time()
+            else:
+                # Convert non-string arguments to string before parsing
+                return datetime.strptime(str(data), '%H:%M').time()
         except ValueError:
             raise serializers.ValidationError(
                 "Invalid time format. Use HH:MM format.")
