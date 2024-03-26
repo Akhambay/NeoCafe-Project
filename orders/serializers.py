@@ -141,6 +141,13 @@ class OrderSerializer(serializers.ModelSerializer):
         obj.save()
         return total_sum
 
+    def validate(self, data):
+        if data.get('created_at') is None:
+            data['created_at'] = timezone.now()  # Set current time as default
+        if data.get('updated_at') is None:
+            data['updated_at'] = timezone.now()  # Set current time as default
+        return data
+
 
 class OrderDetailedSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(default="Новый")
