@@ -143,12 +143,41 @@ class BranchSerializer(serializers.ModelSerializer):
 
 
 class BranchEditSerializer(serializers.ModelSerializer):
-    # schedules = ScheduleSerializer(many=True)
+    schedules = ScheduleSerializer(many=True)
 
     class Meta:
         model = Branch
         fields = ["id", "branch_name", "address", "phone_number",
                   "link_2gis", "table_quantity", "image", "description", "schedules"]
+
+    def update(self, instance, validated_data):
+        schedules_data = validated_data.pop('schedules', [])
+        instance = super().update(instance, validated_data)
+
+        # Update or create Schedule instances based on the provided data
+        existing_schedules = instance.schedules.all()
+        existing_days = [schedule.day for schedule in existing_schedules]
+
+        # Remove schedules for days not present in the input data
+        for existing_schedule in existing_schedules:
+            if existing_schedule.day not in [schedule_data['day'] for schedule_data in schedules_data]:
+                existing_schedule.delete()
+
+        # Update or create schedules for input data
+        for schedule_data in schedules_data:
+            day = schedule_data['day']
+            schedule_instance = existing_schedules.filter(day=day).first()
+
+            if schedule_instance:
+                # Update existing schedule
+                schedule_instance.start_time = schedule_data['start_time']
+                schedule_instance.end_time = schedule_data['end_time']
+                schedule_instance.save()
+            else:
+                # Create new schedule
+                Schedule.objects.create(branch=instance, **schedule_data)
+
+        return instance
 
 
 class EmployeeSerializer(serializers.ModelSerializer):

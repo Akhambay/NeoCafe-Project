@@ -175,7 +175,7 @@ class EmployeeCreateView(generics.CreateAPIView):
 
         # Validate password length again (just to be sure)
         password = serializer.validated_data.get('password')
-        if not (4 <= len(password) <= 10):
+        if not (8 <= len(password) <= 20):
             raise ValidationError(
                 {'error': 'Password must be between 4 and 10 characters.'})
 
