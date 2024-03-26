@@ -122,7 +122,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.table = validated_data.get('table', instance.table)
-        instance.save()
+
+        # Update instance with validated data excluding created_at and updated_at
+        instance = super().update(instance, validated_data)
+
         ito_data = validated_data.get('ITO')
         for ito in ito_data:
             ito_instance = ItemToOrder.objects.get(
