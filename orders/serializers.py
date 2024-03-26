@@ -11,6 +11,14 @@ from django.db import transaction
 from datetime import datetime
 
 
+"""
+На вынос - новый, в процессе, завершен, отменен.
+В заведении - Новый, В процессе, Готов, завершен, отменен.
+бизнес логика такая - когда бармен приготовил заказ в заведении - официанту пришло уведомление о статусе «готово» = можно забирать заказ с бара и относить клиентам.
+официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
+"""
+
+
 class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
@@ -77,14 +85,6 @@ class TimeField(serializers.Field):
                 "Invalid time format. Use HH:MM format.")
 
 
-"""
-На вынос - новый, в процессе, завершен, отменен.
-В заведении - Новый, В процессе, Готов, завершен, отменен.
-бизнес логика такая - когда бармен приготовил заказ в заведении - официанту пришло уведомление о статусе «готово» = можно забирать заказ с бара и относить клиентам.
-официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
-"""
-
-
 class OrderSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
@@ -131,15 +131,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
             validated_data['table'] = table
 
-        # Convert datetime fields to string format
-        validated_data['created_at'] = validated_data.get(
-            'created_at').strftime('%H:%M')
-        validated_data['updated_at'] = validated_data.get(
-            'updated_at').strftime('%H:%M')
-        validated_data['completed_at'] = validated_data.get('completed_at').strftime(
-            '%H:%M') if validated_data.get('completed_at') else None
-
         order = Order.objects.create(**validated_data)
+
+        # Convert datetime fields to HH:MM format using TimeField serializer
+        validated_data['created_at'] = self.fields['created_at'].to_representation(
+            validated_data.get('created_at'))
+        validated_data['updated_at'] = self.fields['updated_at'].to_representation(
+            validated_data.get('updated_at'))
+        validated_data['completed_at'] = self.fields['completed_at'].to_representation(
+            validated_data.get('completed_at')) if validated_data.get('completed_at') else None
 
         for ito in ito_data:
             ItemToOrder.objects.create(order=order, **ito)
