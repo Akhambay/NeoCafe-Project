@@ -128,7 +128,7 @@ class EmployeeCreateView(generics.CreateAPIView):
     serializer_class = EmployeeAddSerializer
 
     def validate_password_length(self, password):
-        if not (4 <= len(password) <= 10):
+        if not (4 <= len(password) <= 20):
             return Response({'error': 'Password must be between 4 and 10 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, *args, **kwargs):
