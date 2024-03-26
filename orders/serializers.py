@@ -90,6 +90,9 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    completed_at = serializers.DateTimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
 
     class Meta:
@@ -137,6 +140,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.table = validated_data.get('table', instance.table)
+        instance.save()
 
         # Update instance with validated data excluding created_at and updated_at
         instance = super().update(instance, validated_data)
