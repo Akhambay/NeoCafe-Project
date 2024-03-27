@@ -53,7 +53,7 @@ class TableSerializer(serializers.ModelSerializer):
         return representation
 
 
-"""class TimeField(serializers.Field):
+class TimeField(serializers.Field):
     def to_representation(self, value):
         if value is None:
             return None
@@ -64,24 +64,6 @@ class TableSerializer(serializers.ModelSerializer):
             return datetime.strptime(data, '%H:%M').time()
         except ValueError:
             raise serializers.ValidationError(
-                "Invalid time format. Use HH:MM format.")"""
-
-
-class TimeField(serializers.Field):
-    def to_representation(self, value):
-        if value is None:
-            return None
-        return value.strftime('%H:%M')
-
-    def to_internal_value(self, data):
-        try:
-            if isinstance(data, str):
-                return datetime.strptime(data, '%H:%M').time()
-            else:
-                # Convert non-string arguments to string before parsing
-                return datetime.strptime(str(data), '%H:%M').time()
-        except ValueError:
-            raise serializers.ValidationError(
                 "Invalid time format. Use HH:MM format.")
 
 
@@ -90,9 +72,9 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-    created_at = serializers.DateTimeField(allow_null=True, required=False)
-    updated_at = serializers.DateTimeField(allow_null=True, required=False)
-    completed_at = serializers.DateTimeField(allow_null=True, required=False)
+    created_at = TimeField(required=False)
+    updated_at = TimeField(required=False)
+    completed_at = TimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
 
     class Meta:
@@ -141,10 +123,6 @@ class OrderSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.table = validated_data.get('table', instance.table)
         instance.save()
-
-        # Update instance with validated data excluding created_at and updated_at
-        instance = super().update(instance, validated_data)
-
         ito_data = validated_data.get('ITO')
         for ito in ito_data:
             ito_instance = ItemToOrder.objects.get(
