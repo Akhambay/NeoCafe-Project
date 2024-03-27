@@ -44,9 +44,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class ScheduleSerializer(serializers.Serializer):
-    day = serializers.ChoiceField(choices=Schedule.DAYS_CHOICES)
-    start_time = serializers.TimeField()
-    end_time = serializers.TimeField()
+    day = serializers.ChoiceField(choices=EmployeeSchedule.DAYS_CHOICES)
+    start_time = serializers.TimeField(format='%H:%M')
+    end_time = serializers.TimeField(format='%H:%M')
 
     def validate(self, data):
         return data
