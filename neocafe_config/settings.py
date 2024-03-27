@@ -133,7 +133,7 @@ SPECTACULAR_SETTINGS = {
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-
+"""
 if DEBUG:
     DATABASES = {
         'default': {
@@ -160,7 +160,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
 
 
 # Password validation
