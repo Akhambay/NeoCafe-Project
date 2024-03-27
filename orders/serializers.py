@@ -114,11 +114,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
         # Convert datetime fields to the correct format if they are not None
         if created_at:
-            validated_data['created_at'] = timezone.make_aware(created_at)
+            validated_data['created_at'] = created_at
         if updated_at:
-            validated_data['updated_at'] = timezone.make_aware(updated_at)
+            validated_data['updated_at'] = updated_at
         if completed_at:
-            validated_data['completed_at'] = timezone.make_aware(completed_at)
+            validated_data['completed_at'] = completed_at
 
         # Continue with the creation of the order
         order = super().create(validated_data)
