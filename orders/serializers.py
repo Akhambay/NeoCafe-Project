@@ -60,11 +60,17 @@ class TimeField(serializers.Field):
         return value.strftime('%H:%M')
 
     def to_internal_value(self, data):
-        try:
-            return datetime.strptime(data, '%H:%M').time()
-        except ValueError:
+        if isinstance(data, str):
+            try:
+                return datetime.strptime(data, '%H:%M').time()
+            except ValueError:
+                raise serializers.ValidationError(
+                    "Invalid time format. Use HH:MM format.")
+        elif isinstance(data, datetime.time):
+            return data
+        else:
             raise serializers.ValidationError(
-                "Invalid time format. Use HH:MM format.")
+                "Invalid input format for time field.")
 
 
 class OrderSerializer(serializers.ModelSerializer):
