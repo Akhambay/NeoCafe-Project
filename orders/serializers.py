@@ -68,7 +68,7 @@ class TimeField(serializers.Field):
                 raise serializers.ValidationError(
                     "Invalid time format. Use HH:MM format.")
         elif isinstance(data, datetime.time):
-            return data
+            return data.strftime('%H:%M')  # Convert time object to string
         else:
             raise serializers.ValidationError(
                 "Invalid input format for time field.")
