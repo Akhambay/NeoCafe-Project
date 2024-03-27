@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from django.db import IntegrityError
 from rest_framework.exceptions import ValidationError
