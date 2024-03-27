@@ -78,8 +78,8 @@ class OrderSerializer(serializers.ModelSerializer):
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
     table = TableSerializer()
-    created_at = TimeField(required=False)
-    updated_at = TimeField(required=False)
+    created_at = TimeField(required=False, default=timezone.now)
+    updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
 
