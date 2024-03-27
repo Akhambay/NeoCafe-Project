@@ -1,3 +1,4 @@
+from datetime import datetime
 from rest_framework import serializers
 from .models import (CustomUser, Branch, Schedule,
                      EmployeeSchedule, CustomerProfile, Profile,
@@ -53,8 +54,12 @@ class ScheduleSerializer(serializers.Serializer):
 
 class EmployeeScheduleSerializer(serializers.Serializer):
     day = serializers.ChoiceField(choices=EmployeeSchedule.DAYS_CHOICES)
-    start_time = serializers.TimeField()
-    end_time = serializers.TimeField()
+    start_time = serializers.TimeField(format='%H:%M')
+    end_time = serializers.TimeField(format='%H:%M')
+
+    class Meta:
+        model = EmployeeSchedule
+        fields = ['id', 'day', 'start_time', 'end_time']
 
     def validate(self, data):
         return data
