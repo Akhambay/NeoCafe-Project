@@ -108,6 +108,21 @@ class OrderSerializer(serializers.ModelSerializer):
         return None
 
     def create(self, validated_data):
+        created_at = validated_data.pop('created_at', None)
+        updated_at = validated_data.pop('updated_at', None)
+        completed_at = validated_data.pop('completed_at', None)
+
+        # Convert datetime fields to the correct format if they are not None
+        if created_at:
+            validated_data['created_at'] = timezone.make_aware(created_at)
+        if updated_at:
+            validated_data['updated_at'] = timezone.make_aware(updated_at)
+        if completed_at:
+            validated_data['completed_at'] = timezone.make_aware(completed_at)
+
+        # Continue with the creation of the order
+        order = super().create(validated_data)
+
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
 
