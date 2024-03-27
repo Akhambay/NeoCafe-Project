@@ -108,52 +108,24 @@ class OrderSerializer(serializers.ModelSerializer):
         return None
 
     def create(self, validated_data):
-        created_at = validated_data.pop('created_at', None)
-        updated_at = validated_data.pop('updated_at', None)
-        completed_at = validated_data.pop('completed_at', None)
-
-        # Convert datetime fields to the correct format if they are not None
-        if created_at:
-            validated_data['created_at'] = created_at
-        if updated_at:
-            validated_data['updated_at'] = updated_at
-        if completed_at:
-            validated_data['completed_at'] = completed_at
-
-        # Continue with the creation of the order
-        order = super().create(validated_data)
-
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)
 
-        if table_data:
-            table_number = table_data.get('table_number')
-            branch_id = table_data.get('branch')
-
-            table, _ = Table.objects.get_or_create(
-                table_number=table_number, branch_id=branch_id, defaults={'is_available': False})
-
-            validated_data['table'] = table
-
+        # Create the Order object
         order = Order.objects.create(**validated_data)
 
-        for ito in ito_data:
-            ItemToOrder.objects.create(order=order, **ito)
+        # Create ItemToOrder objects
+        if ito_data:
+            for ito_item_data in ito_data:
+                ItemToOrder.objects.create(order=order, **ito_item_data)
+
+        # Create or update the associated table
+        if table_data:
+            table, _ = Table.objects.get_or_create(**table_data)
+            order.table = table
+            order.save()
 
         return order
-
-    def update(self, instance, validated_data):
-        instance.table = validated_data.get('table', instance.table)
-        instance.save()
-        ito_data = validated_data.get('ITO')
-        for ito in ito_data:
-            ito_instance = ItemToOrder.objects.get(
-                id=ito.get('id'))
-            ito_instance.item = ito.get('item', ito_instance.item)
-            ito_instance.quantity = ito.get(
-                'quantity', ito_instance.quantity)
-            ito_instance.save()
-        return instance
 
     def get_total_sum(self, obj):
         total_sum = 0
