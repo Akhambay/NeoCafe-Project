@@ -59,17 +59,19 @@ class Order(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     customer = models.ForeignKey(
-        'users.CustomerProfile', on_delete=models.CASCADE, related_name='orders', null=True)
+        CustomUser, on_delete=models.SET_NULL, related_name='customer_orders', null=True)
 
     total_price = models.PositiveIntegerField(default=0)
     table = models.ForeignKey(
         Table, on_delete=models.SET_NULL, null=True)
     employee = models.ForeignKey(
-        CustomUser, on_delete=models.SET_NULL, null=True)
+        CustomUser, on_delete=models.SET_NULL, related_name='employee_orders', null=True)
     branch = models.ForeignKey(
         'users.Branch', on_delete=models.CASCADE, related_name='cart')
 
     order_number = models.PositiveIntegerField(null=True, blank=True)
+    bonus_points_to_subtract = models.PositiveIntegerField(
+        null=True, blank=True)
 
     def __str__(self):
         return f"Order #{self.order_number} - {self.order_type} - {self.order_status}"

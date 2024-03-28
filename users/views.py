@@ -576,10 +576,23 @@ class CustomerRegistrationView(APIView):
 
         # Save user with the provided confirmation code as the password
         user = serializer.save(
-            username=email, password=confirmation_code, user_type='customer')
+            username=email, password=confirmation_code, user_type='Customer')
 
+        # Create customer profile
+        customer_profile_data = {
+            'user': user.id,
+            'user_type': 'Customer',
+            'first_name': first_name,
+            'email': email
+        }
+        profile_serializer = CustomerProfileSerializer(
+            data=customer_profile_data)
+        profile_serializer.is_valid(raise_exception=True)
+        profile_serializer.save()
+
+        # Update user bonus points and first name
         user.bonus_points = 100
-        user.first_name = email.split('@')[0]
+        user.first_name = first_name
         user.save()
 
         # Authenticate the user and generate tokens
@@ -896,28 +909,11 @@ class WaiterAuthenticationView(APIView):
 # ===========================================================================
 
 
-class CustomerProfileView(generics.RetrieveAPIView):
-    queryset = CustomerProfile.objects.all()
-    serializer_class = CustomerProfileSerializer
-    # permission_classes = [IsAuthenticated]
-    lookup_field = 'user'
-
-    @extend_schema(
-        description="Retrieve details of a profile.",
-        summary="Retrieve profile",
-        responses={
-            200: CustomerProfileSerializer,
-        }
-    )
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-
 class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
     # permission_classes = [IsAuthenticated]
-    lookup_field = 'user'
+    lookup_field = 'user_id'
 
     @extend_schema(
         description="Get details, update, or delete a profile.",
@@ -978,10 +974,27 @@ class WaiterProfileView(generics.RetrieveAPIView):
         return self.retrieve(request, *args, **kwargs)
 
 
+class CustomerProfileView(generics.RetrieveAPIView):
+    queryset = CustomerProfile.objects.all()
+    serializer_class = CustomerProfileSerializer
+    # permission_classes = [IsAuthenticated]
+    lookup_field = 'user_id'
+
+    @extend_schema(
+        description="Retrieve details of a profile.",
+        summary="Retrieve profile",
+        responses={
+            200: CustomerProfileSerializer,
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
 class BartenderProfileView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BartenderProfile.objects.all()
     serializer_class = BartenderProfileSerializer
-    lookup_field = 'user'
+    lookup_field = 'user_id'
     # permission_classes = [IsAuthenticated]
 
     @extend_schema(

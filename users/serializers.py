@@ -7,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model, login
 from rest_framework_simplejwt.tokens import RefreshToken
-from orders.serializers import OrderSerializer
+from orders.serializers import OrderSerializer, OrderOnlineSerializer
 from orders.models import Order
 
 
@@ -429,32 +429,6 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
         read_only_fields = '__all__'
 
 
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    customer_id = serializers.ReadOnlyField(source='user.id')
-    orders = OrderSerializer(many=True)
-
-    class Meta:
-        model = CustomerProfile
-        fields = ['customer_id', 'first_name',
-                  'bonus_points', 'email', 'orders',]
-        read_only_fields = ['email']
-
-    def create(self, validated_data):
-        orders_data = validated_data.pop('orders', [])
-        user_data = validated_data.pop('user', {})  # Extract user data
-        user = CustomUser.objects.create(**user_data)
-
-        customer_profile = CustomerProfile.objects.create(
-            user=user, **validated_data)
-
-        # Associate orders with the customer profile
-        for order_data in orders_data:
-            Order.objects.create(
-                customer_profile=customer_profile, **order_data)
-
-        return customer_profile
-
-
 class WaiterProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
     user = EmployeeSerializer()
@@ -474,6 +448,33 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
             data.pop(field, None)
 
         return data
+
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all())
+    # orders = OrderOnlineSerializer(many=True)
+
+    class Meta:
+        model = CustomerProfile
+        fields = ['user', 'user_type', 'first_name', 'email',
+                  'bonus_points', 'orders']
+        read_only_fields = ['email']
+
+    """def create(self, validated_data):
+        orders_data = validated_data.pop('orders', [])
+        user_data = validated_data.pop('user', {})  # Extract user data
+        user = CustomUser.objects.create(**user_data)
+
+        customer_profile = CustomerProfile.objects.create(
+            user=user, **validated_data)
+
+        # Associate orders with the customer profile
+        for order_data in orders_data:
+            Order.objects.create(
+                customer_profile=customer_profile, **order_data)
+
+        return customer_profile"""
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):

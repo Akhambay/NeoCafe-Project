@@ -159,18 +159,6 @@ class CustomUser(AbstractUser):
 # ===========================================================================
 # PROFILES
 # ===========================================================================
-
-
-class CustomerProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    email = models.EmailField(max_length=50)
-    bonus_points = models.PositiveIntegerField(default=100)
-
-    def __str__(self):
-        return self.email
-
-
 class Profile(models.Model):
     USER_TYPE_CHOICES = [
         ('Waiter', 'Waiter'),
@@ -211,6 +199,22 @@ class WaiterProfile(models.Model):
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
         Branch, related_name='waiter_profiles', on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.user_type}"
+
+
+class CustomerProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser, related_name='customerprofile', on_delete=models.CASCADE, blank=True, null=True)
+    user_type = models.CharField(
+        max_length=50, default='Customer')
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=50, blank=True, null=True)
+    orders = models.ForeignKey(
+        "orders.Order", on_delete=models.SET_NULL, blank=True, null=True)
+
+    bonus_points = models.PositiveIntegerField(default=100)
 
     def __str__(self):
         return f"{self.first_name} {self.user_type}"

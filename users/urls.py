@@ -52,13 +52,13 @@ urlpatterns = [
     path('token/obtain/', obtain_jwt_token, name='token_obtain_pair'),
     path('token/refresh/', token_refresh, name='token_refresh'),
 
-    path('profile/customer/<int:user>/edit/',
+    path('profile/customer/<int:user_id>/edit/',
          CustomerProfileDetail.as_view(), name='customer_profile'),
-    path('profile/customer/<int:user>/',
+    path('profile/customer/<int:user_id>/',
          CustomerProfileView.as_view(), name='customer_profile'),
 
     path('profile/waiter/<int:user_id>/',
          WaiterProfileView.as_view(), name='waiter-profile'),
-    path('profile/bartender/<int:user>/',
+    path('profile/bartender/<int:user_id>/',
          BartenderProfileView.as_view(), name='bartender-profile'),
 ]

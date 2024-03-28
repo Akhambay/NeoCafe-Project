@@ -1,12 +1,8 @@
-import logging
+from .models import Order
 from decimal import Decimal
-from django.db import IntegrityError
-from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Order, ItemToOrder, Table
-from users.models import Profile
-from menu.models import Menu_Item, Stock
-from menu.serializers import MenuItemSerializer
+from menu.models import Stock
 from django.utils import timezone
 from django.db import transaction
 from datetime import datetime
@@ -37,7 +33,6 @@ class ItemToOrderSerializer(serializers.ModelSerializer):
 
 
 class TableSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Table
         fields = ['id', 'table_number', 'is_available', 'branch']
@@ -299,66 +294,112 @@ class TableDetailedSerializer(serializers.ModelSerializer):
 # ================================================================
 # ORDER ONLINE
 # ================================================================
-
-
 class OrderOnlineSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
-    bonus_points = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    created_at = TimeField()
-    updated_at = TimeField()
+    created_at = TimeField(required=False, default=timezone.now)
+    updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
+    customer_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'order_number', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'customer', 'bonus_points', 'ITO']
+        fields = ['id', 'order_number', 'order_status', "order_type",
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract']
+
+    def get_customer_profile(self, instance):
+        from users.models import CustomUser
+        from users.serializers import CustomUserSerializer
+        # Access the 'customer' attribute from the 'instance' object
+        customer = instance.customer
+        if customer:
+            user_type = customer.user_type
+            if user_type == "Customer":
+                # Assuming 'customer_profile' is a related model field
+                customer_profile = CustomUser.objects.filter(
+                    id=customer.id, user_type="Customer").first()
+                if customer_profile:
+                    return CustomUserSerializer(customer_profile).data
+        return None
 
     def create(self, validated_data):
+        from users.models import CustomerProfile
+        from users.serializers import CustomerProfileSerializer
         ito_data = validated_data.pop('ITO', None)
+        branch = validated_data.pop('branch', None)
+        bonus_points_to_subtract = validated_data.pop(
+            'bonus_points_to_subtract', 0)
 
-        order = Order.objects.create(**validated_data)
+        # Check if branch data is provided
+        if not branch:
+            raise serializers.ValidationError("Branch data is required.")
 
-        for ito in ito_data:
-            ItemToOrder.objects.create(order=order, **ito)
+        # Extract branch_id from branch_data
+        branch_id = branch.id
+
+        # Get the authenticated user
+        authenticated_user = self.context['request'].user
+
+        # Create the Order object with branch_id and assigned customer
+        order = Order.objects.create(
+            branch_id=branch_id, customer=authenticated_user, **validated_data)
+
+        # Set the customer_profile field based on the authenticated user
+        order.customer_profile = authenticated_user
+
+        # Create ItemToOrder objects
+        if ito_data:
+            for ito_item_data in ito_data:
+                ItemToOrder.objects.create(order=order, **ito_item_data)
 
         return order
 
-    def update(self, instance, validated_data):
-        instance.save()
-        ito_data = validated_data.get('ITO')
-        for ito in ito_data:
-            ito_instance = ItemToOrder.objects.get(
-                id=ito.get('id'))
-            ito_instance.item = ito.get('item', ito_instance.item)
-            ito_instance.quantity = ito.get(
-                'quantity', ito_instance.quantity)
-            ito_instance.save()
-        return instance
-
     def get_total_sum(self, obj):
+        # Access 'ITO' from the validated data
+        ito_data = self.validated_data.get('ITO', [])
+
         total_sum = 0
-        for ito in obj.ITO.all():
-            total_price = ito.item.price_per_unit * ito.quantity
+        for ito_item_data in ito_data:
+            # Access the 'item' object directly
+            item = ito_item_data['item']
+            # Access the 'price_per_unit' attribute of the 'item'
+            total_price = item.price_per_unit * ito_item_data['quantity']
             total_sum += total_price
-        obj.save()
+
         return total_sum
+
+    def validate(self, data):
+        if data.get('created_at') is None:
+            data['created_at'] = timezone.now()  # Set current time as default
+        if data.get('updated_at') is None:
+            data['updated_at'] = timezone.now()  # Set current time as default
+        return data
+
+    def get_ITO(self, instance):
+        # Get all ItemToOrder instances related to the Order instance
+        ito_instances = instance.ITO.all()
+        # Serialize the instances
+        return ItemToOrderSerializer(ito_instances, many=True).data
+
+
+##################
 
 
 class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(default="Новый")
     total_sum = serializers.SerializerMethodField()
-    bonus_points = serializers.SerializerMethodField()
+    bonus_points_to_subtract = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    created_at = TimeField(required=False)
-    updated_at = TimeField(required=False)
+    created_at = TimeField(required=False, default=timezone.now)
+    updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
+    customer_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'order_number', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'customer', 'bonus_points', 'ITO']
+        fields = ['id', 'order_number', 'order_status', 'order_type',
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'total_sum', 'customer_profile', 'bonus_points_to_subtract', 'ITO']
 
     def update(self, instance, validated_data):
         # Update basic order information
@@ -367,7 +408,8 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
         instance.branch = validated_data.get('branch', instance.branch)
         instance.order_type = validated_data.get(
             'order_type', instance.order_type)
-        instance.customer = validated_data.get('customer', instance.customer)
+        instance.customer_profile = validated_data.get(
+            'customer_profile', instance.customer)
         instance.order_number = validated_data.get(
             'order_number', instance.order_number)
 
@@ -447,24 +489,27 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
     def get_total_sum(self, obj):
         total_sum = 0
         for ito in obj.ITO.all():
-            total_sum += ito.item.price_per_unit * ito.quantity
+            total_price = ito.item.price_per_unit * ito.quantity
+            total_sum += total_price
+        obj.save()
         return total_sum
 
-    def get_bonus_points(self, total_sum):
-        return Decimal(total_sum) * Decimal('0.10')
+    def get_customer_profile(self, instance):
+        from users.models import CustomUser
+        from users.serializers import CustomUserSerializer
+        customer = instance.customer
+        if customer:
+            user_type = customer.user_type
+            if user_type == "Customer":
+                customer_profile = CustomUser.objects.filter(
+                    id=customer.id, user_type="Customer").first()
+                if customer_profile:
+                    return CustomUserSerializer(customer_profile).data
+        return None
 
-
-class CustomerOrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
-
-
-# ===========================================================================
-# MTO
-# ===========================================================================
-
-
-class CloseOrderSerializer(serializers.Serializer):
-    new_status = serializers.ChoiceField(choices=(('closed', 'closed')))
-    guest_money = serializers.IntegerField(min_value=0)
+    def get_bonus_points_to_subtract(self, instance):
+        total_sum = 0
+        for ito in instance.ITO.all():
+            total_price = ito.item.price_per_unit * ito.quantity
+            total_sum += total_price
+        return int(total_sum * Decimal('0.10'))

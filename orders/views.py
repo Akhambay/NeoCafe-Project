@@ -1,3 +1,5 @@
+from .serializers import OrderOnlineSerializer
+from .models import Order
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from rest_framework import generics, status
@@ -7,9 +9,9 @@ from rest_framework.decorators import api_view
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from .models import Order, Table
-from users.models import WaiterProfile, BartenderProfile, Profile, EmployeeSchedule
+from users.models import WaiterProfile, BartenderProfile, Profile, EmployeeSchedule, CustomerProfile
 from .serializers import (OrderSerializer, OrderOnlineSerializer, OrderDetailedSerializer,
-                          OrderOnlineDetailedSerializer, CustomerOrderSerializer,
+                          OrderOnlineDetailedSerializer,
                           TableSerializer, TableDetailedSerializer)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,6 +20,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db import transaction
+from users.serializers import CustomUserSerializer
 
 
 def create_employee_profile(employee, profile_model, schedules_data=None):
@@ -127,28 +130,89 @@ class OrderDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+def create_or_get_customer_profile(user, profile_model):
+    try:
+        # Check if the user already has a profile
+        return profile_model.objects.get(user=user), False
+    except profile_model.DoesNotExist:
+        # Create a new profile if it doesn't exist
+        profile = profile_model.objects.create(user=user)
+        return profile, True
+
+
+@extend_schema(
+    description="Retrieve, update, or delete an order by its ID",
+    summary="Retrieve, Update, Delete Order by ID",
+    responses={200: OrderDetailedSerializer()}
+)
+class OrderOnlineDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderOnlineDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        order_id = self.kwargs.get('order_id')
+        return get_object_or_404(Order, id=order_id)
+
+    def put(self, request, *args, **kwargs):
+        order_instance = self.get_object()
+        serializer = self.get_serializer(
+            order_instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        order_instance = self.get_object()
+        order_instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def create_or_get_customer_profile(user, profile_model):
+    try:
+        # Check if the user already has a profile
+        return profile_model.objects.get(user=user), False
+    except profile_model.DoesNotExist:
+        # Create a new profile if it doesn't exist
+        profile = profile_model.objects.create(user=user)
+        return profile, True
+
+
 class OrderOnlineView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        orders = Order.objects.all()
-        serializer = OrderOnlineSerializer(orders, many=True)
-        return Response(serializer.data)
-
     def post(self, request, *args, **kwargs):
-        serializer = OrderOnlineSerializer(data=request.data)
+        serializer = OrderOnlineSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            with transaction.atomic():
+                if request.user.user_type == 'Customer':
+                    profile_model = CustomerProfile
 
-            order_id = serializer.data.get('id')
-            order = Order.objects.get(id=order_id)
+                    user_profile, profile_created = create_or_get_customer_profile(
+                        request.user, profile_model)
 
-            if hasattr(request.user, 'profile'):
-                order.customer = request.user.profile
-                order.save()
-                return Response({'data': 'OK'}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error': 'User profile does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+                    order_id = serializer.data.get('id')
+                    order = Order.objects.get(id=order_id)
+
+                    # Assign the user profile to the order
+                    if profile_created:
+                        # Assuming there's a user field in CustomerProfile
+                        custom_user_instance = user_profile.user
+                        order.customer = custom_user_instance
+                        order.save()
+                    else:
+                        # If the profile already exists, ensure it is associated with the order
+                        # Assuming there's a user field in CustomerProfile
+                        custom_user_instance = user_profile.user
+                        order.customer = custom_user_instance
+                        order.save()
+
+                return Response({'Online order': 'created'}, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -196,8 +260,9 @@ class CustomerOrdersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        orders = Order.objects.all()
-        serializer = OrderSerializer(orders, many=True)
+        orders = Order.objects.filter(
+            branch_id=1)
+        serializer = OrderOnlineSerializer(orders, many=True)
         return Response(serializer.data)
 
 
