@@ -576,14 +576,16 @@ class CustomerRegistrationView(APIView):
 
         # Save user with the provided confirmation code as the password
         user = serializer.save(
-            username=email, password=confirmation_code, user_type='Customer')
+            email=email, username=first_name, password=confirmation_code, first_name=first_name, user_type='Customer', bonus_points=100)
 
         # Create customer profile
         customer_profile_data = {
             'user': user.id,
-            'user_type': 'Customer',
-            'first_name': first_name,
-            'email': email
+            'user_type': user.user_type,
+            'first_name': user.first_name,
+            'email': user.email,
+            'bonus_points': user.bonus_points
+
         }
         profile_serializer = CustomerProfileSerializer(
             data=customer_profile_data)

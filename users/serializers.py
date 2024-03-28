@@ -451,6 +451,17 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email')
+    bonus_points = serializers.IntegerField(source='user.bonus_points')
+    first_name = serializers.CharField(source='user.first_name')
+
+    class Meta:
+        model = CustomerProfile
+        fields = ['id', 'username', 'first_name', 'email', 'bonus_points']
+
+
+"""class CustomerProfileSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.all())
     # orders = OrderOnlineSerializer(many=True)
@@ -459,22 +470,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         model = CustomerProfile
         fields = ['user', 'user_type', 'first_name', 'email',
                   'bonus_points', 'orders']
-        read_only_fields = ['email']
-
-    """def create(self, validated_data):
-        orders_data = validated_data.pop('orders', [])
-        user_data = validated_data.pop('user', {})  # Extract user data
-        user = CustomUser.objects.create(**user_data)
-
-        customer_profile = CustomerProfile.objects.create(
-            user=user, **validated_data)
-
-        # Associate orders with the customer profile
-        for order_data in orders_data:
-            Order.objects.create(
-                customer_profile=customer_profile, **order_data)
-
-        return customer_profile"""
+        read_only_fields = ['email']"""
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
