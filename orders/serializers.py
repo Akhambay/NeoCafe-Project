@@ -123,6 +123,8 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
     def get_total_sum(self, obj):
+        self.is_valid()  # §
+        ito_data = self.validated_data.get('ITO', [])  # §
         total_sum = 0
         for ito in obj.ITO.all():
             total_price = ito.item.price_per_unit * ito.quantity
@@ -340,7 +342,8 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
 
         # Calculate the new bonus points
         new_bonus_points = authenticated_user.bonus_points - \
-            bonus_points_to_subtract + Decimal('0.1') * total_sum
+            bonus_points_to_subtract + \
+            Decimal('0.1') * (total_sum - bonus_points_to_subtract)
         print("new_bonus_points", new_bonus_points)
 
         # Update the authenticated user's bonus points
@@ -366,6 +369,7 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         return order
 
     def get_total_sum(self, obj):
+        self.is_valid()
         # Access 'ITO' from the validated data
         ito_data = self.validated_data.get('ITO', [])
 

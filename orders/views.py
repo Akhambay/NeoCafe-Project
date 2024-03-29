@@ -502,3 +502,20 @@ class TopSellingMenuItemsAPIView(APIView):
                             'total_sold': item['total_sold']} for item in top_selling_items]
 
         return Response(serialized_data)
+
+
+class CustomerOrdersAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retrieve orders related to the authenticated customer
+        return Order.objects.filter(customer=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        # Get queryset
+        queryset = self.get_queryset()
+        # Serialize data
+        serializer = self.serializer_class(queryset, many=True)
+        # Return response
+        return Response(serializer.data)

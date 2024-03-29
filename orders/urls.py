@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (OrderView, OrderOnlineView, WaiterOrdersView, OrderOnlineListView, OrderDetailView,
                     TableView, TableCreateView, TableListView, TableDetailedView, OrderOnlineDetailView,
                     TopSellingMenuItemsAPIView, CustomerOrdersView, OrderDetailByIdView, OrderOnlineDetailByIdView,
-                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView)
+                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView, CustomerOrdersAPIView)
 
 urlpatterns = [
 
@@ -48,4 +48,6 @@ urlpatterns = [
 
     path('branch/<int:branch_id>/top-selling-menu-items/',
          TopSellingMenuItemsAPIView.as_view(), name='top_selling_menu_items'),
+
+    path('customer/orders/', CustomerOrdersAPIView.as_view(), name='customer_orders'),
 ]
