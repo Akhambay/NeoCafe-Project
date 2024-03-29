@@ -451,7 +451,7 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
-    # username = serializers.CharField(source='user.username')
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     bonus_points = serializers.IntegerField(
         source='user.bonus_points', read_only=True)
@@ -460,7 +460,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerProfile
-        fields = ['id', 'first_name', 'email', 'bonus_points']
+        fields = ['id', 'user_id', 'first_name', 'email', 'bonus_points']
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
