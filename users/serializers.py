@@ -451,26 +451,16 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username')
-    email = serializers.EmailField(source='user.email')
-    bonus_points = serializers.IntegerField(source='user.bonus_points')
-    first_name = serializers.CharField(source='user.first_name')
+    # username = serializers.CharField(source='user.username')
+    email = serializers.EmailField(source='user.email', read_only=True)
+    bonus_points = serializers.IntegerField(
+        source='user.bonus_points', read_only=True)
+    first_name = serializers.CharField(
+        source='user.first_name', read_only=True)
 
     class Meta:
         model = CustomerProfile
-        fields = ['id', 'username', 'first_name', 'email', 'bonus_points']
-
-
-"""class CustomerProfileSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.all())
-    # orders = OrderOnlineSerializer(many=True)
-
-    class Meta:
-        model = CustomerProfile
-        fields = ['user', 'user_type', 'first_name', 'email',
-                  'bonus_points', 'orders']
-        read_only_fields = ['email']"""
+        fields = ['id', 'first_name', 'email', 'bonus_points']
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):

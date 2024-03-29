@@ -94,6 +94,8 @@ class CustomUserManager(BaseUserManager):
                 WaiterProfile.objects.create(user=user)
             elif user_type == 'Bartender':
                 BartenderProfile.objects.create(user=user)
+            elif user_type == 'Customer':
+                CustomerProfile.objects.create(user=user)
 
             return user
 
