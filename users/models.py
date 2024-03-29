@@ -111,6 +111,7 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('Waiter', 'Waiter'),
         ('Bartender', 'Bartender'),
+        ('Customer', 'Customer'),
     ]
 
     first_name = models.CharField(max_length=50)
@@ -160,11 +161,6 @@ class CustomUser(AbstractUser):
 # PROFILES
 # ===========================================================================
 class Profile(models.Model):
-    USER_TYPE_CHOICES = [
-        ('Waiter', 'Waiter'),
-        ('Bartender', 'Bartender'),
-        # Add more user types as needed
-    ]
 
     user = models.OneToOneField(
         CustomUser, related_name='profile', on_delete=models.CASCADE, blank=True, null=True)
@@ -172,7 +168,7 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
+        max_length=50, default='Waiter')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
@@ -183,10 +179,6 @@ class Profile(models.Model):
 
 
 class WaiterProfile(models.Model):
-    USER_TYPE_CHOICES = [
-        ('Waiter', 'Waiter'),
-        # Add more user types as needed
-    ]
 
     user = models.OneToOneField(
         CustomUser, related_name='waiterprofile', on_delete=models.CASCADE, blank=True, null=True)
@@ -194,7 +186,7 @@ class WaiterProfile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
+        max_length=50, default='Waiter')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
@@ -221,10 +213,6 @@ class CustomerProfile(models.Model):
 
 
 class BartenderProfile(models.Model):
-    USER_TYPE_CHOICES = [
-        ('Bartender', 'Bartender'),
-        # Add more user types as needed
-    ]
 
     user = models.OneToOneField(
         CustomUser, related_name='bartenderprofile', on_delete=models.CASCADE, blank=True, null=True)
@@ -232,7 +220,7 @@ class BartenderProfile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, choices=USER_TYPE_CHOICES, default='Bartender')
+        max_length=50, default='Bartender')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(

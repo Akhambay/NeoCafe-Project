@@ -67,7 +67,7 @@ class Order(models.Model):
     employee = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, related_name='employee_orders', null=True)
     branch = models.ForeignKey(
-        'users.Branch', on_delete=models.CASCADE, related_name='cart')
+        'users.Branch', on_delete=models.CASCADE, related_name='cart', null=True, blank=True)
 
     order_number = models.PositiveIntegerField(null=True, blank=True)
     bonus_points_to_subtract = models.PositiveIntegerField(

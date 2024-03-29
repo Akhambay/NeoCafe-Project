@@ -116,7 +116,7 @@ class MenuItemCreateView(generics.CreateAPIView):
 
 
 class MenuItemPagination(PageNumberPagination):
-    page_size = 200  # 7
+    page_size = 7
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -229,7 +229,7 @@ class StockItemCreateView(generics.CreateAPIView):
 
 
 class StockItemsListPagination(PageNumberPagination):
-    page_size = 400  # 6
+    page_size = 6
     page_size_query_param = 'page_size'
     max_page_size = 100
 
