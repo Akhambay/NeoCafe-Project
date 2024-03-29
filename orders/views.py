@@ -98,7 +98,7 @@ class OrderView(APIView):
     responses={200: OrderDetailedSerializer()}
 )
 class OrderDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderDetailedSerializer
     permission_classes = [IsAuthenticated]
 
@@ -146,7 +146,7 @@ def create_or_get_customer_profile(user, profile_model):
     responses={200: OrderDetailedSerializer()}
 )
 class OrderOnlineDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderOnlineDetailedSerializer
     permission_classes = [IsAuthenticated]
 
@@ -222,7 +222,7 @@ class OrderOnlineView(APIView):
     responses={200: OrderSerializer(many=True)}
 )
 class OrderListView(generics.ListCreateAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderSerializer
     # permission_classes = [IsAuthenticated]
 
@@ -233,7 +233,7 @@ class OrderListView(generics.ListCreateAPIView):
     responses={200: OrderOnlineSerializer(many=True)}
 )
 class OrderOnlineListView(generics.ListCreateAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderOnlineSerializer
     # permission_classes = [IsAuthenticated]
 
@@ -247,23 +247,10 @@ class WaiterOrdersView(APIView):
     def get(self, request, branch_id):
         if request.user.branch_id == branch_id:
             orders = Order.objects.filter(
-                branch_id=branch_id)
+                branch_id=branch_id).order_by('-created_at')
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-class CustomerOrdersView(APIView):
-    """
-    View to list orders for a specific branch where the customer orders.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        orders = Order.objects.filter(
-            branch_id=1)
-        serializer = OrderOnlineSerializer(orders, many=True)
-        return Response(serializer.data)
 
 
 class NewOrdersView(APIView):
@@ -280,7 +267,7 @@ class NewOrdersView(APIView):
     def get(self, request, branch_id):
         if request.user.branch_id == branch_id:
             orders = Order.objects.filter(
-                branch_id=branch_id, order_status='Новый')
+                branch_id=branch_id, order_status='Новый').order_by('-created_at')
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -301,7 +288,7 @@ class InProgressOrdersListView(generics.ListCreateAPIView):
     def get(self, request, branch_id):
         if request.user.branch_id == branch_id:
             orders = Order.objects.filter(
-                branch_id=branch_id, order_status='В процессе')
+                branch_id=branch_id, order_status='В процессе').order_by('-created_at')
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -322,7 +309,7 @@ class ReadyOrdersListView(generics.ListCreateAPIView):
     def get(self, request, branch_id):
         if request.user.branch_id == branch_id:
             orders = Order.objects.filter(
-                branch_id=branch_id, order_status='Готов')
+                branch_id=branch_id, order_status='Готов').order_by('-created_at')
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -334,7 +321,7 @@ class ReadyOrdersListView(generics.ListCreateAPIView):
     responses={200: OrderOnlineSerializer(many=True)}
 )
 class OrderOnlineListView(generics.ListCreateAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderOnlineSerializer
 
     # permission_classes = [IsAuthenticated]
@@ -346,7 +333,7 @@ class OrderOnlineListView(generics.ListCreateAPIView):
     responses={200: OrderDetailedSerializer(many=False)}
 )
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderDetailedSerializer
     permission_classes = [IsAuthenticated]
 
@@ -381,7 +368,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     responses={200: OrderDetailedSerializer(many=False)}
 )
 class OrderOnlineDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderOnlineDetailedSerializer
     permission_classes = [IsAuthenticated]
 
@@ -509,8 +496,8 @@ class CustomerOrdersAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Retrieve orders related to the authenticated customer
-        return Order.objects.filter(customer=self.request.user)
+        # Retrieve orders related to the authenticated customer and order them by '-created_at'
+        return Order.objects.filter(customer=self.request.user).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         # Get queryset
