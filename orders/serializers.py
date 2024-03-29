@@ -123,8 +123,6 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
     def get_total_sum(self, obj):
-        self.is_valid()  # §
-        ito_data = self.validated_data.get('ITO', [])  # §
         total_sum = 0
         for ito in obj.ITO.all():
             total_price = ito.item.price_per_unit * ito.quantity
