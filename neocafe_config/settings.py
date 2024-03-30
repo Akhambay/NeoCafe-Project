@@ -68,10 +68,11 @@ CORS_ALLOWED_ORIGINS = (
     'http://localhost:8000',
     'https://tokyo-backender.org.kg',
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://neo-cafe.vercel.app',
 )
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:5173',
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174',
                         'http://localhost:8000', 'https://tokyo-backender.org.kg', 'https://neo-cafe.vercel.app',]
 
 MIDDLEWARE = [
