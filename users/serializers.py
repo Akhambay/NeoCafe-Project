@@ -456,11 +456,19 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     bonus_points = serializers.IntegerField(
         source='user.bonus_points', read_only=True)
     first_name = serializers.CharField(
-        source='user.first_name', read_only=True)
+        source='user.first_name', required=False)
 
     class Meta:
         model = CustomerProfile
         fields = ['id', 'user_id', 'first_name', 'email', 'bonus_points']
+
+    def update(self, instance, validated_data):
+        # Update only if 'first_name' is provided in the validated data
+        if 'user' in validated_data and 'first_name' in validated_data['user']:
+            instance.user.first_name = validated_data['user']['first_name']
+            instance.user.save()
+
+        return instance
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):

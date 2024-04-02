@@ -133,7 +133,7 @@ SPECTACULAR_SETTINGS = {
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+"""
 if DEBUG:
     DATABASES = {
         'default': {
@@ -160,7 +160,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
+
 
 
 # Password validation
@@ -193,6 +193,10 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'assyl.akhambay@gmail.com'
 EMAIL_HOST_PASSWORD = 'dncz oonk widu uitb'
 EMAIL_SSL_KEYFILE = None
+
+EMAIL_SSL_CERTFILE = None  # Set to the path of your SSL certificate file if needed
+EMAIL_SSL_CA_FILE = None   # Set to the path of your CA certificate file if needed
+
 
 SITE_ID = 1
 

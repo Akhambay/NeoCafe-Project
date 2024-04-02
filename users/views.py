@@ -914,7 +914,6 @@ class WaiterAuthenticationView(APIView):
 class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomerProfile.objects.all()
     serializer_class = CustomerProfileSerializer
-    # permission_classes = [IsAuthenticated]
     lookup_field = 'user_id'
 
     @extend_schema(
@@ -931,7 +930,7 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     @extend_schema(
         description="Update a profile.",
         summary="Update profile",
-        responses={200: BranchSerializer, 204: "No Content", }
+        responses={200: CustomerProfileSerializer, 204: "No Content"}
     )
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
@@ -939,7 +938,7 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     @extend_schema(
         description="Delete operation is not allowed for profiles.",
         summary="Delete profile (Not Allowed)",
-        responses={405: "Method Not Allowed", }
+        responses={405: "Method Not Allowed"}
     )
     def delete(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -948,11 +947,13 @@ class CustomerProfileDetail(generics.RetrieveUpdateDestroyAPIView):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
 
-        if 'email' in request.data:
-            return Response({'error': 'Email field cannot be modified'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if 'first_name' is provided in the request data
+        if 'first_name' not in request.data:
+            return Response({'error': 'First name field is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Validate and update only 'first_name' field
         serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
+            instance, data={'first_name': request.data['first_name']}, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
