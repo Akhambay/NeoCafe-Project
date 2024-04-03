@@ -237,7 +237,7 @@ class EmployeeList(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = CustomUser.objects.filter(
             user_type__in=['Waiter', 'Bartender']
-        )
+        ).order_by('-id')
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)

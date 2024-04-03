@@ -2,7 +2,10 @@ from django.urls import path
 from .views import (OrderView, OrderOnlineView, WaiterOrdersView, OrderOnlineListView, OrderDetailView,
                     TableView, TableCreateView, TableListView, TableDetailedView, OrderOnlineDetailView,
                     TopSellingMenuItemsAPIView, OrderDetailByIdView, OrderOnlineDetailByIdView,
-                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView, CustomerOrdersAPIView)
+                    ReadyOrdersListView, InProgressOrdersListView, NewOrdersView,
+                    CustomerOrdersAPIView, CustomerPastOrdersAPIView, CustomerOngoingOrdersAPIView,
+                    AllOrdersInBranchAPIView, OrdersOnlineNewInBranchAPIView, OrdersOnlineInProgressInBranchAPIView,
+                    OrdersOnlineCancelledInBranchAPIView,OrdersOnlineDoneInBranchAPIView)
 
 urlpatterns = [
 
@@ -12,7 +15,19 @@ urlpatterns = [
 
     path('orders/all/<int:branch_id>/',
          WaiterOrdersView.as_view(), name='order-list'),
-    path('orders-online-list/all/', OrderOnlineListView.as_view(),
+    path('orders-online/all/', AllOrdersInBranchAPIView.as_view(),
+         name='order-online-list'),
+
+     path('orders-online-list/new/', OrdersOnlineNewInBranchAPIView.as_view(),
+         name='order-online-list'),
+
+     path('orders-online-list/inprogress/', OrdersOnlineInProgressInBranchAPIView.as_view(),
+         name='order-online-list'),
+
+     path('orders-online-list/cancelled/', OrdersOnlineCancelledInBranchAPIView.as_view(),
+         name='order-online-list'),
+
+     path('orders-online-list/done/', OrdersOnlineDoneInBranchAPIView.as_view(),
          name='order-online-list'),
 
     path('orders/<int:order_id>/',
@@ -48,4 +63,6 @@ urlpatterns = [
          TopSellingMenuItemsAPIView.as_view(), name='top_selling_menu_items'),
 
     path('customer/orders/', CustomerOrdersAPIView.as_view(), name='customer_orders'),
+    path('customer/orders/now/', CustomerOngoingOrdersAPIView.as_view(), name='customer_orders_now'),
+    path('customer/orders/past/', CustomerPastOrdersAPIView.as_view(), name='customer_orders_past'),
 ]

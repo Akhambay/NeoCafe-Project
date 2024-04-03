@@ -251,7 +251,7 @@ class StockItemsList(generics.ListCreateAPIView):
         responses={200: StockSerializer, 204: "No Content", }
     )
     def get_queryset(self):
-        queryset = Stock.objects.all().order_by(F('id').desc())
+        queryset = Stock.objects.all().order_by('-restock_date')
 
         # Get the search parameters from the query parameters
         search_term = self.request.query_params.get('search', None)

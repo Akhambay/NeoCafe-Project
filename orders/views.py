@@ -237,6 +237,104 @@ class OrderOnlineListView(generics.ListCreateAPIView):
     serializer_class = OrderOnlineSerializer
     # permission_classes = [IsAuthenticated]
 
+class AllOrdersInBranchAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+    
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        # Filter orders by branch and status
+        return Order.objects.filter(branch_id=branch_id, order_status='Новый').order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        branch_id = self.kwargs.get('branch_id')
+        if request.user.branch_id == branch_id:
+            return self.list(request, *args, **kwargs)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+
+
+class OrdersOnlineNewInBranchAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        # Filter orders by branch and status
+        return Order.objects.filter(branch_id=branch_id).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        branch_id = self.kwargs.get('branch_id')
+        if request.user.branch_id == branch_id:
+            return self.list(request, *args, **kwargs)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+class OrdersOnlineInProgressInBranchAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        # Filter orders by branch and status
+        return Order.objects.filter(branch_id=branch_id, order_status='В процессе').order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        branch_id = self.kwargs.get('branch_id')
+        if request.user.branch_id == branch_id:
+            return self.list(request, *args, **kwargs)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+class OrdersOnlineCancelledInBranchAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        # Filter orders by branch and status
+        return Order.objects.filter(branch_id=branch_id, order_status='Отменен').order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        branch_id = self.kwargs.get('branch_id')
+        if request.user.branch_id == branch_id:
+            return self.list(request, *args, **kwargs)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+class OrdersOnlineDoneInBranchAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        # Filter orders by branch and status
+        return Order.objects.filter(branch_id=branch_id, order_status='Завершен').order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        branch_id = self.kwargs.get('branch_id')
+        if request.user.branch_id == branch_id:
+            return self.list(request, *args, **kwargs)
+        return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
+    
 
 class WaiterOrdersView(APIView):
     """
@@ -498,6 +596,39 @@ class CustomerOrdersAPIView(generics.ListAPIView):
     def get_queryset(self):
         # Retrieve orders related to the authenticated customer and order them by '-created_at'
         return Order.objects.filter(customer=self.request.user).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        # Get queryset
+        queryset = self.get_queryset()
+        # Serialize data
+        serializer = self.serializer_class(queryset, many=True)
+        # Return response
+        return Response(serializer.data)
+    
+class CustomerOngoingOrdersAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retrieve ongoing orders (status: Новый, В процессе) related to the authenticated customer
+        return Order.objects.filter(customer=self.request.user, order_status__in=['Новый', 'В процессе']).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        # Get queryset
+        queryset = self.get_queryset()
+        # Serialize data
+        serializer = self.serializer_class(queryset, many=True)
+        # Return response
+        return Response(serializer.data)
+
+
+class CustomerPastOrdersAPIView(generics.ListAPIView):
+    serializer_class = OrderOnlineDetailedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Retrieve past orders (status: Отменен, Завершен) related to the authenticated customer
+        return Order.objects.filter(customer=self.request.user, order_status__in=['Отменен', 'Завершен']).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         # Get queryset
