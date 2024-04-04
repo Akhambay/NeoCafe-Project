@@ -192,16 +192,6 @@ class OrderOnlineDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
         return Response(data)
 
 
-def create_or_get_customer_profile(user, profile_model):
-    try:
-        # Check if the user already has a profile
-        return profile_model.objects.get(user=user), False
-    except profile_model.DoesNotExist:
-        # Create a new profile if it doesn't exist
-        profile = profile_model.objects.create(user=user)
-        return profile, True
-
-
 class OrderOnlineView(APIView):
     permission_classes = [IsAuthenticated]
 
