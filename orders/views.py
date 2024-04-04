@@ -21,6 +21,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db import transaction
 from users.serializers import CustomUserSerializer
+from menu.models import Menu_Item
+from users.models import Branch
 
 
 def create_employee_profile(employee, profile_model, schedules_data=None):
@@ -168,6 +170,26 @@ class OrderOnlineDetailByIdView(generics.RetrieveUpdateDestroyAPIView):
         order_instance = self.get_object()
         order_instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        # Add branch name to output
+        branch_name = instance.branch.branch_name
+        data['branch_name'] = branch_name
+
+        # Add bonus_points_to_subtract to output
+        data['bonus_points_to_subtract'] = instance.bonus_points_to_subtract
+
+        # Add price for each item in ITO
+        for item_data in data['ITO']:
+            item_id = item_data['item']
+            item_instance = Menu_Item.objects.get(pk=item_id)
+            item_data['item_price'] = item_instance.price_per_unit
+
+        return Response(data)
 
 
 def create_or_get_customer_profile(user, profile_model):
@@ -255,9 +277,6 @@ class AllOrdersInBranchAPIView(generics.ListAPIView):
         if request.user.branch_id == branch_id:
             return self.list(request, *args, **kwargs)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-
-
 
 class OrdersOnlineNewInBranchAPIView(generics.ListAPIView):
     serializer_class = OrderOnlineDetailedSerializer

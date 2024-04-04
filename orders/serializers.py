@@ -406,11 +406,14 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
     updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
     customer_profile = serializers.SerializerMethodField()
+    branch_name = serializers.SerializerMethodField()
+    bonus_points_to_subtract = serializers.IntegerField()
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'order_status', 'order_type',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'total_sum', 'customer_profile', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'branch_name', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract']
+
 
     def update(self, instance, validated_data):
         # Update basic order information
@@ -516,3 +519,6 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
             if customer_profile:
                 return CustomerProfileSerializer(customer_profile).data
         return None
+    
+    def get_branch_name(self, instance):
+        return instance.branch.branch_name
