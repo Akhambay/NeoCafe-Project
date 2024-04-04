@@ -431,23 +431,19 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
 
 class WaiterProfileSerializer(serializers.ModelSerializer):
     # Include the EmployeeSerializer to represent the related employee
-    #user = EmployeeSerializer()
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
-    first_name = serializers.CharField(
-        source='user.first_name', required=False)
+    user = EmployeeSerializer()
     schedule = EmployeeScheduleSerializer(many=True)
 
     class Meta:
         model = WaiterProfile
         fields = '__all__'
-        read_only_fields = ['id', 'user_id', 'first_name', 'email', 'schedule']
+        read_only_fields = ['id', 'user', 'schedule']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
         # Remove unwanted fields
-        for field in ['schedule', 'first_name', 'last_name', 'email']:
+        for field in ['schedule', 'first_name', 'schedule', 'user_type', 'branch', 'last_name', 'email']:
             data.pop(field, None)
 
         return data

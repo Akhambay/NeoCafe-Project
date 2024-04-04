@@ -153,6 +153,25 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         fields = ['id', 'order_number', 'table', 'order_status',
                   'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
 
+    def get_employee_profile(self, instance):
+        from users.models import WaiterProfile, BartenderProfile
+        from users.serializers import WaiterProfileSerializer, BartenderProfileSerializer
+
+        employee = instance.employee
+        if employee:
+            user_type = employee.user_type
+            if user_type == 'Waiter':
+                waiter_profile = WaiterProfile.objects.filter(
+                    user=employee).first()
+                if waiter_profile:
+                    return WaiterProfileSerializer(waiter_profile).data
+            elif user_type == 'Bartender':
+                bartender_profile = BartenderProfile.objects.filter(
+                    user=employee).first()
+                if bartender_profile:
+                    return BartenderProfileSerializer(bartender_profile).data
+        return None
+    
     def update(self, instance, validated_data):
         # Update basic order information
         instance.order_status = validated_data.get(
@@ -242,24 +261,6 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         for ito in obj.ITO.all():
             total_sum += ito.item.price_per_unit * ito.quantity
         return total_sum
-
-    def get_employee_profile(self, instance):
-        from users.models import CustomUser
-        from users.serializers import CustomUserSerializer
-        employee = instance.employee
-        if employee:
-            user_type = employee.user_type
-            if user_type == 'Waiter':
-                waiter_profile = CustomUser.objects.filter(
-                    id=employee.id, user_type='Waiter').first()
-                if waiter_profile:
-                    return CustomUserSerializer(waiter_profile).data
-            elif user_type == 'Bartender':
-                bartender_profile = CustomUser.objects.filter(
-                    id=employee.id, user_type='Bartender').first()
-                if bartender_profile:
-                    return CustomUserSerializer(bartender_profile).data
-        return None
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
