@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     'menu',
     'orders',
     'channels',
-    'notification',
-    'chat',
 
     'allauth',
     'allauth.account',
@@ -141,7 +139,7 @@ SPECTACULAR_SETTINGS = {
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-"""
+
 if DEBUG:
     DATABASES = {
         'default': {
@@ -168,7 +166,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+"""
 
 
 # Password validation
@@ -211,7 +209,7 @@ SITE_ID = 1
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'ru'
+LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'Asia/Almaty'
 
