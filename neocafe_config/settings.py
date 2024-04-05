@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'menu',
     'orders',
     'channels',
+    'notification',
+    'chat',
 
     'allauth',
     'allauth.account',
@@ -61,7 +63,8 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-ASGI_APPLICATION = 'websocket_demo.routing.application'
+WSGI_APPLICATION = 'neocage_config.wsgi.application'
+ASGI_APPLICATION = 'neocage_config.asgi.application'
 
 CORS_ALLOWED_ORIGINS = (
     'http://localhost:3000',
@@ -94,10 +97,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [('127.0.0.1', 6379)],
+        },
     },
 }
+
+CELERY_BROKER_URL = "redis://localhost:6379/0" 
 
 TEMPLATES = [
     {
@@ -133,7 +141,7 @@ SPECTACULAR_SETTINGS = {
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+"""
 if DEBUG:
     DATABASES = {
         'default': {
@@ -160,7 +168,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
+
 
 
 # Password validation
@@ -203,15 +211,15 @@ SITE_ID = 1
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Asia/Almaty'
-
-USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
+USE_I18N = True
+
 
 
 # Static files (CSS, JavaScript, Images)

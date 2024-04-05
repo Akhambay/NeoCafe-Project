@@ -295,6 +295,35 @@ class TableDetailedSerializer(serializers.ModelSerializer):
 # ================================================================
 # ORDER ONLINE
 # ================================================================
+from rest_framework import serializers
+from django.utils.translation import gettext as _
+
+class RussianDateField(serializers.ReadOnlyField):
+    def to_representation(self, value):
+        # Translate month names from English to Russian
+        russian_months = {
+            "January": "января",
+            "February": "февраля",
+            "March": "марта",
+            "April": "апреля",
+            "May": "мая",
+            "June": "июня",
+            "July": "июля",
+            "August": "августа",
+            "September": "сентября",
+            "October": "октября",
+            "November": "ноября",
+            "December": "декабря",
+        }
+        # Get the month name in English
+        day = value.strftime('%d').lstrip('0')
+        month_name = value.strftime('%B')
+        # Translate it to Russian if translation exists, otherwise, use the original English name
+        russian_month = russian_months.get(month_name, month_name)
+        # Format the date in Russian
+        return f'{day} {russian_month}'
+
+
 class OrderOnlineSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(read_only=True, default="Новый")
     total_sum = serializers.SerializerMethodField()
@@ -403,9 +432,9 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
     order_status = serializers.CharField(default="Новый")
     total_sum = serializers.SerializerMethodField()
     ITO = ItemToOrderSerializer(many=True)
-    created_at = TimeField(required=False, default=timezone.now)
-    updated_at = TimeField(required=False, default=timezone.now)
-    completed_at = TimeField(allow_null=True, required=False)
+    created_at = RussianDateField(required=False, default=timezone.now)
+    updated_at = RussianDateField(required=False, default=timezone.now)
+    completed_at = RussianDateField(allow_null=True, required=False)
     customer_profile = serializers.SerializerMethodField()
     branch_name = serializers.SerializerMethodField()
     bonus_points_to_subtract = serializers.IntegerField()
