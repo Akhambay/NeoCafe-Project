@@ -450,24 +450,44 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    # Define serializer fields
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
-    bonus_points = serializers.IntegerField(
-        source='user.bonus_points', read_only=True)
-    first_name = serializers.CharField(
-        source='user.first_name', required=False)
+    bonus_points = serializers.IntegerField(source='user.bonus_points', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', required=False)
 
     class Meta:
         model = CustomerProfile
         fields = ['id', 'user_id', 'first_name', 'email', 'bonus_points']
 
+    def create(self, validated_data):
+        # Extract user-related data from validated_data
+        user_data = validated_data.pop('user', None)
+
+        # Check if user_data exists and the user is a customer
+        if user_data and user_data.get('user_type') == 'Customer':
+            # Create or retrieve the CustomUser instance
+            user, created = CustomUser.objects.update_or_create(
+                email=user_data.get('email'),
+                defaults={'first_name': user_data.get('first_name')}
+            )
+
+            # Create CustomerProfile instance
+            customer_profile = CustomerProfile.objects.create(user=user, **validated_data)
+            return customer_profile
+
+        # If the user is not a customer, raise an exception
+        raise serializers.ValidationError("Go ahead")
+
     def update(self, instance, validated_data):
         # Update only if 'first_name' is provided in the validated data
-        if 'user' in validated_data and 'first_name' in validated_data['user']:
-            instance.user.first_name = validated_data['user']['first_name']
+        user_data = validated_data.pop('user', None)
+        if user_data and 'first_name' in user_data:
+            instance.user.first_name = user_data['first_name']
             instance.user.save()
 
-        return instance
+        # Update CustomerProfile instance
+        return super().update(instance, validated_data)
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):
