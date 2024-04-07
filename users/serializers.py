@@ -373,11 +373,11 @@ class BartenderLoginSerializer(serializers.ModelSerializer):
 
 class WaiterAuthenticationCheckSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    #password = serializers.CharField()
 
     def validate(self, data):
         username = data.get('username')
-        password = data.get('password')
+        #password = data.get('password')
 
         # Check if the username is in the database
         user = get_user_model().objects.filter(username=username).first()

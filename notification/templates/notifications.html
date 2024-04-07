@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Display</title>
+</head>
+<body>
+    <h1>Notification Display</h1>
+    
+    <ul id="notification-list">
+        <!-- Notifications will be displayed here -->
+    </ul>
+
+    <script>
+        const socket = new WebSocket('ws://127.0.0.1:8000/ws/notifications/');
+
+        socket.onopen = function(event) {
+            console.log('WebSocket connection established.');
+        };
+
+        socket.onmessage = function(event) {
+            const notification = JSON.parse(event.data);
+            displayNotification(notification);
+        };
+
+        socket.onclose = function(event) {
+            console.log('WebSocket connection closed.');
+        };
+
+        function displayNotification(notification) {
+            const notificationList = document.getElementById('notification-list');
+            const notificationElement = document.createElement('li');
+            notificationElement.textContent = `Order ${notification.order_number} is ready.`;
+            notificationList.appendChild(notificationElement);
+        }
+    </script>
+</body>
+</html>

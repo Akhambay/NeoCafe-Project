@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'menu',
     'orders',
     'channels',
+    'notification',
 
     'allauth',
     'allauth.account',
@@ -61,8 +62,8 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-WSGI_APPLICATION = 'neocage_config.wsgi.application'
-ASGI_APPLICATION = 'neocage_config.asgi.application'
+WSGI_APPLICATION = 'neocafe_config.wsgi.application'
+ASGI_APPLICATION = 'neocafe_config.asgi.application'
 
 CORS_ALLOWED_ORIGINS = (
     'http://localhost:3000',
@@ -98,7 +99,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [('localhost', 6379)],
         },
     },
 }
@@ -108,7 +109,10 @@ CELERY_BROKER_URL = "redis://localhost:6379/0"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            # Add the directory path where your app's templates are located
+            os.path.join(BASE_DIR, 'notification', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -139,7 +143,7 @@ SPECTACULAR_SETTINGS = {
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+"""
 if DEBUG:
     DATABASES = {
         'default': {
@@ -166,7 +170,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-"""
+
 
 
 # Password validation
