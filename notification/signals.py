@@ -10,6 +10,6 @@ def order_status_changed(sender, instance, created, **kwargs):
         notification = Notification(order=instance)
         notification.save()
 
-@receiver(post_save, sender=Notification)
-def order_status_changed(sender, instance, created, **kwargs):
-    pass
+# @receiver(post_save, sender=Notification)
+# def order_status_changed(sender, instance, created, **kwargs):
+#     pass
