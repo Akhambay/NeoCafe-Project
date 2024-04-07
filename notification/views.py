@@ -7,7 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 def notifications_page(request):
-    return render(request, 'notifications.html')
+    notifications = Notification.objects.all()  # Fetch all notifications from the database
+    return render(request, 'notifications.html', {'notifications': notifications})
+
 
 
 class NotificationDeleteView(APIView):
