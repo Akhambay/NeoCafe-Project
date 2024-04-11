@@ -298,6 +298,8 @@ class CustomerRegistrationSerializer(serializers.ModelSerializer):
         read_only_fields = ['user_type', 'bonus_points', 'first_name',]
 
 
+
+
 class CustomerLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
@@ -450,7 +452,6 @@ class WaiterProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
-    # Define serializer fields
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     bonus_points = serializers.IntegerField(source='user.bonus_points', read_only=True)
@@ -463,21 +464,21 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Extract user-related data from validated_data
         user_data = validated_data.pop('user', None)
+        email = user_data.get('email')
+        first_name = user_data.get('first_name')
 
-        # Check if user_data exists and the user is a customer
-        if user_data and user_data.get('user_type') == 'Customer':
-            # Create or retrieve the CustomUser instance
-            user, created = CustomUser.objects.update_or_create(
-                email=user_data.get('email'),
-                defaults={'first_name': user_data.get('first_name')}
-            )
+        # Check if user exists
+        user, created = CustomUser.objects.get_or_create(email=email, defaults={'first_name': first_name})
 
-            # Create CustomerProfile instance
-            customer_profile = CustomerProfile.objects.create(user=user, **validated_data)
-            return customer_profile
+        # Update first name if provided
+        if first_name:
+            user.first_name = first_name
+            user.save()
 
-        # If the user is not a customer, raise an exception
-        raise serializers.ValidationError("Go ahead")
+        # Create or update CustomerProfile instance
+        profile, _ = CustomerProfile.objects.update_or_create(user=user, defaults=validated_data)
+
+        return profile
 
     def update(self, instance, validated_data):
         # Update only if 'first_name' is provided in the validated data
@@ -488,6 +489,8 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
         # Update CustomerProfile instance
         return super().update(instance, validated_data)
+
+
 
 
 class BartenderProfileSerializer(serializers.ModelSerializer):

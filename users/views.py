@@ -542,7 +542,6 @@ class CustomerEmailCheckView(APIView):
 # CUSTOMER REGISTRATION
 # ===========================================================================
 
-
 class CustomerRegistrationView(APIView):
     serializer_class = CustomerRegistrationSerializer
 
@@ -576,25 +575,10 @@ class CustomerRegistrationView(APIView):
 
         # Save user with the provided confirmation code as the password
         user = serializer.save(
-            email=email, username=first_name, password=confirmation_code, first_name=first_name, user_type='Customer', bonus_points=100)
+            username=email, password=confirmation_code, user_type='customer')
 
-        # Create customer profile
-        customer_profile_data = {
-            'user': user.id,
-            'user_type': user.user_type,
-            'first_name': user.first_name,
-            'email': user.email,
-            'bonus_points': user.bonus_points
-
-        }
-        profile_serializer = CustomerProfileSerializer(
-            data=customer_profile_data)
-        profile_serializer.is_valid(raise_exception=True)
-        profile_serializer.save()
-
-        # Update user bonus points and first name
         user.bonus_points = 100
-        user.first_name = first_name
+        user.first_name = email.split('@')[0]
         user.save()
 
         # Authenticate the user and generate tokens
