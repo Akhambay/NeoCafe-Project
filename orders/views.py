@@ -355,7 +355,7 @@ class WaiterOrdersView(APIView):
         if request.user.branch_id == branch_id:
             orders = Order.objects.filter(
                 branch_id=branch_id).order_by('-created_at')
-            serializer = OrderSerializer(orders, many=True)
+            serializer = OrderDetailedSerializer(orders, many=True)
             return Response(serializer.data)
         return Response({'error': 'Unauthorized or invalid branch'}, status=status.HTTP_401_UNAUTHORIZED)
 
