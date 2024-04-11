@@ -9,7 +9,3 @@ def order_status_changed(sender, instance, created, **kwargs):
     if instance.order_status == "Готов":
         notification = Notification(order=instance)
         notification.save()
-
-# @receiver(post_save, sender=Notification)
-# def order_status_changed(sender, instance, created, **kwargs):
-#     pass
