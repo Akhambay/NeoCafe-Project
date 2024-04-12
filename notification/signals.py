@@ -8,7 +8,7 @@ from orders.models import Order, ItemToOrder
 @receiver(post_save, sender=Order, dispatch_uid="order_waiter_status_changed")
 def waiter_status_changed(sender, instance, created, **kwargs):
     item_descriptions = []
-    for ito in instance.itemtoorder_set.all():
+    for ito in instance.ITO.all():  # Using custom related name 'ITO'
         item_descriptions.append(f"{ito.item.name} x {ito.quantity}")
     items_detail = ", ".join(item_descriptions)
 
