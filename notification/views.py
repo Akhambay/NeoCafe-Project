@@ -20,7 +20,8 @@ class NotificationListView(APIView):
     def get(self, request):
         # Assuming notifications are related to orders, filter notifications based on orders associated with the authenticated user
         user_orders = request.user.orders.all()
-        notifications = Notification.objects.filter(order__in=user_orders)
+        notifications = Notification.objects.filter(order__in=user_orders, is_read=False)
+        
         serialized_data = []
         for notification in notifications:
             order_message = self.construct_order_message(notification.order)
@@ -28,12 +29,17 @@ class NotificationListView(APIView):
                 'id': notification.id,
                 'order_message': order_message,
                 'is_read': notification.is_read,
-                'created_at': notification.created_at
+                'created_at': notification.created_at.strftime("%H:%M"),
             }
             serialized_data.append(notification_data)
+            
+            # Mark notification as read
+            notification.is_read = True
+            notification.save()
+        
         return Response(serialized_data)
 
     def construct_order_message(self, order):
-        items = [f"{ito.item.name} x {ito.quantity}" for ito in order.ito_set.all()]
+        items = [f"{ito.quantity} x {ito.item.name}" for ito in order.ito_set.all()]
         order_message = f"Order #{order.order_number} is ready. {order.completed_at.strftime('%H:%M')}, {' '.join(items)}"
         return order_message
