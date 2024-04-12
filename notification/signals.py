@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from channels.layers import get_channel_layer
+from channels import DEFAULT_CHANNEL_LAYER
 from asgiref.sync import async_to_sync
 from .models import Notification
 from orders.models import Order, ItemToOrder
@@ -38,7 +38,7 @@ def waiter_status_changed(sender, instance, created, **kwargs):
 
         employee_name = f"waiter-{instance.employee.id}"
 
-        channel_layer = get_channel_layer()
+        channel_layer = DEFAULT_CHANNEL_LAYER()
         async_to_sync(channel_layer.group_send)(
             employee_name,
             {
