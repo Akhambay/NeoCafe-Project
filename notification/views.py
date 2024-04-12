@@ -18,7 +18,8 @@ from .serializers import NotificationSerializer
 
 class NotificationListView(APIView):
     def get(self, request):
-        # Retrieve notifications for the authenticated user
-        notifications = Notification.objects.filter(user=request.user)
+        # Assuming notifications are related to orders, filter notifications based on orders associated with the authenticated user
+        user_orders = request.user.orders.all()
+        notifications = Notification.objects.filter(order__in=user_orders)
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)

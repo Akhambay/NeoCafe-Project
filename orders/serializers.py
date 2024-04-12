@@ -102,6 +102,53 @@ class OrderSerializer(serializers.ModelSerializer):
                     return CustomUserSerializer(bartender_profile).data
         return None
 
+    def update(self, instance, validated_data):
+        # Update basic order information
+        instance.order_status = validated_data.get(
+            'order_status', instance.order_status)
+        instance.branch = validated_data.get('branch', instance.branch)
+        instance.order_type = validated_data.get(
+            'order_type', instance.order_type)
+        instance.employee_profile = validated_data.get(
+            'employee_profile', instance.employee)
+        instance.order_number = validated_data.get(
+            'order_number', instance.order_number)
+
+        # Update or delete items in the order
+        ito_data = validated_data.pop('ITO', [])
+        existing_ito_items = {
+            ito_item.id: ito_item for ito_item in instance.ITO.all()}
+
+        # Check if the order includes items from the "Coffee" category
+        is_coffee_order = any(item.category.name == "Кофе" for item in instance.ITO.all())
+
+        # If it's a coffee order, subtract milk and syrup from stock
+        if is_coffee_order:
+            for ito_item_data in ito_data:
+                for ingredient in ito_item_data['item'].ingredients.all():
+                    if ingredient.name == "Молоко" or ingredient.name == "Сироп":
+                        stock_item = Stock.objects.filter(
+                            branch=instance.branch, stock_item=ingredient.name).first()
+                        if stock_item:
+                            required_quantity = ito_item_data['quantity'] * ingredient.quantity
+                            stock_item.current_quantity -= required_quantity
+                            stock_item.save()
+
+        # Delete any remaining ItemToOrder instances (if any)
+        for ito_item_instance in existing_ito_items.values():
+            ito_item_instance.delete()
+
+        # Update total sum
+        instance.total_sum = self.get_total_sum(instance)
+
+        if instance.order_status == "Завершен":
+            instance.completed_at = timezone.now()
+
+        # Save the changes to the Order instance
+        instance.save()
+
+        return instance
+    
     def create(self, validated_data):
         ito_data = validated_data.pop('ITO', None)
         table_data = validated_data.pop('table', None)

@@ -1,5 +1,5 @@
 from django.db import models
-from menu.models import Menu_Item, Branch
+from menu.models import Menu_Item, Branch, ExtraItem
 from users.models import CustomUser
 from django.contrib.auth.models import User
 
