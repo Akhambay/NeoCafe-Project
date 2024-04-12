@@ -3,15 +3,13 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import Notification
-from orders.models import Order
+from orders.models import Order, ItemToOrder
 
 @receiver(post_save, sender=Order, dispatch_uid="order_waiter_status_changed")
 def waiter_status_changed(sender, instance, created, **kwargs):
     item_descriptions = []
-    for item in instance.menu_items.all():
-        ingredients = ", ".join([f"{ingredient.name} x {ingredient.quantity}" for ingredient in item.ingredients.all()])
-        item_descriptions.append(f"{item.name} - {ingredients}")
-
+    for ito in instance.itemtoorder_set.all():
+        item_descriptions.append(f"{ito.item.name} x {ito.quantity}")
     items_detail = ", ".join(item_descriptions)
 
     title = ""
