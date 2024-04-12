@@ -7,7 +7,11 @@ from orders.models import Order
 
 @receiver(post_save, sender=Order, dispatch_uid="order_waiter_status_changed")
 def waiter_status_changed(sender, instance, created, **kwargs):
-    item_descriptions = [f"{ito.menu_item.name} x {ito.quantity}" for ito in instance.menu_item_ingredients.all()]
+    item_descriptions = []
+    for item in instance.menu_items.all():
+        ingredients = ", ".join([f"{ingredient.name} x {ingredient.quantity}" for ingredient in item.ingredients.all()])
+        item_descriptions.append(f"{item.name} - {ingredients}")
+
     items_detail = ", ".join(item_descriptions)
 
     title = ""
