@@ -1,8 +1,8 @@
 # notification/routing.py
 
 from django.urls import re_path
-from .consumers import NotificationConsumer
+from .consumers import WaiterNotificationConsumer
 
 websocket_urlpatterns = [
-    re_path(r'ws/notifications/$', NotificationConsumer.as_asgi()),
+    re_path(r'ws/waiter/(?P<user_id>\d+)/$', WaiterNotificationConsumer.as_asgi()),
 ]
