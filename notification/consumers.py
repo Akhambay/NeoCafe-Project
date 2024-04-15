@@ -13,6 +13,7 @@ class CustomerNotificationConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
+        print("WebSocket connected!")
         self.user_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.user = await self.get_user(self.user_id)
         print(self.user)
@@ -73,6 +74,7 @@ class WaiterNotificationConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
+        print("WebSocket connected!")
         self.waiter_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.waiter = await self.get_user(self.waiter_id)
         print(self.waiter)
@@ -133,6 +135,7 @@ class AdminNotificationConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
+        print("WebSocket connected!")
         self.admin_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.admin = await self.get_user(self.admin_id)
         print(self.admin)
@@ -193,6 +196,7 @@ class BartenderNotificationConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
+        print("WebSocket connected!")
         self.bartender_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.bartender = await self.get_user(self.bartender_id)
         print(self.bartender)

@@ -26,3 +26,16 @@ application = ProtocolTypeRouter(
         ),
     }
 )
+
+
+# from channels.routing import ProtocolTypeRouter, URLRouter
+# from django.urls import path
+# from django.core.asgi import get_asgi_application
+# import notification.routing
+
+# application = ProtocolTypeRouter({
+#     "http": get_asgi_application(),
+#     "websocket": URLRouter(
+#         notification.routing.websocket_urlpatterns
+#     ),
+# })
