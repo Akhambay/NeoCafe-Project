@@ -1,7 +1,20 @@
 from django.db import models
+
+from menu.models import Branch
 from orders.models import Order
+from users.models import CustomUser
+
 
 class Notification(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, blank=True, null=True)
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50)
+    read = models.BooleanField(default=False)
+
+    recipient = models.ForeignKey(CustomUser, related_name='notifications', on_delete=models.CASCADE)
+    position = models.CharField(max_length=20,blank=True)
+
+
+    def __str__(self):
+        return f"{self.title} - {self.status}"

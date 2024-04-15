@@ -1,24 +1,28 @@
-# views.py
-
-from django.shortcuts import render
+from django.http import Http404
+from loguru import logger
 from .models import Notification
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, serializers
 
-def notifications_page(request):
-    #notifications = Notification.objects.filter(is_read=False, order__order_status='Готов')
-    return render(request, 'notifications.html')
+class NotificationDeleteView(APIView):
+    serializer_class = serializers.Serializer
+    def delete(self, request, pk, format=None):
+        try:
+            notification = Notification.objects.get(pk=pk, recipient=request.user)
+            notification.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Notification.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Notification
-from .serializers import NotificationSerializer
 
-class NotificationListView(APIView):
-    def get(self, request):
-        # Retrieve notifications for the authenticated user
-        notifications = Notification.objects.filter(user=request.user)
-        serializer = NotificationSerializer(notifications, many=True)
-        return Response(serializer.data)
+class NotificationAllDeleteView(APIView):
+    serializer_class = serializers.Serializer
+
+    def delete(self, request, format=None):
+        try:
+            notifications = Notification.objects.filter(recipient=request.user)
+            notifications.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Notification.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)

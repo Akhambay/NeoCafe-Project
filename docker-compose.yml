@@ -22,3 +22,36 @@ services:
       - .env
     depends_on:
       - db
+    networks:
+      - my_custom_network
+
+  channels:
+    build: .
+    volumes:
+      - .:/config
+    ports:
+      - "8001:8001"
+    command: >
+      bash -c "uvicorn neocafe_config.asgi:application --host 0.0.0.0 --port 8001 --reload"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - my_custom_network
+
+#   redis:
+#     image: "redis:latest"
+#     ports:
+#       - "6379:6379"
+#     networks:
+#       - my_custom_network
+
+
+# networks:
+#   my_custom_network:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 172.20.0.0/16
+#           gateway: 172.20.0.1
