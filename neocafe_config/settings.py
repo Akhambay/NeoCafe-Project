@@ -68,26 +68,22 @@ WSGI_APPLICATION = 'neocafe_config.wsgi.application'
 ASGI_APPLICATION = 'neocafe_config.asgi.application'
 #ASGI_APPLICATION = 'neocafe_config.routing.application'
 
-REDIS_HOST = "redis"
-REDIS_PORT = "6379"
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "hosts": [('tokyo-backender.org.kg', '6379')],
         },
     },
 }
 
 # Celery settings.
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
-
+CELERY_BROKER_URL = f"redis://tokyo-backender.org.kg:6379/0"
 
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'LOCATION': 'redis://tokyo-backender.org.kg:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
@@ -95,10 +91,12 @@ CACHES = {
 }
 
 
+
 CORS_ALLOWED_ORIGINS = (
     'http://localhost:3000',
     'http://localhost:8000',
     'https://tokyo-backender.org.kg',
+    'https://wwww.tokyo-backender.org.kg',
     'http://localhost:5173',
     'http://localhost:5174',
     'https://neo-cafe.vercel.app',
