@@ -127,7 +127,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'neocafe_config.wsgi.application'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -153,7 +153,7 @@ if DEBUG:
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),  # use 'db' as the host name
+        'HOST': 'db',
         'PORT': os.getenv('DB_PORT'),
     }
 }
