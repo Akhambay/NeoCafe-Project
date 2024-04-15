@@ -68,6 +68,21 @@ WSGI_APPLICATION = 'neocafe_config.wsgi.application'
 ASGI_APPLICATION = 'neocafe_config.asgi.application'
 #ASGI_APPLICATION = 'neocafe_config.routing.application'
 
+REDIS_HOST = "redis"
+REDIS_PORT = "6379"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
+
+# Celery settings.
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+
 
 CACHES = {
     'default': {
