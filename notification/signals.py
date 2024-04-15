@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from loguru import logger
 from channels.layers import get_channel_layer
+from channels.routing import get_default_channel_layer  # Import this
 from asgiref.sync import async_to_sync
 
 from menu.models import Menu_Item
@@ -26,7 +27,7 @@ def notify_customers(sender, instance, **kwargs):
     """
     logger.info("Updating notifications")
     time.sleep(SLEEP_TIME)
-    channel_layer = get_channel_layer()
+    channel_layer = get_default_channel_layer()  # Use this function
     async_to_sync(channel_layer.group_send)(
         "branch",
         {
@@ -40,7 +41,7 @@ def notify_customers(sender, instance, **kwargs):
 def notify_customers_on_delete(sender, instance, **kwargs):
     logger.info("Updating notifications")
     time.sleep(SLEEP_TIME)
-    channel_layer = get_channel_layer()
+    channel_layer = get_default_channel_layer()  # Use this function
     async_to_sync(channel_layer.group_send)(
         "branch",
         {
@@ -78,7 +79,7 @@ def customer_status_changed(sender, instance, created, **kwargs):
 
         user_name = f"customer-{instance.customer.id}"
 
-        channel_layer = get_channel_layer()
+        channel_layer = get_default_channel_layer()  # Use this function
         async_to_sync(channel_layer.group_send)(
             user_name,
             {
@@ -119,7 +120,7 @@ def waiter_status_changed(sender, instance, created, **kwargs):
 
         waiter_name = f"waiter-{instance.employee.id}"
 
-        channel_layer = get_channel_layer()
+        channel_layer = get_default_channel_layer()  # Use this function
         async_to_sync(channel_layer.group_send)(
             waiter_name,
             {
@@ -141,7 +142,7 @@ def storage_item_check(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -159,7 +160,7 @@ def branch_notification(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -176,7 +177,7 @@ def branch_deleted_notification(sender, instance, **kwargs):
             recipient=admin,
         )
 
-        channel_layer = get_channel_layer()
+        channel_layer = get_default_channel_layer()  # Use this function
         async_to_sync(channel_layer.group_send)(
             f"admin-{admin.id}",
             {
@@ -196,7 +197,7 @@ def storage_item_created(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -214,7 +215,7 @@ def storage_item_deleted(sender, instance, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -233,7 +234,7 @@ def menu_item_created(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -250,7 +251,7 @@ def menu_item_deleted(sender, instance, **kwargs):
             recipient=admin,
         )
 
-        channel_layer = get_channel_layer()
+        channel_layer = get_default_channel_layer()  # Use this function
         async_to_sync(channel_layer.group_send)(
             f"admin-{admin.id}",
             {
@@ -270,7 +271,7 @@ def storage_ready_created(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -289,7 +290,7 @@ def storage_ready_deleted(sender, instance, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -307,7 +308,7 @@ def staff_created(sender, instance, created, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
@@ -326,29 +327,13 @@ def staff_deleted(sender, instance, **kwargs):
                 recipient=admin,
             )
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 f"admin-{admin.id}",
                 {
                     "type": "get_notifications_handler",
                 }
             )
-
-    # first_name = models.CharField(max_length=50)
-    # last_name = models.CharField(null=True, blank=True, max_length=50)
-    # user_type = models.CharField(
-    #     max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
-
-    # email = models.EmailField(
-    #     max_length=30, unique=True, null=True)
-    # bonus_points = models.PositiveIntegerField(default=0)
-    # confirmation_code = models.CharField(
-    #     max_length=4, blank=True, null=True, verbose_name='Confirmation Code')
-    # branch = models.ForeignKey(
-    #     Branch, on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
-    # is_staff = models.BooleanField(default=True)
-    # orders = models.ManyToManyField(
-    #     'orders.Order', related_name='orders', blank=True)
 
 
 bartenders = User.objects.filter(user_type="Bartender")
@@ -384,7 +369,7 @@ def bartender_status_accept(sender, instance, created, **kwargs):
 
             bartender_name = f"bartender-{bartender.id}"
 
-            channel_layer = get_channel_layer()
+            channel_layer = get_default_channel_layer()  # Use this function
             async_to_sync(channel_layer.group_send)(
                 bartender_name,
                 {
