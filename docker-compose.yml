@@ -4,7 +4,9 @@ services:
   db:
     image: postgres:latest
     networks:
-      - my_custom_network
+      my_custom_network:
+        aliases:
+          - db
     restart: always
     env_file:
       - .env
@@ -20,9 +22,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      aliases:
-        - db
 
   app:
     build: .
@@ -34,4 +33,38 @@ services:
     ports:
       - "8000:8000"
     command: >
-      bash -c "/wait-for-it.sh -t 
+      bash -c "/wait-for-it.sh -t 30 db:5432 -- python manage.py collectstatic --no-input && python manage.py migrate && gunicorn neocafe_config.wsgi:application -w 4 -b 0.0.0.0:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  channels:
+    build: .
+    volumes:
+      - .:/config
+    ports:
+      - "8001:8001"
+    command: >
+      bash -c "uvicorn neocafe_config.asgi:application --host 0.0.0.0 --port 8001 --reload"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - my_custom_network
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    networks:
+      - my_custom_network
+
+networks:
+  my_custom_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
