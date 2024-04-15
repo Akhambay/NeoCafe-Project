@@ -77,7 +77,11 @@ CORS_ALLOWED_ORIGINS = (
 )
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174',
-                        'http://localhost:8000', 'https://tokyo-backender.org.kg', 'https://neo-cafe.vercel.app',]
+                        'http://localhost:8000', 'https://tokyo-backender.org.kg', 'https://neo-cafe.vercel.app',
+                        'https://www.tokyo-backender.org.kg',]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
