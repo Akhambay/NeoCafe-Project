@@ -63,7 +63,9 @@ INSTALLED_APPS = [
 ]
 
 WSGI_APPLICATION = 'neocafe_config.wsgi.application'
-ASGI_APPLICATION = 'neocafe_config.asgi.application'
+# ASGI_APPLICATION = 'neocafe_config.asgi.application'
+ASGI_APPLICATION = 'neocafe_config.routing.application'
+
 
 CORS_ALLOWED_ORIGINS = (
     'http://localhost:3000',
