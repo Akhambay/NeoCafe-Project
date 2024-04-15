@@ -153,7 +153,7 @@ if DEBUG:
             'NAME': os.getenv('DB_NAME'),
             'USER': os.getenv('DB_USER'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': '172.20.0.2',
+            'HOST': 'neocafe-project-db-1',
             'PORT': os.getenv('DB_PORT'),
         }
     }
