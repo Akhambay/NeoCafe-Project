@@ -1,7 +1,7 @@
 from .models import Order
 from decimal import Decimal
 from rest_framework import serializers
-from .models import Order, ItemToOrder, Table
+from .models import Order, ItemToOrder, Table, OrderItemExtraProduct
 from menu.models import Stock
 from django.utils import timezone
 from django.db import transaction
@@ -15,15 +15,23 @@ from datetime import datetime
 официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
 """
 
+class ExtraProductSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    quantity = serializers.IntegerField()
+
+    class Meta:
+        model = OrderItemExtraProduct
+        fields = ['id', 'quantity']
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
     item_name = serializers.SerializerMethodField()
+    extra_product = ExtraProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'item_name', 'quantity', 'total_price']
+        fields = ['id', 'item', 'item_name', 'quantity', 'total_price', 'extra_product']
 
     def get_total_price(self, obj):
         return obj.item.price_per_unit * obj.quantity
