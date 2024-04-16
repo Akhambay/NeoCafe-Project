@@ -11,7 +11,7 @@ cloudinary==1.39.1
 cryptography==42.0.5
 defusedxml==0.7.1
 dj-rest-auth==5.1.0
-Django==4.2.11
+Django==4.2.10
 django-allauth==0.61.1
 django-channels==0.7.0
 django-cloudinary-storage==0.3.0
