@@ -66,7 +66,6 @@ INSTALLED_APPS = [
 
 WSGI_APPLICATION = 'neocafe_config.wsgi.application'
 ASGI_APPLICATION = 'neocafe_config.asgi.application'
-#ASGI_APPLICATION = 'neocafe_config.routing.application'
 
 
 CHANNEL_LAYERS = {
@@ -78,7 +77,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-CELERY_BROKER_URL = f"redis://redis:6379/0"
+CELERY_BROKER_URL = "redis://redis:6379/0"
 
 CACHES = {
     'default': {
