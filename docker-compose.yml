@@ -25,33 +25,12 @@ services:
 
   app:
     build: .
-    networks:
-      - my_custom_network
     volumes:
       - .:/config
-      - ./static:/app/static
     ports:
       - "8000:8000"
     command: >
-      bash -c "/wait-for-it.sh -t 30 db:5432 -- python manage.py collectstatic --no-input && python manage.py migrate && gunicorn neocafe_config.wsgi:application -w 4 -b 0.0.0.0:8000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-
-  channels:
-    build: .
-    volumes:
-      - .:/config
-    ports:
-      - "8001:8001"
-    command: >
-      bash -c "uvicorn neocafe_config.asgi:application --host 0.0.0.0 --port 8001 --reload"
+      bash -c "uvicorn neocafe_config.asgi:application --host 0.0.0.0 --port 8000 --reload"
     env_file:
       - .env
     depends_on:
