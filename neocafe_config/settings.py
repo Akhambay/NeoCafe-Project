@@ -269,10 +269,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
+
+
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': "dmysfugtd",
-    'API_KEY': "347283367819982",
-    'API_SECRET': "uBGpubVL25VUdaEkCc_uxkRkCKE"
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET')
 }
+
