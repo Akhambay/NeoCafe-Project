@@ -1,9 +1,9 @@
-from django.urls import path
+from django.urls import re_path
 from .consumers import CustomerNotificationConsumer, WaiterNotificationConsumer, AdminNotificationConsumer, BartenderNotificationConsumer
 
 websocket_urlpatterns = [
-    path('ws/customer/<int:user_id>/', CustomerNotificationConsumer.as_asgi()),
-    path('ws/waiter/<int:user_id>/', WaiterNotificationConsumer.as_asgi()),
-    path('ws/admin/<int:user_id>/', AdminNotificationConsumer.as_asgi()),
-    path('ws/bartender/<int:user_id>/', BartenderNotificationConsumer.as_asgi()),
+    re_path(r'ws/customer/(?P<user_id>\d+)/$', CustomerNotificationConsumer.as_asgi()),
+    re_path(r'ws/waiter/(?P<user_id>\d+)/$', WaiterNotificationConsumer.as_asgi()),
+    re_path(r'ws/admin/(?P<user_id>\d+)/$', AdminNotificationConsumer.as_asgi()),
+    re_path(r'ws/bartender/(?P<user_id>\d+)/$', BartenderNotificationConsumer.as_asgi()),
 ]
