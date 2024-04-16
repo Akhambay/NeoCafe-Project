@@ -72,18 +72,18 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [('tokyo-backender.org.kg', '6379')],
+            "hosts": [('redis', '6379')],
         },
     },
 }
 
 # Celery settings.
-CELERY_BROKER_URL = f"redis://tokyo-backender.org.kg:6379/0"
+CELERY_BROKER_URL = f"redis://redis:6379/0"
 
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://tokyo-backender.org.kg:6379/1',
+        'LOCATION': 'redis://redis:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
