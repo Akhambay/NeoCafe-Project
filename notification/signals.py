@@ -52,7 +52,7 @@ def notify_customers_on_delete(sender, instance, **kwargs):
 def customer_status_changed(sender, instance, created, **kwargs):
     logger.info(f"Signal received for order with id {instance.id}. Created: {created}")
 
-    item_descriptions = [f"{item.menu_item.name} x {item.quantity}" for item in instance.ITO.all()]
+    item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
     title = ""
@@ -90,7 +90,7 @@ def customer_status_changed(sender, instance, created, **kwargs):
 def waiter_status_changed(sender, instance, created, **kwargs):
     logger.info(f"Signal received for order with id {instance.id}. Created: {created}")
 
-    item_descriptions = [f"{item.menu_item.name} x {item.quantity}" for item in instance.ITO.all()]
+    item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
     title = ""
@@ -342,7 +342,7 @@ bartenders = User.objects.filter(user_type="Bartender")
 def bartender_status_accept(sender, instance, created, **kwargs):
     logger.info(f"Signal received for order with id {instance.id}. Created: {created}")
 
-    item_descriptions = [f"{item.menu_item.name} x {item.quantity}" for item in instance.ITO.all()]
+    item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
     title = ""
