@@ -9,6 +9,8 @@ from django.db.models import F, ExpressionWrapper, fields
 from django.db.models.fields import IntegerField
 from django.db.models import Case, When, Value, BooleanField
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
+from .serializers import ExtraItemSerializer
 # ===========================================================================
 # CATEGORY
 # ===========================================================================
@@ -542,3 +544,11 @@ class BranchMenuByCategoryView(generics.ListAPIView):
                 return False
 
         return True
+
+class ExtraItemCreateView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ExtraItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

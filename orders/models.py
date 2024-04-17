@@ -100,7 +100,13 @@ class ItemToOrder(models.Model):
         related_name="extra_order",
     )
 
-class OrderItemExtraProduct(models.Model):
+class ExtraItemToOrder(models.Model):
     order_item = models.ForeignKey(ItemToOrder, on_delete=models.CASCADE)
-    extra_product = models.ForeignKey(ExtraItem, on_delete=models.CASCADE)
+    extra_item = models.ForeignKey(ExtraItem, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        unique_together = ('order_item', 'extra_item')
+
+    def __str__(self):
+        return f"{self.extra_item.name} ({self.quantity})"

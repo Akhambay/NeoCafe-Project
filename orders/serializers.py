@@ -1,7 +1,7 @@
 from .models import Order
 from decimal import Decimal
 from rest_framework import serializers
-from .models import Order, ItemToOrder, Table, OrderItemExtraProduct
+from .models import Order, ItemToOrder, Table, ExtraItemToOrder
 from menu.models import Stock, ExtraItem
 from django.utils import timezone
 from django.db import transaction
@@ -24,11 +24,10 @@ class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
     item_name = serializers.SerializerMethodField()
-    extra_product = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'item_name', 'quantity', 'total_price', 'extra_product']
+        fields = ['id', 'item', 'item_name', 'quantity', 'total_price']
 
     def get_total_price(self, obj):
         return obj.item.price_per_unit * obj.quantity
@@ -83,11 +82,12 @@ class OrderSerializer(serializers.ModelSerializer):
     updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
     employee_profile = serializers.SerializerMethodField()
+    extra_items = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'table', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO', 'extra_items']
 
     def get_employee_profile(self, instance):
         from users.models import CustomUser
@@ -184,11 +184,12 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
     completed_at = TimeField(allow_null=True, required=False)
     table = TableSerializer()
     employee_profile = serializers.SerializerMethodField()
+    extra_items = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'table', 'order_status',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'order_type', 'total_sum', 'employee_profile', 'ITO', 'extra_items']
 
     def get_employee_profile(self, instance):
         from users.models import WaiterProfile, BartenderProfile
@@ -268,15 +269,29 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
                         break
 
         # If all ingredients are enough in stock, subtract ingredients from stock
-        if instance.order_status == "В процессе" and ingredients_in_stock:
-            for ito_item_data in ito_data:
-                for ingredient in ito_item_instance.item.ingredients.all():
+        if instance.order_status == "В процессе":
+            extra_items_data = validated_data.pop('extra_items', [])
+            
+            for extra_item_data in extra_items_data:
+                extra_item_id = extra_item_data.get('id')
+                extra_item_quantity = extra_item_data.get('quantity')
+                
+                extra_item = ExtraItem.objects.filter(id=extra_item_id).first()
+                if extra_item:
+                    required_quantity = extra_item_quantity
+                    
                     stock_item = Stock.objects.filter(
-                        branch=instance.branch, stock_item=ingredient.name).first()
-                    if stock_item:
-                        required_quantity = ito_item_quantity * ingredient.quantity
-                        stock_item.current_quantity -= required_quantity
-                        stock_item.save()
+                        branch=instance.branch, stock_item=extra_item.name).first()
+                    
+                    if not stock_item or stock_item.current_quantity < required_quantity:
+                        raise serializers.ValidationError(
+                            f"Not enough stock for extra item with id {extra_item_id}")
+                        
+                    stock_item.current_quantity -= required_quantity
+                    stock_item.save()
+                    
+                    ExtraItemToOrder.objects.update_or_create(
+                        order=instance, extra_item=extra_item, defaults={'quantity': extra_item_quantity})
 
         # Delete any remaining ItemToOrder instances (if any)
         for ito_item_instance in existing_ito_items.values():
@@ -369,11 +384,12 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
     updated_at = TimeField(required=False, default=timezone.now)
     completed_at = TimeField(allow_null=True, required=False)
     customer_profile = serializers.SerializerMethodField()
+    extra_items = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'order_status', "order_type",
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract', 'extra_items']
 
     def get_customer_profile(self, instance):
         from users.models import CustomUser
@@ -395,12 +411,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         from users.serializers import CustomerProfileSerializer
         # Calculate total sum
         total_sum = self.get_total_sum(validated_data)
-        print("total_sum", total_sum)
 
         # Calculate bonus points to subtract
         bonus_points_to_subtract = validated_data.get(
             'bonus_points_to_subtract', 0)
-        print("bonus_points_to_subtract", bonus_points_to_subtract)
 
         # Retrieve the authenticated user
         authenticated_user = self.context['request'].user
@@ -409,7 +423,6 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         new_bonus_points = authenticated_user.bonus_points - \
             bonus_points_to_subtract + \
             Decimal('0.1') * (total_sum - bonus_points_to_subtract)
-        print("new_bonus_points", new_bonus_points)
 
         # Update the authenticated user's bonus points
         authenticated_user.bonus_points = new_bonus_points
@@ -417,6 +430,7 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
 
         # Continue with order creation
         ito_data = validated_data.pop('ITO', None)
+        extra_items_data = validated_data.pop('extra_items', [])
         branch = validated_data.pop('branch', None)
 
         if not branch:
@@ -430,6 +444,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         if ito_data:
             for ito_item_data in ito_data:
                 ItemToOrder.objects.create(order=order, **ito_item_data)
+
+        if extra_items_data:
+            for extra_item_data in extra_items_data:
+                ExtraItemToOrder.objects.create(order=order, **extra_item_data)
 
         return order
 
@@ -453,6 +471,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
             data['created_at'] = timezone.now()  # Set current time as default
         if data.get('updated_at') is None:
             data['updated_at'] = timezone.now()  # Set current time as default
+        extra_items = self.initial_data.get('extra_items', [])
+        for item in extra_items:
+            if 'id' not in item or 'quantity' not in item:
+                raise serializers.ValidationError("Each extra item must have 'id' and 'quantity' fields.")
         return data
 
     def get_ITO(self, instance):
@@ -475,11 +497,12 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
     customer_profile = serializers.SerializerMethodField()
     branch_name = serializers.SerializerMethodField()
     bonus_points_to_subtract = serializers.IntegerField()
+    extra_items = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = Order
         fields = ['id', 'order_number', 'order_status', 'order_type',
-                  'created_at', 'updated_at', 'completed_at', 'branch', 'branch_name', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract']
+                  'created_at', 'updated_at', 'completed_at', 'branch', 'branch_name', 'total_sum', 'customer_profile', 'ITO', 'bonus_points_to_subtract', 'extra_items']
 
 
     def update(self, instance, validated_data):
@@ -540,16 +563,29 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
                         ingredients_in_stock = False
                         break
 
-        # If all ingredients are enough in stock, subtract ingredients from stock
         if instance.order_status == "В процессе" and ingredients_in_stock:
-            for ito_item_data in ito_data:
-                for ingredient in ito_item_instance.item.ingredients.all():
+            extra_items_data = validated_data.pop('extra_items', [])
+            
+            for extra_item_data in extra_items_data:
+                extra_item_id = extra_item_data.get('id')
+                extra_item_quantity = extra_item_data.get('quantity')
+                
+                extra_item = ExtraItem.objects.filter(id=extra_item_id).first()
+                if extra_item:
+                    required_quantity = extra_item_quantity
+                    
                     stock_item = Stock.objects.filter(
-                        branch=instance.branch, stock_item=ingredient.name).first()
-                    if stock_item:
-                        required_quantity = ito_item_quantity * ingredient.quantity
-                        stock_item.current_quantity -= required_quantity
-                        stock_item.save()
+                        branch=instance.branch, stock_item=extra_item.name).first()
+                    
+                    if not stock_item or stock_item.current_quantity < required_quantity:
+                        raise serializers.ValidationError(
+                            f"Not enough stock for extra item with id {extra_item_id}")
+                        
+                    stock_item.current_quantity -= required_quantity
+                    stock_item.save()
+                    
+                    ExtraItemToOrder.objects.update_or_create(
+                        order=instance, extra_item=extra_item, defaults={'quantity': extra_item_quantity})
 
         # Delete any remaining ItemToOrder instances (if any)
         for ito_item_instance in existing_ito_items.values():

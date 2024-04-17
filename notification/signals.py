@@ -61,6 +61,8 @@ def customer_status_changed(sender, instance, created, **kwargs):
     if instance.order_status == 'Новый':
         title = f"Ваш заказ оформлен"
         description = f"{items_detail}"
+    elif instance.order_status == 'В процессе':
+        title = f"Бармен принял заказ"
     elif instance.order_status == 'Готов':
         title = f"Ваш заказ готов"
         description = f"{items_detail}"
@@ -146,8 +148,8 @@ def storage_item_check(sender, instance, created, **kwargs):
 
         for admin in admins:
             Notification.objects.create(
-                title=f"Товар \"{instance.stock_item}\" заканчивается",
-                description=f"Количество на складе: {instance.current_quantity} {instance.measurement_unit}",
+                title=f"Заканчивается продукт: {instance.stock_item}",
+                description=f"Филиал: {instance.branch}",
                 recipient=admin,
             )
 
@@ -271,7 +273,7 @@ def menu_item_deleted(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Stock, dispatch_uid="storage_ready_created")
 def storage_ready_created(sender, instance, created, **kwargs):
-    if created and instance.type == "Готовые продукты":
+    if created and instance.type == "Готовое изделие":
 
         for admin in admins:
             Notification.objects.create(
@@ -291,7 +293,7 @@ def storage_ready_created(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Stock, dispatch_uid="storage_ready_deleted")
 def storage_ready_deleted(sender, instance, **kwargs):
-    if instance.type == "Готовые продукты":
+    if instance.type == "Готовое изделие":
 
         for admin in admins:
             Notification.objects.create(

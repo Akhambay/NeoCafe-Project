@@ -108,21 +108,19 @@ class MenuItemIngredient(models.Model):
         return f"{self.menu_item.name} - {self.ingredient.name} ({self.quantity})"
 
 class ExtraItem(models.Model):
-    MILK = 'Молоко'
-    SYRUP = 'Сироп'
     TYPE_CHOICES = [
-        (MILK, 'Молоко'),
-        (SYRUP, 'Сиропы')
+        ('Молоко', 'Молоко'),
+        ('Сироп', 'Сиропы')
     ]
 
-    choice_category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="extra_products", null=True
-    )
     type_extra_product = models.CharField(
         max_length=20, choices=TYPE_CHOICES, null=True
     )
     name = models.CharField(max_length=100, unique=True)
     quantity = models.PositiveIntegerField(default=0)
+    measurement_unit = models.CharField(
+        max_length=15, default="мл")
+    
 
     class Meta:
         ordering = ["name"]

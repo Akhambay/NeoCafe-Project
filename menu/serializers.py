@@ -214,4 +214,4 @@ class StockAddSerializer(serializers.ModelSerializer):
 class ExtraItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExtraItem
-        fields = ['id', 'name', 'type_extra_product', 'choice_category', 'quantity']
+        fields = ['id', 'type_extra_product', 'name',  'quantity', 'measurement_unit',]

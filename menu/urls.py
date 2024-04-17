@@ -3,7 +3,7 @@ from .views import (MenuItemCreateView, MenuItemList, MenuItemDetail,
                     CategoryCreateView, CategoryList, CategoryDetail,
                     StockItemCreateView, StockItemsList, StockItemDetail,
                     StockItemsNotEnoughList, StockItemsEnoughList, StockItemsRawEnoughList,
-                    BranchMenuView, BranchMenuByCategoryView,
+                    BranchMenuView, BranchMenuByCategoryView, ExtraItemCreateView
                     )
 
 urlpatterns = [
@@ -31,4 +31,6 @@ urlpatterns = [
          BranchMenuView.as_view(), name='branch-menu'),
     path('branch-menu/<int:branch_id>/<int:category_id>/',
          BranchMenuByCategoryView.as_view(), name='branch-menu-category'),
+    path('extra-items/add/', ExtraItemCreateView.as_view(), name='extra-item-create'),
+     
 ]
