@@ -3,6 +3,6 @@ from .models import Notification
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description', 'timestamp', 'status', 'recipient', 'table', 'read')
-    fields = ('title', 'description', 'timestamp', 'status', 'recipient', 'table', 'read')
+    list_display = ('title', 'description', 'timestamp', 'status', 'recipient', 'read', 'table')
+    fields = ('title', 'description', 'timestamp', 'status', 'recipient', 'read', 'table')
     readonly_fields = ('timestamp',)
