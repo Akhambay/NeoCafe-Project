@@ -93,26 +93,36 @@ def waiter_status_changed(sender, instance, created, **kwargs):
     item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
+    table_number = ""
     title = ""
     description = ""
 
     if instance.order_status == 'Новый':
         title = f"Ваш заказ оформлен"
         description = f"{items_detail}"
+        table_number = f"{instance.table}"
     elif instance.order_status == 'Готов':
         title = f"Заказ готов"
         description = f"{items_detail}"
+        table_number = f"{instance.table}"
     elif instance.order_status == 'В процессе':
         title = f"Бармен принял заказ"
         description = f"{items_detail}"
+        table_number = f"{instance.table}"
+    elif instance.order_status == 'Отменен':
+        title = f"Заказ отменен"
+        description = f"{items_detail}"
+        table_number = f"{instance.table}"
     elif instance.order_status == 'Завершен':
         title = f"Закрытие счета"
         description = f"{items_detail}"
+        table_number = f"{instance.table}"
 
-    if title and description and instance.employee:
+    if title and description and table_number and instance.employee:
         Notification.objects.create(
             title=title,
             description=description,
+            table=table_number,
             recipient=instance.employee,
             status=instance.order_status
         )
@@ -345,25 +355,28 @@ def bartender_status_accept(sender, instance, created, **kwargs):
     item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
+    table_number = ""
     title = ""
     description = ""
 
     if instance.order_status == 'Новый':
         for bartender in bartenders:
             if bartender.branch == instance.branch:
-                if instance.order_status == 'На вынос':
+                if instance.order_status == 'Takeaway':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
-                elif instance.order_status == 'В заведении':
+                elif instance.order_status == 'In Venue':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
+                    table_number = f"{instance.table}"
 
             if title and description and instance.employee:
                 Notification.objects.create(
                     title=title,
                     description=description,
                     recipient=bartender,
-                    status=instance.order_status
+                    status=instance.order_status,
+                    table = table_number
                 )
 
             bartender_name = f"bartender-{bartender.id}"

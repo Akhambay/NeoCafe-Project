@@ -346,7 +346,6 @@ class StockItemsNotEnoughList(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
 @extend_schema(
     description="Get a list of stock items with quantity greater than minimum for \"Готовое изделие\"",
     summary="List Stock Items with Quantity > Minimum (\"Готовое изделие\")",
@@ -394,7 +393,6 @@ class StockItemsEnoughList(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
 
 @extend_schema(
     description="Get a list of stock items with quantity greater than minimum for \"Сырьё\"",
@@ -448,7 +446,6 @@ class StockItemsRawEnoughList(generics.ListAPIView):
 # BRANCH MENU
 # ===========================================================================
 
-
 class BranchMenuView(generics.ListAPIView):
     serializer_class = MenuItemListSerializer
     # permission_classes = [IsAuthenticated]
@@ -471,7 +468,7 @@ class BranchMenuView(generics.ListAPIView):
         print(f"Available Menu Items: {available_menu_items}")
 
         return available_menu_items
-
+    
     def menu_item_has_enough_ingredients(self, menu_item, branch):
         for ingredient in menu_item.ingredients.all():
             print(f"Ingredient Name: {ingredient.name}")

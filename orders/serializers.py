@@ -1,8 +1,8 @@
 from .models import Order
 from decimal import Decimal
 from rest_framework import serializers
-from .models import Order, ItemToOrder, Table #OrderItemExtraProduct
-from menu.models import Stock
+from .models import Order, ItemToOrder, Table, OrderItemExtraProduct
+from menu.models import Stock, ExtraItem
 from django.utils import timezone
 from django.db import transaction
 from datetime import datetime
@@ -15,23 +15,20 @@ from datetime import datetime
 официант уже сам заказ закрывает после оплаты = переводит в статус завершено.
 """
 
-# class ExtraProductSerializer(serializers.ModelSerializer):
-#     id = serializers.IntegerField()
-#     quantity = serializers.IntegerField()
-
-#     class Meta:
-#         model = OrderItemExtraProduct
-#         fields = ['id', 'quantity']
+class ExtraItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExtraItem
+        fields = ['id', 'quantity']
 
 class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
     item_name = serializers.SerializerMethodField()
-    #extra_product = ExtraProductSerializer(many=True, read_only=True)
+    extra_product = ExtraItemSerializer(many=True, required=False)
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'item_name', 'quantity', 'total_price',] #  'extra_product'
+        fields = ['id', 'item', 'item_name', 'quantity', 'total_price', 'extra_product']
 
     def get_total_price(self, obj):
         return obj.item.price_per_unit * obj.quantity
@@ -126,21 +123,6 @@ class OrderSerializer(serializers.ModelSerializer):
         ito_data = validated_data.pop('ITO', [])
         existing_ito_items = {
             ito_item.id: ito_item for ito_item in instance.ITO.all()}
-
-        # Check if the order includes items from the "Coffee" category
-        is_coffee_order = any(item.category.name == "Кофе" for item in instance.ITO.all())
-
-        # If it's a coffee order, subtract milk and syrup from stock
-        if is_coffee_order:
-            for ito_item_data in ito_data:
-                for ingredient in ito_item_data['item'].ingredients.all():
-                    if ingredient.name == "Молоко" or ingredient.name == "Сироп":
-                        stock_item = Stock.objects.filter(
-                            branch=instance.branch, stock_item=ingredient.name).first()
-                        if stock_item:
-                            required_quantity = ito_item_data['quantity'] * ingredient.quantity
-                            stock_item.current_quantity -= required_quantity
-                            stock_item.save()
 
         # Delete any remaining ItemToOrder instances (if any)
         for ito_item_instance in existing_ito_items.values():

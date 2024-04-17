@@ -1,5 +1,5 @@
 from django.db import models
-from menu.models import Menu_Item, Branch #ExtraItem
+from menu.models import Menu_Item, Branch, ExtraItem
 from users.models import CustomUser
 from django.contrib.auth.models import User
 
@@ -94,13 +94,13 @@ class ItemToOrder(models.Model):
         Order, on_delete=models.CASCADE, related_name='ITO')
     item = models.ForeignKey(Menu_Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    # extra_product = models.ManyToManyField(
-    #     ExtraItem,
-    #     blank=True,
-    #     related_name="extra_order",
-    # )
+    extra_product = models.ManyToManyField(
+        ExtraItem,
+        blank=True,
+        related_name="extra_order",
+    )
 
-# class OrderItemExtraProduct(models.Model):
-#     order_item = models.ForeignKey(ItemToOrder, on_delete=models.CASCADE)
-#     extra_product = models.ForeignKey(ExtraItem, on_delete=models.CASCADE)
-#     quantity = models.PositiveIntegerField(default=1)
+class OrderItemExtraProduct(models.Model):
+    order_item = models.ForeignKey(ItemToOrder, on_delete=models.CASCADE)
+    extra_product = models.ForeignKey(ExtraItem, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)

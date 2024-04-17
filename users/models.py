@@ -114,6 +114,7 @@ class CustomUser(AbstractUser):
         ('Waiter', 'Waiter'),
         ('Bartender', 'Bartender'),
         ('Customer', 'Customer'),
+        ('Admin', 'Admin'),
     ]
 
     first_name = models.CharField(max_length=50)
