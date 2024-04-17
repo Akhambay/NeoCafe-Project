@@ -110,7 +110,7 @@ class WaiterNotificationConsumer(AsyncWebsocketConsumer):
                     "title": notification.title,
                     "description": notification.description,
                     "timestamp": notification.timestamp.strftime("%H:%M"),
-                    "table": notification.table,
+                    "table": notification.table
                 }
             )
             notification.read = True
@@ -233,7 +233,7 @@ class BartenderNotificationConsumer(AsyncWebsocketConsumer):
                     "title": notification.title,
                     "description": notification.description,
                     "timestamp": notification.timestamp.strftime("%H:%M"),
-                    "table": notification.table,
+                    "table": notification.table
                 }
             )
             notification.read = True
