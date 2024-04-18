@@ -64,9 +64,9 @@ class OrderView(APIView):
         if serializer.is_valid():
             serializer.save()
             with transaction.atomic():
-                if request.user.user_type == 'Waiter':
+                if request.user.user_type == 'Официант':
                     profile_model = WaiterProfile
-                elif request.user.user_type == 'Bartender':
+                elif request.user.user_type == 'Бармен':
                     profile_model = BartenderProfile
 
                 # Create or retrieve the profile
@@ -201,7 +201,7 @@ class OrderOnlineView(APIView):
         if serializer.is_valid():
             serializer.save()
             with transaction.atomic():
-                if request.user.user_type == 'Customer':
+                if request.user.user_type == 'Посетитель':
                     profile_model = CustomerProfile
 
                     user_profile, profile_created = create_or_get_customer_profile(

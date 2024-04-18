@@ -198,9 +198,9 @@ class EmployeeCreateView(generics.CreateAPIView):
         # Check user_type and create a profile if it's a Waiter or Bartender
         user_type = serializer.validated_data.get('user_type')
         profile = None
-        if user_type == 'Waiter':
+        if user_type == 'Официант':
             profile = WaiterProfile.objects.create(user=employee)
-        elif user_type == 'Bartender':
+        elif user_type == 'Бармен':
             profile = BartenderProfile.objects.create(user=employee)
 
         # Retrieve profile_id after creating the profile
@@ -209,9 +209,9 @@ class EmployeeCreateView(generics.CreateAPIView):
         return employee, profile_id
 
     def get_or_create_profile(self, user, user_type):
-        if user_type == 'Waiter':
+        if user_type == 'Официант':
             return WaiterProfile.objects.get_or_create(user=user)[0], True
-        elif user_type == 'Bartender':
+        elif user_type == 'Бармен':
             return BartenderProfile.objects.get_or_create(user=user)[0], True
         else:
             # Handle other user types if needed
@@ -236,7 +236,7 @@ class EmployeeList(generics.ListCreateAPIView):
     )
     def get_queryset(self):
         queryset = CustomUser.objects.filter(
-            user_type__in=['Waiter', 'Bartender']
+            user_type__in=['Официант', 'Бармен']
         ).order_by('-id')
 
         # Get the search parameters from the query parameters
@@ -311,7 +311,7 @@ class CustomerList(generics.ListCreateAPIView):
 
 class EmployeeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.filter(
-        user_type__in=['Waiter', 'Bartender']
+        user_type__in=['Официант', 'Бармен']
     )
     serializer_class = EmployeeSerializer
     # permission_classes = [IsAuthenticated]

@@ -95,14 +95,14 @@ class OrderSerializer(serializers.ModelSerializer):
         employee = instance.employee
         if employee:
             user_type = employee.user_type
-            if user_type == 'Waiter':
+            if user_type == 'Официант':
                 waiter_profile = CustomUser.objects.filter(
-                    id=employee.id, user_type='Waiter').first()
+                    id=employee.id, user_type='Официант').first()
                 if waiter_profile:
                     return CustomUserSerializer(waiter_profile).data
-            elif user_type == 'Bartender':
+            elif user_type == 'Бармен':
                 bartender_profile = CustomUser.objects.filter(
-                    id=employee.id, user_type='Bartender').first()
+                    id=employee.id, user_type='Бармен').first()
                 if bartender_profile:
                     return CustomUserSerializer(bartender_profile).data
         return None
@@ -198,12 +198,12 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
         employee = instance.employee
         if employee:
             user_type = employee.user_type
-            if user_type == 'Waiter':
+            if user_type == 'Официант':
                 waiter_profile = WaiterProfile.objects.filter(
                     user=employee).first()
                 if waiter_profile:
                     return WaiterProfileSerializer(waiter_profile).data
-            elif user_type == 'Bartender':
+            elif user_type == 'Бармен':
                 bartender_profile = BartenderProfile.objects.filter(
                     user=employee).first()
                 if bartender_profile:
@@ -398,10 +398,10 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
         customer = instance.customer
         if customer:
             user_type = customer.user_type
-            if user_type == "Customer":
+            if user_type == "Посетитель":
                 # Assuming 'customer_profile' is a related model field
                 customer_profile = CustomUser.objects.filter(
-                    id=customer.id, user_type="Customer").first()
+                    id=customer.id, user_type="Посетитель").first()
                 if customer_profile:
                     return CustomUserSerializer(customer_profile).data
         return None
@@ -615,7 +615,7 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
         from users.models import CustomerProfile
         from users.serializers import CustomerProfileSerializer
         customer = instance.customer
-        if customer and customer.user_type == "Customer":
+        if customer and customer.user_type == "Посетитель":
             # Assuming 'customer_profile' is a related model field
             customer_profile = CustomerProfile.objects.filter(
                 user=customer).first()

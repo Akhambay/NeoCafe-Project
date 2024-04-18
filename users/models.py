@@ -80,7 +80,7 @@ class Branch(models.Model):
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, user_type='Waiter', **extra_fields):
+    def create_user(self, email, password=None, user_type='Официант', **extra_fields):
         with transaction.atomic():
             if not email:
                 raise ValueError('The Email field must be set')
@@ -90,11 +90,11 @@ class CustomUserManager(BaseUserManager):
             user.save(using=self._db)
 
             # Create a profile for the user
-            if user_type == 'Waiter':
+            if user_type == 'Официант':
                 WaiterProfile.objects.create(user=user)
-            elif user_type == 'Bartender':
+            elif user_type == 'Бармен':
                 BartenderProfile.objects.create(user=user)
-            elif user_type == 'Customer':
+            elif user_type == 'Посетитель':
                 CustomerProfile.objects.create(user=user)
 
             return user
@@ -111,16 +111,16 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
-        ('Waiter', 'Waiter'),
-        ('Bartender', 'Bartender'),
-        ('Customer', 'Customer'),
-        ('Admin', 'Admin'),
+        ('Официант', 'Официант'),
+        ('Бармен', 'Бармен'),
+        ('Посетитель', 'Посетитель'),
+        ('Администратор', 'Администратор'),
     ]
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(null=True, blank=True, max_length=50)
     user_type = models.CharField(
-        max_length=50, choices=USER_TYPE_CHOICES, default='Waiter')
+        max_length=50, choices=USER_TYPE_CHOICES, default='Официант')
 
     email = models.EmailField(
         max_length=30, unique=True, null=True)
@@ -138,9 +138,9 @@ class CustomUser(AbstractUser):
     @property
     def profile(self):
         # Access the related profile based on user_type
-        if self.user_type == 'Waiter':
+        if self.user_type == 'Официант':
             return self.waiterprofile
-        elif self.user_type == 'Bartender':
+        elif self.user_type == 'Бармен':
             return self.bartenderprofile
         else:
             return None
@@ -171,7 +171,7 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, default='Waiter')
+        max_length=50, default='Официант')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
@@ -189,7 +189,7 @@ class WaiterProfile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, default='Waiter')
+        max_length=50, default='Официант')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(
@@ -203,7 +203,7 @@ class CustomerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser, related_name='customerprofile', on_delete=models.CASCADE, blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, default='Customer')
+        max_length=50, default='Посетитель')
     first_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(max_length=50, blank=True, null=True)
     orders = models.ForeignKey(
@@ -223,7 +223,7 @@ class BartenderProfile(models.Model):
     last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     user_type = models.CharField(
-        max_length=50, default='Bartender')
+        max_length=50, default='Бармен')
     schedule = models.ForeignKey(
         EmployeeSchedule, on_delete=models.SET_NULL, blank=True, null=True)
     branch = models.ForeignKey(

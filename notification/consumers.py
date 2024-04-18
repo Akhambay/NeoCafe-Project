@@ -17,7 +17,7 @@ class CustomerNotificationConsumer(AsyncWebsocketConsumer):
         self.user_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.user = await self.get_user(self.user_id)
         print(self.user)
-        if self.user.user_type == 'Customer':
+        if self.user.user_type == 'Посетитель':
             self.user_group_name = f"customer-{self.user.id}"
 
             # Connect to user-specific group
@@ -78,7 +78,7 @@ class WaiterNotificationConsumer(AsyncWebsocketConsumer):
         self.waiter_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.waiter = await self.get_user(self.waiter_id)
         print(self.waiter)
-        if self.waiter.user_type == 'Waiter':
+        if self.waiter.user_type == 'Официант':
             self.user_group_name = f"waiter-{self.waiter.id}"
 
             # Connect to user-specific group
@@ -140,7 +140,7 @@ class AdminNotificationConsumer(AsyncWebsocketConsumer):
         self.admin_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.admin = await self.get_user(self.admin_id)
         print(self.admin)
-        if self.admin.user_type == 'Admin':
+        if self.admin.user_type == 'Администратор':
             self.user_group_name = f"admin-{self.admin.id}"
 
             # Connect to user-specific group
@@ -201,7 +201,7 @@ class BartenderNotificationConsumer(AsyncWebsocketConsumer):
         self.bartender_id = self.scope["url_route"]["kwargs"]["user_id"]
         self.bartender = await self.get_user(self.bartender_id)
         print(self.bartender)
-        if self.bartender.user_type == 'Bartender':
+        if self.bartender.user_type == 'Бармен':
             self.user_group_name = f"bartender-{self.bartender.id}"
 
             # Connect to user-specific group

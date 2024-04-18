@@ -311,7 +311,7 @@ def storage_ready_deleted(sender, instance, **kwargs):
     
 @receiver(post_save, sender=CustomUser, dispatch_uid="staff_created")
 def staff_created(sender, instance, created, **kwargs):
-    if created and instance.user_type == "Waiter" or "Bartender":
+    if created and instance.user_type == "Официант" or "Бармен":
 
         for admin in admins:
             Notification.objects.create(
@@ -330,7 +330,7 @@ def staff_created(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=CustomUser, dispatch_uid="staff_deleted")
 def staff_deleted(sender, instance, **kwargs):
-    if instance.user_type == "Waiter" or "Bartender":
+    if instance.user_type == "Официант" or "Бармен":
 
         for admin in admins:
             Notification.objects.create(
@@ -347,7 +347,7 @@ def staff_deleted(sender, instance, **kwargs):
             )
 
 
-bartenders = User.objects.filter(user_type="Bartender")
+bartenders = User.objects.filter(user_type="Бармен")
 
 
 @receiver(post_save, sender=Order, dispatch_uid="order_bartender_status_accept")
@@ -364,10 +364,10 @@ def bartender_status_accept(sender, instance, created, **kwargs):
     if instance.order_status == 'Новый':
         for bartender in bartenders:
             if bartender.branch == instance.branch:
-                if instance.order_status == 'Takeaway':
+                if instance.order_status == 'На вынос':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
-                elif instance.order_status == 'In Venue':
+                elif instance.order_status == 'В заведении':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
                     table_number = f"{instance.table.table_number}"

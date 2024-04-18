@@ -40,8 +40,8 @@ class Order(models.Model):
     )
 
     order_type_choice = (
-        ('In Venue', 'In Venue'),
-        ('Takeaway', 'Takeaway')
+        ('В заведении', 'В заведении'),
+        ('На вынос', 'На вынос')
     )
 
     order_status = models.CharField(
