@@ -11,7 +11,7 @@ class Notification(models.Model):
     status = models.CharField(max_length=50)
     read = models.BooleanField(default=False)
     recipient = models.ForeignKey(CustomUser, related_name='recipient_name', on_delete=models.CASCADE)
-    table_number = models.PositiveIntegerField()
+    table_number = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} - {self.status}"
