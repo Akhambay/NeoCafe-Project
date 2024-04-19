@@ -1,7 +1,7 @@
 from .models import Order
 from decimal import Decimal
 from rest_framework import serializers
-from .models import Order, ItemToOrder, Table, ExtraItemToOrder
+from .models import Order, ItemToOrder, Table, OrderItemExtraProduct
 from menu.models import Stock, ExtraItem
 from django.utils import timezone
 from django.db import transaction
@@ -291,7 +291,7 @@ class OrderDetailedSerializer(serializers.ModelSerializer):
                     stock_item.current_quantity -= required_quantity
                     stock_item.save()
                     
-                    ExtraItemToOrder.objects.update_or_create(
+                    OrderItemExtraProduct.objects.update_or_create(
                         order=instance, extra_item=extra_item, defaults={'quantity': extra_item_quantity})
 
         # Delete any remaining ItemToOrder instances (if any)
@@ -448,7 +448,7 @@ class OrderOnlineSerializer(serializers.ModelSerializer):
 
         if extra_items_data:
             for extra_item_data in extra_items_data:
-                ExtraItemToOrder.objects.create(order=order, **extra_item_data)
+                OrderItemExtraProduct.objects.create(order=order, **extra_item_data)
 
         return order
 
@@ -585,7 +585,7 @@ class OrderOnlineDetailedSerializer(serializers.ModelSerializer):
                     stock_item.current_quantity -= required_quantity
                     stock_item.save()
                     
-                    ExtraItemToOrder.objects.update_or_create(
+                    OrderItemExtraProduct.objects.update_or_create(
                         order=instance, extra_item=extra_item, defaults={'quantity': extra_item_quantity})
 
         # Delete any remaining ItemToOrder instances (if any)
