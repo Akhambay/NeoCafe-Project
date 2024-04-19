@@ -68,6 +68,9 @@ class OrderView(APIView):
                     profile_model = WaiterProfile
                 elif request.user.user_type == 'Бармен':
                     profile_model = BartenderProfile
+                else:
+                    # Default to WaiterProfile if user_type is neither 'Официант' nor 'Бармен'
+                    profile_model = WaiterProfile
 
                 # Create or retrieve the profile
                 user_profile, profile_created = create_or_get_employee_profile(
