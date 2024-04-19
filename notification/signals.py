@@ -350,7 +350,7 @@ def bartender_status_accept(sender, instance, created, **kwargs):
     item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
-    table_number = ""
+    #table_number = ""
     title = ""
     description = ""
 
@@ -363,8 +363,8 @@ def bartender_status_accept(sender, instance, created, **kwargs):
                 elif instance.order_status == 'В заведении':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
-                    if instance.table:  # Check if table exists
-                        table_number = f"{instance.table.table_number}"
+                    #if instance.table:  # Check if table exists
+                     #   table_number = f"{instance.table.table_number}"
 
             if title and description and instance.employee:
                 for bartender in bartenders.filter(branch=instance.branch):  # Filter bartenders by branch
@@ -373,7 +373,7 @@ def bartender_status_accept(sender, instance, created, **kwargs):
                         description=description,
                         recipient=bartender,
                         status=instance.order_status,
-                        table_number=table_number  # Use table_number here
+                        #table_number=table_number  # Use table_number here
                     )
 
             bartender_name = f"bartender-{bartender.id}"

@@ -232,7 +232,7 @@ class BartenderNotificationConsumer(AsyncWebsocketConsumer):
                     "title": notification.title,
                     "description": notification.description,
                     "timestamp": notification.timestamp.strftime("%H:%M"),
-                    "table": notification.table_number
+                    #"table": notification.table_number
                 }
             )
             notification.read = True
