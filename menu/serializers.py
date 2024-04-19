@@ -1,6 +1,6 @@
 from .models import Stock
 from rest_framework import serializers
-from .models import Menu_Item, Category, Stock, Ingredient, ExtraItem
+from .models import Menu_Item, Category, Stock, Ingredient
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -211,7 +211,7 @@ class StockAddSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-class ExtraItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExtraItem
-        fields = ['id', 'type_extra_product', 'name',  'quantity', 'measurement_unit',]
+# class ExtraItemSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ExtraItem
+#         fields = ['id', 'type_extra_product', 'name',  'quantity', 'measurement_unit',]

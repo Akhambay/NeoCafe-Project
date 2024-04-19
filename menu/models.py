@@ -107,26 +107,26 @@ class MenuItemIngredient(models.Model):
     def __str__(self):
         return f"{self.menu_item.name} - {self.ingredient.name} ({self.quantity})"
 
-class ExtraItem(models.Model):
-    MILK = 'Молоко'
-    SYRUP = 'Сироп'
-    TYPE_CHOICES = [
-        (MILK, 'Молоко'),
-        (SYRUP, 'Сиропы')
-    ]
+# class ExtraItem(models.Model):
+#     MILK = 'Молоко'
+#     SYRUP = 'Сироп'
+#     TYPE_CHOICES = [
+#         (MILK, 'Молоко'),
+#         (SYRUP, 'Сиропы')
+#     ]
 
-    choice_category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name="extra_products", null=True
-    )
-    type_extra_product = models.CharField(
-        max_length=20, choices=TYPE_CHOICES, null=True, verbose_name="Доп. Продукт"
-    )
-    name = models.CharField(max_length=100, unique=True, verbose_name="Название доп. продукта")
-    quantity = models.PositiveIntegerField(default=0)
+#     choice_category = models.ForeignKey(
+#         Category, on_delete=models.CASCADE, related_name="extra_products", null=True
+#     )
+#     type_extra_product = models.CharField(
+#         max_length=20, choices=TYPE_CHOICES, null=True, verbose_name="Доп. Продукт"
+#     )
+#     name = models.CharField(max_length=100, unique=True, verbose_name="Название доп. продукта")
+#     quantity = models.PositiveIntegerField(default=0)
 
-    class Meta:
-        ordering = ["name"]
-        verbose_name_plural = "Доп. Продукты"
+#     class Meta:
+#         ordering = ["name"]
+#         verbose_name_plural = "Доп. Продукты"
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
