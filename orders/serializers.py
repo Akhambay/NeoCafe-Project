@@ -24,10 +24,11 @@ class ItemToOrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     total_price = serializers.SerializerMethodField()
     item_name = serializers.SerializerMethodField()
+    extra_items = ExtraItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = ItemToOrder
-        fields = ['id', 'item', 'item_name', 'quantity', 'total_price']
+        fields = ['id', 'item', 'item_name', 'quantity', 'total_price', 'extra_items']
 
     def get_total_price(self, obj):
         return obj.item.price_per_unit * obj.quantity
