@@ -95,36 +95,29 @@ def waiter_status_changed(sender, instance, created, **kwargs):
     item_descriptions = [f"{item.item.name} x {item.quantity}" for item in instance.ITO.all()]
     items_detail = ", ".join(item_descriptions)
 
-    table_number = ""
     title = ""
     description = ""
 
     if instance.order_status == 'Новый':
         title = f"Ваш заказ оформлен"
         description = f"{items_detail}"
-        table_number = f"{instance.table.table_number}"
     elif instance.order_status == 'Готов':
         title = f"Заказ готов"
         description = f"{items_detail}"
-        table_number = f"{instance.table.table_number}"
     elif instance.order_status == 'В процессе':
         title = f"Бармен принял заказ"
         description = f"{items_detail}"
-        table_number = f"{instance.table.table_number}"
     elif instance.order_status == 'Отменен':
         title = f"Заказ отменен"
         description = f"{items_detail}"
-        table_number = f"{instance.table.table_number}"
     elif instance.order_status == 'Завершен':
         title = f"Закрытие счета"
         description = f"{items_detail}"
-        table_number = f"{instance.table.table_number}"
 
-    if title and description and table_number and instance.employee:
+    if title and description and instance.employee:
         Notification.objects.create(
             title=title,
             description=description,
-            table=table_number,
             recipient=instance.employee,
             status=instance.order_status
         )
@@ -370,16 +363,18 @@ def bartender_status_accept(sender, instance, created, **kwargs):
                 elif instance.order_status == 'В заведении':
                     title = f"{instance.order_status} {instance.id}"
                     description = f"{items_detail}"
-                    table_number = f"{instance.table.table_number}"
+                    if instance.table:  # Check if table exists
+                        table_number = f"{instance.table.table_number}"
 
             if title and description and instance.employee:
-                Notification.objects.create(
-                    title=title,
-                    description=description,
-                    recipient=bartender,
-                    status=instance.order_status,
-                    table = table_number
-                )
+                for bartender in bartenders.filter(branch=instance.branch):  # Filter bartenders by branch
+                    Notification.objects.create(
+                        title=title,
+                        description=description,
+                        recipient=bartender,
+                        status=instance.order_status,
+                        table_number=table_number  # Use table_number here
+                    )
 
             bartender_name = f"bartender-{bartender.id}"
 
