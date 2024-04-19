@@ -1,8 +1,8 @@
 from .models import Order
 from decimal import Decimal
 from rest_framework import serializers
-from .models import Order, ItemToOrder, Table, OrderItemExtraProduct
-from menu.models import Stock, ExtraItem
+from .models import Order, ItemToOrder, Table
+from menu.models import Stock
 from django.utils import timezone
 from django.db import transaction
 from datetime import datetime
