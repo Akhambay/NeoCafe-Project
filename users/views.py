@@ -753,7 +753,7 @@ class BartenderAuthenticationCheckView(APIView):
 
             return Response({
                 'message': 'Confirmation code sent successfully.',
-                'bartender_email': user.email
+                'bartender_email': user.email,
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Bartender with this email is not registered.'}, status=status.HTTP_404_NOT_FOUND)
@@ -788,6 +788,8 @@ class BartenderAuthenticationView(APIView):
             update_last_login(None, user)
 
             # Check if the user already has a token
+            user_id = user.id
+            branch_id = user.branch.id
             refresh = RefreshToken.for_user(user)
 
             # Access the token using the `access_token` attribute
@@ -796,6 +798,8 @@ class BartenderAuthenticationView(APIView):
                 'message': 'Authentication successful.',
                 'access_token': str(access_token),
                 'refresh_token': str(refresh),
+                'user_id': user_id,
+                'branch_id': branch_id
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -845,12 +849,9 @@ class WaiterAuthenticationCheckView(APIView):
 
         send_mail(subject, message, from_email, recipient_list)
 
-        csrf_token = get_token(request)
-
         return Response({
             'message': 'Confirmation code sent successfully.',
             'waiter_email': user.email,
-            'csrf_token': get_token(request)
         }, status=status.HTTP_200_OK)
 
 
