@@ -93,10 +93,11 @@ class ItemToOrder(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='ITO')
     item = models.ForeignKey(Menu_Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    extra_temp = models.ManyToManyField(
+    extra_product = models.ManyToManyField(
         ExtraItem,
         blank=True,
-        related_name="extra_order_temp"
+        through='ExtraItemToOrder',
+        related_name="extra_order"
     )
 
 
