@@ -518,7 +518,7 @@ class CustomerEmailCheckView(APIView):
             length=4, allowed_chars='1234567890')
 
         #
-        confirmation_code = '4444'
+        confirmation_code = '5454'
         #
 
         # Set a flag in the user's session to indicate the need for confirmation
@@ -619,7 +619,7 @@ class CustomerAuthenticationCheckView(APIView):
             length=4, allowed_chars='1234567890')
 
         #
-        confirmation_code = '4444'
+        confirmation_code = '5454'
         #
 
         # Set a flag in the user's session to indicate the need for confirmation
@@ -727,7 +727,7 @@ class BartenderAuthenticationCheckView(APIView):
             length=4, allowed_chars='1234567890')
 
         #
-        confirmation_code = '4444'
+        confirmation_code = '4545'
         #
 
         # Set a flag in the user's session to indicate the need for confirmation
