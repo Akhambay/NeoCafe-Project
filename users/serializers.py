@@ -414,7 +414,7 @@ class WaiterLoginSerializer(serializers.Serializer):
             id=user_id, email=email, confirmation_code=confirmation_code).first()
 
         if user is not None:
-            # Add 'user' to validated_data before returning
+            # Add 'user' to validated_data before returning!
             data['user'] = user
 
             # Login the user
