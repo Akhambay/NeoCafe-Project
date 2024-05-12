@@ -1,93 +1,77 @@
-# neocafe24-team3-back
+# NeoCafe
 
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/neocafe24-team3-back/neocafe24-team3-back.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.com/neocafe24-team3-back/neocafe24-team3-back/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## About
+Neocafe is an innovative mobile application designed to automate the process of placing orders in cafes/restaurants. It enables users to place orders quickly and conveniently, track their status in real time, and receive notifications upon order readiness. Neocafe has various user roles, including customers, administrators, waiters, and baristas, making it a versatile tool for enhancing service and process management in cafe settings.
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Ensure your environment is set up with the following:
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+1. **Python version 3.x, redis-server, and pip3.**
+2. Clone the repository:
+```
+git clone https://github.com/Akhambay/NeoCafe-Project.git
+```
+3. Navigate to the project directory:
+```
+cd NeoCafe-Project
+```
+4. Create and activate a virtual environment:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+5. Install the required packages:
+```
+pip3 install -r requirements.txt
+```
+6. Make migrations and migrate:
+```
+python3 manage.py makemigrations
+python3 manage.py migrate
+```
+7. Create a superuser:
+```
+python3 manage.py createsuperuser
+```
+Run the app and celery:
+```
+python3 -m uvicorn config.asgi:application --reload
+celery -A config worker -l info
+```
+10. Open the app in your browser at http://127.0.0.1:8000/schema/swagger/.
+    
+## Technologies and Services
+Neocafe utilizes a state-of-the-art technology stack including:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+**Python 3.8:** For backend development, provides high speed development and efficiency.
+**Django REST Framework:** A powerful and flexible framework for building APIs.
+**Redis & Celery:** For asynchronous task processing and data caching.
+**Cloudinary:** Provides convenient media management.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+# Roles
+**Customer:** Can register, edit profile, view menus, place orders, track their status and receive notifications.
+**Administrator:** Can create branches, menu items, add employees and stock items.
+**Waiter/Barista:** Processes and fulfills orders.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Using the API
+The Neocafe backend provides a RESTful API for managing orders, user accounts, and more. Below is a guide on how to start interacting with our API endpoints.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+API Overview
+Our API allows you to programmatically perform actions like creating new orders, updating user profiles, and more. The API is organized around REST. Our API has predictable resource-oriented URLs, accepts form-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Authentication
+Our API uses API keys to authenticate requests. You can view and manage your API keys in the Dashboard. Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Contributing
+We welcome contributions to the Neocafe project! If you're interested in helping improve Neocafe, please follow these steps:
 
-## License
-For open source projects, say how it is licensed.
+Fork the repository: This creates your own copy of the repository where you can make your changes.
+Create a new branch: Use the command git checkout -b feature/AmazingFeature to create a new branch for your feature.
+Make your changes: Implement your new feature or bug fix in this branch.
+Commit your changes: Use the command git commit -m 'Add some AmazingFeature' to save your changes with a descriptive commit message.
+Push the branch: Use the command git push origin feature/AmazingFeature to upload your changes to your forked repository.
+Open a Pull Request: Go to the GitHub page of your forked repository and click on "New pull request" to submit your changes for review.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Author & Contact
+Assyl Akhambay
+If you have questions, suggestions, or would like to report a bug, feel free to contact me at assyl.akhambay@gmail.com, or contact me on LinkedIn (assyl-akhambay)
